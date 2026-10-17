@@ -1,22 +1,19 @@
 import './dailyReport.css'
+import danantaraLogo from './assets/danantara.png'
+import pertaminaLogo from './assets/pertamina.png'
 
-export default function DailyReport({ debugSlot }) {
+export default function DailyReport() {
   return (
     <div className="daily-report-body">
       <div className="dashboard-container">
         {/* TOP HEADER */}
         <div className="top-banner">
           <div className="logo-left">
-            <span>Danantara Indonesia</span>
+            <img src={danantaraLogo} alt="Danantara Indonesia" className="logo-img" />
           </div>
           <div className="banner-title">DAILY REPORT LOC II</div>
           <div className="logo-right">
-            <span>
-              PERTAMINA
-              <small style={{ display: 'block', fontSize: '9px', color: '#c00' }}>
-                PATRA NIAGA
-              </small>
-            </span>
+            <img src={pertaminaLogo} alt="Pertamina Patra Niaga" className="logo-img" />
           </div>
         </div>
 
@@ -26,7 +23,6 @@ export default function DailyReport({ debugSlot }) {
             <span className="font-bold">Tanggal:</span>
             <span>Sabtu, 17 Oktober 2026</span>
           </div>
-          {debugSlot && <div className="flex items-center gap-2">{debugSlot}</div>}
         </div>
 
         {/* MAIN CONTENT GRID */}
@@ -34,20 +30,19 @@ export default function DailyReport({ debugSlot }) {
           {/* LEFT COLUMN */}
           <div className="left-col">
             {/* KAPASITAS FEED + HOS II + TANK FARM + CPI */}
-            <div className="card">
+            <div className="card card-feed">
               <div className="card-title">KAPASITAS FEED</div>
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: '15%' }}>UNIT</th>
-                    <th style={{ width: '15%' }}>Status</th>
-                    <th style={{ width: '11%' }}>Design (T/D)</th>
-                    <th style={{ width: '11%' }}>Aktual (T/D)</th>
-                    <th style={{ width: '13%' }}>Target RPH (T/D)</th>
-                    <th style={{ width: '11%' }}>Target STS</th>
-                    <th style={{ width: '8%' }}>% Design</th>
-                    <th style={{ width: '8%' }}>% PRH</th>
-                    <th style={{ width: '8%' }}>% STS</th>
+                    <th style={{ width: '16%' }}>UNIT</th>
+                    <th style={{ width: '16%' }}>Status</th>
+                    <th style={{ width: '12%' }}>Design (T/D)</th>
+                    <th style={{ width: '12%' }}>Aktual (T/D)</th>
+                    <th style={{ width: '14%' }}>Target RPH (T/D)</th>
+                    <th style={{ width: '12%' }}>Target STS</th>
+                    <th style={{ width: '9%' }}>% PRH</th>
+                    <th style={{ width: '9%' }}>% STS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -59,12 +54,6 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">2583</td>
                     <td className="text-center">2524</td>
                     <td className="text-center">2524</td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>66.5</span>
-                      </div>
-                    </td>
                     <td>
                       <div className="status-cell">
                         <span className="dot dot-green"></span>
@@ -86,12 +75,6 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">635</td>
                     <td className="text-center">627</td>
                     <td className="text-center">549</td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>81.1</span>
-                      </div>
-                    </td>
                     <td>
                       <div className="status-cell">
                         <span className="dot dot-green"></span>
@@ -122,12 +105,6 @@ export default function DailyReport({ debugSlot }) {
                     </td>
                     <td rowSpan={2} className="text-center">
                       1476
-                    </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>77.1</span>
-                      </div>
                     </td>
                     <td rowSpan={2}>
                       <div className="status-cell">
@@ -166,12 +143,6 @@ export default function DailyReport({ debugSlot }) {
                     <td rowSpan={2}>
                       <div className="status-cell">
                         <span className="dot dot-green"></span>
-                        <span>66.7</span>
-                      </div>
-                    </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
                         <span>102.6</span>
                       </div>
                     </td>
@@ -193,7 +164,7 @@ export default function DailyReport({ debugSlot }) {
                     <th>Pompa HOS</th>
                     <th>Aktual (T/D)</th>
                     <th>Burner FG/FO</th>
-                    <th colSpan={4}>Level 023C104</th>
+                    <th colSpan={3}>Level 023C104</th>
                   </tr>
                   <tr>
                     <td className="text-center">HOS II</td>
@@ -201,7 +172,7 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">025P101AT</td>
                     <td className="text-center">23808</td>
                     <td className="text-center">12 Gas / 4 Oil</td>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={3} className="text-center">
                       1.4
                     </td>
                   </tr>
@@ -213,7 +184,7 @@ export default function DailyReport({ debugSlot }) {
                     <th>Flow HVI 95</th>
                     <th>Flow HVI 160S</th>
                     <th>Flow HVI 650</th>
-                    <th colSpan={2}>Level CPI (%)</th>
+                    <th>Level CPI (%)</th>
                     <th colSpan={2}>VISUAL PERAIRAN</th>
                   </tr>
                   <tr>
@@ -224,9 +195,7 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">465</td>
                     <td className="text-center">0</td>
                     <td className="text-center">0</td>
-                    <td colSpan={2} className="text-center">
-                      22.0
-                    </td>
+                    <td className="text-center">22.0</td>
                     <td colSpan={2} className="text-center">
                       CLEAR
                     </td>
@@ -236,14 +205,14 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">0</td>
                     <td className="text-center">0</td>
                     <td className="text-center">256</td>
-                    <th colSpan={4}>STATUS POMPA CPI</th>
+                    <th colSpan={3}>STATUS POMPA CPI</th>
                   </tr>
                   <tr>
                     <th colSpan={2}>Stock Product (MTon)</th>
                     <th>HVI 95</th>
                     <th>HVI 160S</th>
                     <th>HVI 650</th>
-                    <th colSpan={2}>002P101A</th>
+                    <th>002P101A</th>
                     <th colSpan={2}>002P101B</th>
                   </tr>
                   <tr>
@@ -253,9 +222,7 @@ export default function DailyReport({ debugSlot }) {
                     <td className="text-center">2951</td>
                     <td className="text-center">1048</td>
                     <td className="text-center">3481</td>
-                    <td colSpan={2} className="text-center">
-                      Perbaikan
-                    </td>
+                    <td className="text-center">Perbaikan</td>
                     <td colSpan={2} className="text-center">
                       AUTO
                     </td>
@@ -265,7 +232,7 @@ export default function DailyReport({ debugSlot }) {
             </div>
 
             {/* ISSUE OPERASIONAL */}
-            <div className="card" style={{ flexGrow: 1 }}>
+            <div className="card card-operasional">
               <div className="card-title">ISSUE OPERASIONAL</div>
               <div className="operational-box">
                 <ol className="list-decimal pl-5 space-y-1">
@@ -280,7 +247,7 @@ export default function DailyReport({ debugSlot }) {
           {/* RIGHT COLUMN */}
           <div className="right-col">
             {/* PRODUKSI */}
-            <div className="card">
+            <div className="card card-produksi">
               <div className="card-title">PRODUKSI</div>
               <table>
                 <thead>
@@ -480,7 +447,7 @@ export default function DailyReport({ debugSlot }) {
             </div>
 
             {/* FEU / MDU / NOTE SUMMARY TABLE */}
-            <div className="card">
+            <div className="card card-summary">
               <table>
                 <thead>
                   <tr>
@@ -564,7 +531,7 @@ export default function DailyReport({ debugSlot }) {
             </div>
 
             {/* ISSUE MAINTENANCE */}
-            <div className="card" style={{ flexGrow: 1 }}>
+            <div className="card card-maintenance">
               <div className="card-title">ISSUE MAINTENANCE</div>
               <table>
                 <thead>
