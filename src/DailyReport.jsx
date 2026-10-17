@@ -252,11 +252,11 @@ export default function DailyReport() {
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: '16%' }}>UNIT</th>
-                    <th style={{ width: '18%' }}>Produk</th>
-                    <th style={{ width: '12%' }}>AKTUAL</th>
-                    <th style={{ width: '42%' }}>ANALISA SAMPLE</th>
-                    <th style={{ width: '12%' }}>STATUS</th>
+                    <th style={{ width: '15%' }}>UNIT</th>
+                    <th style={{ width: '16%' }}>Produk</th>
+                    <th style={{ width: '11%' }}>AKTUAL</th>
+                    <th style={{ width: '48%' }}>ANALISA SAMPLE</th>
+                    <th style={{ width: '10%' }}>STATUS</th>
                   </tr>
                 </thead>
                 <tbody>

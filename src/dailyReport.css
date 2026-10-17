@@ -69,30 +69,30 @@ html, body {
 
 .logo-left,
 .logo-right {
-  background: #fff;
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 clamp(16px, 1.6vw, 24px);
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  flex-shrink: 0;
 }
 
 .logo-left {
-  clip-path: polygon(0 0, 100% 0, 84% 100%, 0% 100%);
-  padding-right: clamp(30px, 2.5vw, 44px);
+  justify-content: flex-start;
 }
 
 .logo-right {
-  clip-path: polygon(16% 0, 100% 0, 100% 100%, 0% 100%);
-  padding-left: clamp(30px, 2.5vw, 44px);
+  justify-content: flex-end;
 }
 
 .logo-img {
-  height: clamp(26px, 3.8vh, 36px);
-  max-height: 85%;
+  height: 100%;
   width: auto;
-  object-fit: contain;
   display: block;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
 }
 
 .banner-title {
