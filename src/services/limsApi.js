@@ -39,3 +39,4 @@ export async function fetchLimsData() {
     return { samples: {}, shift: 'Malam' }
   }
 }
+

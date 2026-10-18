@@ -259,8 +259,7 @@ export default function DailyReport({
                   {/* UNIT 023 (Switchable Mode on double-click) */}
                   <tr>
                     <td
-                      rowSpan={2}
-                      className="text-center font-bold interactive-card"
+                      className="text-center font-bold"
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
@@ -269,7 +268,7 @@ export default function DailyReport({
                           unitKey: 'unit023',
                         })
                       }
-                      title="Double-click to switch mode (LMO / MMO / DAO)"
+                      title="Double-click to toggle mode (LMO / MMO / DAO)"
                     >
                       UNIT 023 FEU II
                     </td>
@@ -303,7 +302,15 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td
-                      className="text-center font-bold text-indigo-700 bg-indigo-50/60 unit-mode-badge"
+                      className="text-center font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 unit-mode-badge"
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'Unit 023 FEU II Mode',
+                          type: 'unit_mode',
+                          unitKey: 'unit023',
+                        })
+                      }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
@@ -312,17 +319,16 @@ export default function DailyReport({
                           unitKey: 'unit023',
                         })
                       }
-                      title="Double-click to toggle mode"
+                      title="Klik untuk ubah mode (LMO / MMO / DAO)"
                     >
-                      {feuMode} ▾
+                      {feuMode}
                     </td>
                   </tr>
 
                   {/* UNIT 024 (Switchable Mode on double-click) */}
                   <tr>
                     <td
-                      rowSpan={2}
-                      className="text-center font-bold interactive-card"
+                      className="text-center font-bold"
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
@@ -365,7 +371,15 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td
-                      className="text-center font-bold text-indigo-700 bg-indigo-50/60 unit-mode-badge"
+                      className="text-center font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 unit-mode-badge"
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'Unit 024 MDU II Mode',
+                          type: 'unit_mode',
+                          unitKey: 'unit024',
+                        })
+                      }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
@@ -374,9 +388,9 @@ export default function DailyReport({
                           unitKey: 'unit024',
                         })
                       }
-                      title="Double-click to toggle mode"
+                      title="Klik untuk ubah mode (LMO / MMO / DAO)"
                     >
-                      {mduMode} ▾
+                      {mduMode}
                     </td>
                   </tr>
 

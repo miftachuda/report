@@ -375,10 +375,10 @@ html, body {
 
 .unit-mode-badge {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease;
   user-select: none;
 }
 
 .unit-mode-badge:hover {
-  transform: scale(1.05);
+  background-color: #dbeafe !important;
 }
