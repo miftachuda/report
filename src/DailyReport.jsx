@@ -292,6 +292,28 @@ export default function DailyReport({
       ? feuMduData.flow_hvi_650_loc2
       : defaultFlowHvi650Loc2;
 
+  // Tank Farm LOC III Flow Product (editable, defaults 0, 0, 256)
+  const flowHvi95Loc3 =
+    feuMduData?.flow_hvi_95_loc3 !== undefined &&
+    feuMduData?.flow_hvi_95_loc3 !== null &&
+    feuMduData?.flow_hvi_95_loc3 !== ""
+      ? feuMduData.flow_hvi_95_loc3
+      : 0;
+
+  const flowHvi160sLoc3 =
+    feuMduData?.flow_hvi_160s_loc3 !== undefined &&
+    feuMduData?.flow_hvi_160s_loc3 !== null &&
+    feuMduData?.flow_hvi_160s_loc3 !== ""
+      ? feuMduData.flow_hvi_160s_loc3
+      : 0;
+
+  const flowHvi650Loc3 =
+    feuMduData?.flow_hvi_650_loc3 !== undefined &&
+    feuMduData?.flow_hvi_650_loc3 !== null &&
+    feuMduData?.flow_hvi_650_loc3 !== ""
+      ? feuMduData.flow_hvi_650_loc3
+      : 256;
+
   const slackWaxFlow = getPhdTag("024FI_031.PV");
   let slackWaxSgTag = "024FY_031X.c1";
   const slackWaxSg = getPhdTag(slackWaxSgTag);
@@ -316,7 +338,7 @@ export default function DailyReport({
     const evaluated = evaluateSampleLimit(rawVal, limitRecord);
 
     return (
-      <span className="inline-flex items-center justify-center gap-0.5">
+      <span className="inline-flex items-center justify-start gap-0.5 text-left">
         <span
           className={
             evaluated.isOutOfRange ? "lims-val-alert" : "lims-val-normal"
@@ -802,9 +824,48 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td className="text-center font-bold">LOC III</td>
-                    <td className="text-center">0</td>
-                    <td className="text-center">0</td>
-                    <td className="text-center">256</td>
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi95Loc3}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_95_loc3: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 95 LOC III"
+                      />
+                    </td>
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi160sLoc3}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_160s_loc3: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 160S LOC III"
+                      />
+                    </td>
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi650Loc3}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_650_loc3: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 650 LOC III"
+                      />
+                    </td>
                     <th colSpan={4}>STATUS POMPA CPI</th>
                   </tr>
                   <tr>

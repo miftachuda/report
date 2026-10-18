@@ -54,6 +54,9 @@ export default function App() {
     flow_hvi_95_loc2: null,
     flow_hvi_160s_loc2: null,
     flow_hvi_650_loc2: null,
+    flow_hvi_95_loc3: null,
+    flow_hvi_160s_loc3: null,
+    flow_hvi_650_loc3: null,
   });
 
   // State for Issue Operational (Section B)

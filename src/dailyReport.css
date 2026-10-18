@@ -345,6 +345,8 @@ html, body {
 .sample-grid {
   display: grid;
   align-items: center;
+  justify-items: start;
+  text-align: left;
   width: 100%;
   font-size: clamp(10px, 0.75vw, 12.5px);
   line-height: 1.25;
@@ -353,17 +355,19 @@ html, body {
 .sample-grid-single {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: clamp(8px, 0.9vw, 14px);
   width: 100%;
   font-size: clamp(11px, 0.8vw, 13px);
+  text-align: left;
 }
 
 .sample-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: left;
   width: 100%;
   column-gap: clamp(4px, 0.5vw, 8px);
   row-gap: 2px;
@@ -374,7 +378,8 @@ html, body {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   align-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: left;
   width: 100%;
   column-gap: clamp(2px, 0.3vw, 5px);
   row-gap: 2px;
@@ -384,6 +389,7 @@ html, body {
 .sample-grid .font-bold {
   color: #0f172a;
   font-size: clamp(10px, 0.72vw, 12px);
+  text-align: left;
 }
 
 .card-produksi td {
