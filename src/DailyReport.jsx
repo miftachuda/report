@@ -4,6 +4,7 @@ import danantaraLogo from './assets/danantara.png'
 import pertaminaLogo from './assets/pertamina.png'
 import IssueEditModal from './components/IssueEditModal.jsx'
 import UnitModeModal from './components/UnitModeModal.jsx'
+import UnitStatusModal from './components/UnitStatusModal.jsx'
 import {
   calculateActualTD,
   calculateTargetTD,
@@ -22,6 +23,8 @@ export default function DailyReport({
   onIssueMaintenanceChange,
   unitModes,
   onUnitModeChange,
+  unitStatuses = {},
+  onUnitStatusChange,
   phdData = {},
   tanks = [],
   sampleLimits = [],
@@ -120,6 +123,15 @@ export default function DailyReport({
     const num = Number(val)
     if (isNaN(num)) return 'text-center'
     return num < 100 ? 'text-center text-yellow' : 'text-center text-green'
+  }
+
+  // Helper to color operation status (Normal Operasi: green, Shutdown: red, Sirkulasi: yellow, etc.)
+  const getStatusClass = (statusStr) => {
+    const s = String(statusStr || '').toUpperCase()
+    if (s.includes('NORMAL')) return 'text-center text-green'
+    if (s.includes('SHUTDOWN') || s.includes('SHUDOWN')) return 'text-center text-red'
+    if (s.includes('SIRKULASI')) return 'text-center text-yellow'
+    return 'text-center font-bold text-slate-800'
   }
 
   // Unit 025 HOS II & Levels
@@ -244,7 +256,28 @@ export default function DailyReport({
                   {/* UNIT 021 */}
                   <tr>
                     <td className="text-center font-bold">UNIT 021 HVU II</td>
-                    <td className="text-center text-green">Normal Operasi</td>
+                    <td
+                      className={`${getStatusClass(unitStatuses?.unit021)} cursor-pointer hover:bg-slate-100 transition-colors select-none`}
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 021 HVU II',
+                          type: 'unit_status',
+                          unitKey: 'unit021',
+                        })
+                      }
+                      onDoubleClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 021 HVU II',
+                          type: 'unit_status',
+                          unitKey: 'unit021',
+                        })
+                      }
+                      title="Klik untuk ubah status unit"
+                    >
+                      {unitStatuses?.unit021 || 'Normal Operasi'}
+                    </td>
                     <td className="text-center">{hvuDesign}</td>
                     <td className="text-center font-semibold text-slate-900">{hvuActual}</td>
                     <td className="text-center">{hvuTargetRph}</td>
@@ -257,7 +290,28 @@ export default function DailyReport({
                   {/* UNIT 022 */}
                   <tr>
                     <td className="text-center font-bold">UNIT 022 PDU II</td>
-                    <td className="text-center text-green">Normal Operasi</td>
+                    <td
+                      className={`${getStatusClass(unitStatuses?.unit022)} cursor-pointer hover:bg-slate-100 transition-colors select-none`}
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 022 PDU II',
+                          type: 'unit_status',
+                          unitKey: 'unit022',
+                        })
+                      }
+                      onDoubleClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 022 PDU II',
+                          type: 'unit_status',
+                          unitKey: 'unit022',
+                        })
+                      }
+                      title="Klik untuk ubah status unit"
+                    >
+                      {unitStatuses?.unit022 || 'Normal Operasi'}
+                    </td>
                     <td className="text-center">{pduDesign}</td>
                     <td className="text-center font-semibold text-slate-900">{pduActual}</td>
                     <td className="text-center">{pduTargetRph}</td>
@@ -282,8 +336,28 @@ export default function DailyReport({
                     >
                       UNIT 023 FEU II
                     </td>
-                    <td rowSpan={2} className="text-center text-green">
-                      Normal Operasi
+                    <td
+                      rowSpan={2}
+                      className={`${getStatusClass(unitStatuses?.unit023)} cursor-pointer hover:bg-slate-100 transition-colors select-none`}
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 023 FEU II',
+                          type: 'unit_status',
+                          unitKey: 'unit023',
+                        })
+                      }
+                      onDoubleClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 023 FEU II',
+                          type: 'unit_status',
+                          unitKey: 'unit023',
+                        })
+                      }
+                      title="Klik untuk ubah status unit"
+                    >
+                      {unitStatuses?.unit023 || 'Normal Operasi'}
                     </td>
                     <td rowSpan={2} className="text-center">
                       {feuDesign}
@@ -346,8 +420,28 @@ export default function DailyReport({
                     >
                       UNIT 024 MDU II
                     </td>
-                    <td rowSpan={2} className="text-center text-green">
-                      Normal Operasi
+                    <td
+                      rowSpan={2}
+                      className={`${getStatusClass(unitStatuses?.unit024)} cursor-pointer hover:bg-slate-100 transition-colors select-none`}
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 024 MDU II',
+                          type: 'unit_status',
+                          unitKey: 'unit024',
+                        })
+                      }
+                      onDoubleClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'UNIT 024 MDU II',
+                          type: 'unit_status',
+                          unitKey: 'unit024',
+                        })
+                      }
+                      title="Klik untuk ubah status unit"
+                    >
+                      {unitStatuses?.unit024 || 'Normal Operasi'}
                     </td>
                     <td rowSpan={2} className="text-center">
                       {mduDesign}
@@ -406,7 +500,28 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td className="text-center">HOS II</td>
-                    <td className="text-center text-green">Normal Operasi</td>
+                    <td
+                      className={`${getStatusClass(unitStatuses?.hos)} cursor-pointer hover:bg-slate-100 transition-colors select-none`}
+                      onClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'HOS II',
+                          type: 'unit_status',
+                          unitKey: 'hos',
+                        })
+                      }
+                      onDoubleClick={() =>
+                        setModalState({
+                          isOpen: true,
+                          title: 'HOS II',
+                          type: 'unit_status',
+                          unitKey: 'hos',
+                        })
+                      }
+                      title="Klik untuk ubah status unit"
+                    >
+                      {unitStatuses?.hos || 'Normal Operasi'}
+                    </td>
                     <td className="text-center">025P101AT</td>
                     <td className="text-center font-semibold">{hosActual}</td>
                     <td className="text-center">12 Gas / 4 Oil</td>
@@ -892,6 +1007,19 @@ export default function DailyReport({
         currentMode={unitModes?.[modalState.unitKey] || 'MMO'}
         onSelectMode={(newMode) => {
           onUnitModeChange(modalState.unitKey, newMode)
+        }}
+      />
+
+      {/* Interactive Status Selection Modal for Units */}
+      <UnitStatusModal
+        isOpen={modalState.isOpen && modalState.type === 'unit_status'}
+        onClose={() => setModalState({ isOpen: false, title: '', type: null, unitKey: null })}
+        unitName={modalState.title}
+        currentStatus={unitStatuses?.[modalState.unitKey] || 'Normal Operasi'}
+        onSelectStatus={(newStatus) => {
+          if (onUnitStatusChange && modalState.unitKey) {
+            onUnitStatusChange(modalState.unitKey, newStatus)
+          }
         }}
       />
     </div>

@@ -70,6 +70,15 @@ export default function App() {
     unit024: "LMO",
   });
 
+  // State for Unit Operational Statuses: Unit 021, 022, 023, 024, HOS II
+  const [unitStatuses, setUnitStatuses] = useState({
+    unit021: "Normal Operasi",
+    unit022: "Normal Operasi",
+    unit023: "Normal Operasi",
+    unit024: "Normal Operasi",
+    hos: "Normal Operasi",
+  });
+
   // PocketBase collections state
   const [tanks, setTanks] = useState([]);
   const [sampleLimits, setSampleLimits] = useState([]);
@@ -147,7 +156,21 @@ export default function App() {
             normalizeMaintenanceIssues(pbReport.issue_maintenance),
           );
         }
-        if (pbReport.unit_modes) setUnitModes(pbReport.unit_modes);
+        if (pbReport.unit_modes) {
+          setUnitModes(pbReport.unit_modes);
+          if (pbReport.unit_modes.statuses) {
+            setUnitStatuses((prev) => ({
+              ...prev,
+              ...pbReport.unit_modes.statuses,
+            }));
+          }
+        }
+        if (pbReport.feu_mdu_data?.unit_statuses) {
+          setUnitStatuses((prev) => ({
+            ...prev,
+            ...pbReport.feu_mdu_data.unit_statuses,
+          }));
+        }
         setLastSavedTime(
           pbReport.updated || pbReport.created || pbReport.updated_at,
         );
@@ -235,11 +258,21 @@ export default function App() {
     clearTimeout(autoSaveDebounceTimer.current);
     autoSaveDebounceTimer.current = setTimeout(async () => {
       const today = getTodayDateStr();
+      const currentUnitModes = updatedFields.unit_modes ?? unitModes;
+      const currentStatuses = updatedFields.unit_statuses ?? unitStatuses;
+      const currentFeuMdu = updatedFields.feu_mdu_data ?? feuMduData;
+
       const payload = {
-        feu_mdu_data: updatedFields.feu_mdu_data ?? feuMduData,
+        feu_mdu_data: {
+          ...currentFeuMdu,
+          unit_statuses: currentStatuses,
+        },
         issue_operational: updatedFields.issue_operational ?? issueOperational,
         issue_maintenance: updatedFields.issue_maintenance ?? issueMaintenance,
-        unit_modes: updatedFields.unit_modes ?? unitModes,
+        unit_modes: {
+          ...currentUnitModes,
+          statuses: currentStatuses,
+        },
       };
       try {
         await saveDailyReport(today, payload);
@@ -277,6 +310,13 @@ export default function App() {
     triggerAutoSync({ unit_modes: updated });
   };
 
+  // Operational Unit Status change handler (Unit 021, Unit 022, Unit 023, Unit 024, HOS II)
+  const handleUnitStatusChange = (unitKey, newStatus) => {
+    const updated = { ...unitStatuses, [unitKey]: newStatus };
+    setUnitStatuses(updated);
+    triggerAutoSync({ unit_statuses: updated });
+  };
+
   // 4. Manual Save & 23:00 Archive Trigger
   const handleManualSave = async (isAuto = false) => {
     setIsSaving(true);
@@ -285,10 +325,16 @@ export default function App() {
     try {
       // 1. Sync daily_report
       const currentReportState = {
-        feu_mdu_data: feuMduData,
+        feu_mdu_data: {
+          ...feuMduData,
+          unit_statuses: unitStatuses,
+        },
         issue_operational: issueOperational,
         issue_maintenance: issueMaintenance,
-        unit_modes: unitModes,
+        unit_modes: {
+          ...unitModes,
+          statuses: unitStatuses,
+        },
       };
       await saveDailyReport(today, currentReportState);
 
@@ -302,6 +348,7 @@ export default function App() {
         issue_operational: issueOperational,
         issue_maintenance: issueMaintenance,
         unit_modes: unitModes,
+        unit_statuses: unitStatuses,
         phd_data_snapshot: phdData,
         lims_snapshot: limsData,
       };
@@ -375,6 +422,8 @@ export default function App() {
           onIssueMaintenanceChange={handleIssueMaintenanceChange}
           unitModes={unitModes}
           onUnitModeChange={handleUnitModeChange}
+          unitStatuses={unitStatuses}
+          onUnitStatusChange={handleUnitStatusChange}
           phdData={phdData}
           tanks={tanks}
           sampleLimits={sampleLimits}
