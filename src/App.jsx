@@ -24,7 +24,7 @@ export default function App() {
     };
   });
 
-  // State for FEU MDU Table (Section A)
+  // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
   const [feuMduData, setFeuMduData] = useState({
     feu_lmo_design: 2180,
     feu_lmo_sts: 70,
@@ -41,6 +41,10 @@ export default function App() {
     mdu_dao_design: 501,
     mdu_dao_sts: 0,
     note: "",
+    pompa_hos: "025P101AT",
+    visual_perairan: "CLEAR",
+    status_pompa_cpi_a: "Perbaikan",
+    status_pompa_cpi_b: "AUTO",
   });
 
   // State for Issue Operational (Section B)
@@ -145,7 +149,12 @@ export default function App() {
 
       // Populate existing daily report if available
       if (pbReport) {
-        if (pbReport.feu_mdu_data) setFeuMduData(pbReport.feu_mdu_data);
+        if (pbReport.feu_mdu_data) {
+          setFeuMduData((prev) => ({
+            ...prev,
+            ...pbReport.feu_mdu_data,
+          }));
+        }
         if (pbReport.issue_operational) {
           setIssueOperational(
             normalizeOperationalIssues(pbReport.issue_operational),
@@ -193,7 +202,7 @@ export default function App() {
         "021FY_004X.C1",
         "022FI_001.pv",
         "022FY_001X.C1",
-        "023FI_004.pv",
+        "023FIC_004.pv",
         "024FI_001.pv",
         "025FIC_004.pv",
         "025FY_004X.PV",

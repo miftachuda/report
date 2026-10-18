@@ -1,17 +1,17 @@
-import { useState } from 'react'
-import './dailyReport.css'
-import danantaraLogo from './assets/danantara.png'
-import pertaminaLogo from './assets/pertamina.png'
-import IssueEditModal from './components/IssueEditModal.jsx'
-import UnitModeModal from './components/UnitModeModal.jsx'
-import UnitStatusModal from './components/UnitStatusModal.jsx'
+import { useState } from "react";
+import "./dailyReport.css";
+import danantaraLogo from "./assets/danantara.png";
+import pertaminaLogo from "./assets/pertamina.png";
+import IssueEditModal from "./components/IssueEditModal.jsx";
+import UnitModeModal from "./components/UnitModeModal.jsx";
+import UnitStatusModal from "./components/UnitStatusModal.jsx";
 import {
   calculateActualTD,
   calculateTargetTD,
   calculateAchievedPercent,
   calculateProductGroupTons,
   evaluateSampleLimit,
-} from './utils/calculations.js'
+} from "./utils/calculations.js";
 
 export default function DailyReport({
   dateDisplay,
@@ -33,169 +33,194 @@ export default function DailyReport({
   // Modal state for double-click editing
   const [modalState, setModalState] = useState({
     isOpen: false,
-    title: '',
+    title: "",
     type: null, // 'operational' | 'maintenance' | 'unit_mode'
     unitKey: null,
-  })
+  });
 
   // Calculations for Kapasitas Feed
   // Unit 021 HVU II
-  const hvuFlow = phdData['021FI_004.pv'] ?? null
-  const hvuSg = phdData['021FY_004X.C1'] ?? null
-  const hvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 2583
-  const hvuDesign = 3883
-  const hvuTargetRph = 2524
-  const hvuTargetSts = 2524
-  const hvuPercentDesign = calculateAchievedPercent(hvuActual, hvuDesign) ?? '66.5'
-  const hvuPercentRph = calculateAchievedPercent(hvuActual, hvuTargetRph) ?? '102.4'
-  const hvuPercentSts = calculateAchievedPercent(hvuActual, hvuTargetSts) ?? '102.4'
+  const hvuFlow = phdData["021FI_004.pv"] ?? null;
+  const hvuSg = phdData["021FY_004X.C1"] ?? null;
+  const hvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 2583;
+  const hvuDesign = 3883;
+  const hvuTargetRph = 2524;
+  const hvuTargetSts = 2524;
+  const hvuPercentDesign =
+    calculateAchievedPercent(hvuActual, hvuDesign) ?? "66.5";
+  const hvuPercentRph =
+    calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "102.4";
+  const hvuPercentSts =
+    calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "102.4";
 
   // Unit 022 PDU II
-  const pduFlow = phdData['022FI_001.pv'] ?? null
-  const pduSg = phdData['022FY_001X.C1'] ?? null
-  const pduActual = calculateActualTD(pduFlow, pduSg) ?? 635
-  const pduDesign = 784
-  const pduTargetRph = 627
-  const pduTargetSts = 549
-  const pduPercentDesign = calculateAchievedPercent(pduActual, pduDesign) ?? '81.1'
-  const pduPercentRph = calculateAchievedPercent(pduActual, pduTargetRph) ?? '101.3'
-  const pduPercentSts = calculateAchievedPercent(pduActual, pduTargetSts) ?? '115.8'
+  const pduFlow = phdData["022FI_001.pv"] ?? null;
+  const pduSg = phdData["022FY_001X.C1"] ?? null;
+  const pduActual = calculateActualTD(pduFlow, pduSg) ?? 635;
+  const pduDesign = 784;
+  const pduTargetRph = 627;
+  const pduTargetSts = 549;
+  const pduPercentDesign =
+    calculateAchievedPercent(pduActual, pduDesign) ?? "81.1";
+  const pduPercentRph =
+    calculateAchievedPercent(pduActual, pduTargetRph) ?? "101.3";
+  const pduPercentSts =
+    calculateAchievedPercent(pduActual, pduTargetSts) ?? "115.8";
 
   // Unit 023 FEU II (Active Mode: LMO / MMO / DAO)
-  const feuMode = unitModes?.unit023 || 'MMO'
-  let feuDesign = 2270
-  let feuStsPercent = feuMduData?.feu_mmo_sts ?? 65
-  let feuTagFlow = '023FI_004.pv'
-  let feuTagSg = '023FY_004CX.C1'
+  const feuMode = unitModes?.unit023 || "MMO";
+  let feuDesign = 2270;
+  let feuStsPercent = feuMduData?.feu_mmo_sts ?? 65;
+  let feuTagFlow = "023FIC_004.pv";
+  let feuTagSg = "023FY_004CX.C1";
 
-  if (feuMode === 'LMO') {
-    feuDesign = Number(feuMduData?.feu_lmo_design || 2180)
-    feuStsPercent = Number(feuMduData?.feu_lmo_sts || 70)
-    feuTagSg = '023FY_004BX.C1'
-  } else if (feuMode === 'DAO') {
-    feuDesign = Number(feuMduData?.feu_dao_design || 1786)
-    feuStsPercent = Number(feuMduData?.feu_dao_sts || 70)
-    feuTagSg = '023FY_004DX.C1'
+  if (feuMode === "LMO") {
+    feuDesign = Number(feuMduData?.feu_lmo_design || 2180);
+    feuStsPercent = Number(feuMduData?.feu_lmo_sts || 70);
+    feuTagSg = "023FY_004BX.C1";
+  } else if (feuMode === "DAO") {
+    feuDesign = Number(feuMduData?.feu_dao_design || 1786);
+    feuStsPercent = Number(feuMduData?.feu_dao_sts || 70);
+    feuTagSg = "023FY_004DX.C1";
   } else {
-    feuDesign = Number(feuMduData?.feu_mmo_design || 2270)
-    feuStsPercent = Number(feuMduData?.feu_mmo_sts || 65)
-    feuTagSg = '023FY_004CX.C1'
+    feuDesign = Number(feuMduData?.feu_mmo_design || 2270);
+    feuStsPercent = Number(feuMduData?.feu_mmo_sts || 65);
+    feuTagSg = "023FY_004CX.C1";
   }
 
-  const feuRphPercent = Number(feuMduData?.feu_rph || 65)
-  const feuTargetRph = calculateTargetTD(feuRphPercent, feuDesign) ?? 1476
-  const feuTargetSts = calculateTargetTD(feuStsPercent, feuDesign) ?? 1476
-  const feuFlow = phdData[feuTagFlow] ?? null
-  const feuSg = phdData[feuTagSg] ?? null
-  const feuActual = calculateActualTD(feuFlow, feuSg) ?? 1750
-  const feuPercentDesign = calculateAchievedPercent(feuActual, feuDesign) ?? '77.1'
-  const feuPercentRph = calculateAchievedPercent(feuActual, feuTargetRph) ?? '118.6'
-  const feuPercentSts = calculateAchievedPercent(feuActual, feuTargetSts) ?? '118.6'
+  const feuRphPercent = Number(feuMduData?.feu_rph || 65);
+  const feuTargetRph = calculateTargetTD(feuRphPercent, feuDesign) ?? 1476;
+  const feuTargetSts = calculateTargetTD(feuStsPercent, feuDesign) ?? 1476;
+  const feuFlow = phdData[feuTagFlow] ?? null;
+  const feuSg = phdData[feuTagSg] ?? null;
+  const feuActual = calculateActualTD(feuFlow, feuSg) ?? 1750;
+  const feuPercentDesign =
+    calculateAchievedPercent(feuActual, feuDesign) ?? "77.1";
+  const feuPercentRph =
+    calculateAchievedPercent(feuActual, feuTargetRph) ?? "118.6";
+  const feuPercentSts =
+    calculateAchievedPercent(feuActual, feuTargetSts) ?? "118.6";
 
   // Unit 024 MDU II (Active Mode: LMO / MMO / DAO)
-  const mduMode = unitModes?.unit024 || 'LMO'
-  let mduDesign = 841
-  let mduStsPercent = feuMduData?.mdu_lmo_sts ?? 65
+  const mduMode = unitModes?.unit024 || "LMO";
+  let mduDesign = 841;
+  let mduStsPercent = feuMduData?.mdu_lmo_sts ?? 65;
 
-  if (mduMode === 'MMO') {
-    mduDesign = Number(feuMduData?.mdu_mmo_design || 777)
-    mduStsPercent = Number(feuMduData?.mdu_mmo_sts || 65)
-  } else if (mduMode === 'DAO') {
-    mduDesign = Number(feuMduData?.mdu_dao_design || 501)
-    mduStsPercent = Number(feuMduData?.mdu_dao_sts || 0)
+  if (mduMode === "MMO") {
+    mduDesign = Number(feuMduData?.mdu_mmo_design || 777);
+    mduStsPercent = Number(feuMduData?.mdu_mmo_sts || 65);
+  } else if (mduMode === "DAO") {
+    mduDesign = Number(feuMduData?.mdu_dao_design || 501);
+    mduStsPercent = Number(feuMduData?.mdu_dao_sts || 0);
   } else {
-    mduDesign = Number(feuMduData?.mdu_lmo_design || 841)
-    mduStsPercent = Number(feuMduData?.mdu_lmo_sts || 65)
+    mduDesign = Number(feuMduData?.mdu_lmo_design || 841);
+    mduStsPercent = Number(feuMduData?.mdu_lmo_sts || 65);
   }
 
-  const mduRphPercent = Number(feuMduData?.mdu_rph || 65)
-  const mduTargetRph = calculateTargetTD(mduRphPercent, mduDesign) ?? 547
-  const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 547
-  const mduFlow = phdData['024FI_001.pv'] ?? null
-  const mduActual = mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561
-  const mduPercentDesign = calculateAchievedPercent(mduActual, mduDesign) ?? '66.7'
-  const mduPercentRph = calculateAchievedPercent(mduActual, mduTargetRph) ?? '102.6'
-  const mduPercentSts = calculateAchievedPercent(mduActual, mduTargetSts) ?? '102.6'
+  const mduRphPercent = Number(feuMduData?.mdu_rph || 65);
+  const mduTargetRph = calculateTargetTD(mduRphPercent, mduDesign) ?? 547;
+  const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 547;
+  const mduFlow = phdData["024FI_001.pv"] ?? null;
+  const mduActual = mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561;
+  const mduPercentDesign =
+    calculateAchievedPercent(mduActual, mduDesign) ?? "66.7";
+  const mduPercentRph =
+    calculateAchievedPercent(mduActual, mduTargetRph) ?? "102.6";
+  const mduPercentSts =
+    calculateAchievedPercent(mduActual, mduTargetSts) ?? "102.6";
 
   // Helper to color % STS and % RPH: yellow if below 100%, green if >= 100%
   const getPercentClass = (val) => {
-    if (val === null || val === undefined || val === '') return 'text-center'
-    const num = Number(val)
-    if (isNaN(num)) return 'text-center'
-    return num < 100 ? 'text-center text-yellow' : 'text-center text-green'
-  }
+    if (val === null || val === undefined || val === "") return "text-center";
+    const num = Number(val);
+    if (isNaN(num)) return "text-center";
+    return num < 100 ? "text-center text-yellow" : "text-center text-green";
+  };
 
   // Helper to color operation status (Normal Operasi: green, Shutdown: red, Sirkulasi: yellow, etc.)
   const getStatusClass = (statusStr) => {
-    const s = String(statusStr || '').toUpperCase()
-    if (s.includes('NORMAL')) return 'text-center text-green'
-    if (s.includes('SHUTDOWN') || s.includes('SHUDOWN')) return 'text-center text-red'
-    if (s.includes('SIRKULASI')) return 'text-center text-yellow'
-    return 'text-center font-bold text-slate-800'
-  }
+    const s = String(statusStr || "").toUpperCase();
+    if (s.includes("NORMAL")) return "text-center text-green";
+    if (s.includes("SHUTDOWN") || s.includes("SHUDOWN"))
+      return "text-center text-red";
+    if (s.includes("SIRKULASI")) return "text-center text-yellow";
+    return "text-center font-bold text-slate-800";
+  };
 
   // Unit 025 HOS II & Levels
-  const hosFlow = phdData['025FI_004.pv'] ?? null
-  const hosSg = phdData['025FY_004X.PV'] ?? null
-  const hosActual = calculateActualTD(hosFlow, hosSg) ?? 23808
-  const level023C104 = phdData['023LI_005.PV'] !== undefined && phdData['023LI_005.PV'] !== null
-    ? Number(phdData['023LI_005.PV']).toFixed(1)
-    : '1.4'
-  const levelCpi = phdData['002LI_051.PV'] !== undefined && phdData['002LI_051.PV'] !== null
-    ? Number(phdData['002LI_051.PV']).toFixed(1)
-    : '22.0'
+  const hosFlow = phdData["025FI_004.pv"] ?? null;
+  const hosSg = phdData["025FY_004X.PV"] ?? null;
+  const hosActual = calculateActualTD(hosFlow, hosSg) ?? 23808;
+  const level023C104 =
+    phdData["023LI_005.PV"] !== undefined && phdData["023LI_005.PV"] !== null
+      ? Number(phdData["023LI_005.PV"]).toFixed(1)
+      : "1.4";
+  const levelCpi =
+    phdData["002LI_051.PV"] !== undefined && phdData["002LI_051.PV"] !== null
+      ? Number(phdData["002LI_051.PV"]).toFixed(1)
+      : "22.0";
 
   // Tank Farm Product Stocks (Tons calculated from tank dimensions and tag levels)
-  const tanksHvi95 = ['41T-101', '41T-102', '41T-104']
-  const tanksHvi160S = ['41T-103', '41T-107', '41T-108']
-  const tanksHvi650 = ['41T-105', '41T-106', '41T-109', '41T-110']
+  const tanksHvi95 = ["41T-101", "41T-102", "41T-104"];
+  const tanksHvi160S = ["41T-103", "41T-107", "41T-108"];
+  const tanksHvi650 = ["41T-105", "41T-106", "41T-109", "41T-110"];
 
-  const calculatedStockHvi95 = calculateProductGroupTons(tanksHvi95, tanks, phdData) || 2951
-  const calculatedStockHvi160S = calculateProductGroupTons(tanksHvi160S, tanks, phdData) || 1048
-  const calculatedStockHvi650 = calculateProductGroupTons(tanksHvi650, tanks, phdData) || 3481
+  const calculatedStockHvi95 =
+    calculateProductGroupTons(tanksHvi95, tanks, phdData) || 2951;
+  const calculatedStockHvi160S =
+    calculateProductGroupTons(tanksHvi160S, tanks, phdData) || 1048;
+  const calculatedStockHvi650 =
+    calculateProductGroupTons(tanksHvi650, tanks, phdData) || 3481;
 
   // Unit 023 Produksi sample code based on active mode (LMO: 02302, MMO: 02302M, DAO: 02302D)
-  let sampleCode023 = '02302'
-  if (feuMode === 'MMO') {
-    sampleCode023 = '02302M'
-  } else if (feuMode === 'DAO') {
-    sampleCode023 = '02302D'
+  let sampleCode023 = "02302";
+  if (feuMode === "MMO") {
+    sampleCode023 = "02302M";
+  } else if (feuMode === "DAO") {
+    sampleCode023 = "02302D";
   } else {
-    sampleCode023 = '02302'
+    sampleCode023 = "02302";
   }
 
   // Unit 024 Produksi sample code based on active mode (LMO: 02405, MMO: 02405M, DAO: 02405D)
-  let sampleCode024 = '02405'
-  if (mduMode === 'MMO') {
-    sampleCode024 = '02405M'
-  } else if (mduMode === 'DAO') {
-    sampleCode024 = '02405D'
+  let sampleCode024 = "02405";
+  if (mduMode === "MMO") {
+    sampleCode024 = "02405M";
+  } else if (mduMode === "DAO") {
+    sampleCode024 = "02405D";
   } else {
-    sampleCode024 = '02405'
+    sampleCode024 = "02405";
   }
 
   // Helper to render LIMS parameter cell with limit comparison
-  const renderLimsParam = (sampleCode, paramName, fallbackVal, unit = '') => {
-    const baseCode = sampleCode.replace(/[MD]$/, '')
-    const sample = limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode]
-    let rawVal = sample?.[paramName]?.value ?? fallbackVal
+  const renderLimsParam = (sampleCode, paramName, fallbackVal, unit = "") => {
+    const baseCode = sampleCode.replace(/[MD]$/, "");
+    const sample =
+      limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode];
+    let rawVal = sample?.[paramName]?.value ?? fallbackVal;
 
     // Find limit record in sampleLimits from PocketBase matching the mode sample code
     const limitRecord =
-      sampleLimits.find((lim) => lim.sample_code === sampleCode && lim.param_name === paramName) ||
-      sampleLimits.find((lim) => lim.sample_code === baseCode && lim.param_name === paramName)
+      sampleLimits.find(
+        (lim) => lim.sample_code === sampleCode && lim.param_name === paramName,
+      ) ||
+      sampleLimits.find(
+        (lim) => lim.sample_code === baseCode && lim.param_name === paramName,
+      );
 
-    const evaluated = evaluateSampleLimit(rawVal, limitRecord)
+    const evaluated = evaluateSampleLimit(rawVal, limitRecord);
 
     return (
       <span className="inline-flex items-center gap-0.5">
         <span
           className={
-            evaluated.isOutOfRange
-              ? 'lims-val-alert'
-              : 'lims-val-normal'
+            evaluated.isOutOfRange ? "lims-val-alert" : "lims-val-normal"
           }
-          title={evaluated.isOutOfRange ? 'Out of specification limit' : 'Within limit'}
+          title={
+            evaluated.isOutOfRange
+              ? "Out of specification limit"
+              : "Within limit"
+          }
         >
           {evaluated.formattedValue}
         </span>
@@ -206,8 +231,8 @@ export default function DailyReport({
           </span>
         )}
       </span>
-    )
-  }
+    );
+  };
 
   return (
     <div id="report-dashboard-capture" className="daily-report-body">
@@ -215,11 +240,19 @@ export default function DailyReport({
         {/* TOP HEADER */}
         <div className="top-banner">
           <div className="logo-left">
-            <img src={danantaraLogo} alt="Danantara Indonesia" className="logo-img" />
+            <img
+              src={danantaraLogo}
+              alt="Danantara Indonesia"
+              className="logo-img"
+            />
           </div>
           <div className="banner-title">DAILY REPORT LOC II</div>
           <div className="logo-right">
-            <img src={pertaminaLogo} alt="Pertamina Patra Niaga" className="logo-img" />
+            <img
+              src={pertaminaLogo}
+              alt="Pertamina Patra Niaga"
+              className="logo-img"
+            />
           </div>
         </div>
 
@@ -227,7 +260,7 @@ export default function DailyReport({
         <div className="date-bar">
           <div className="flex items-center gap-2">
             <span className="font-bold">Tanggal:</span>
-            <span>{dateDisplay || 'Sabtu, 17 Oktober 2026'}</span>
+            <span>{dateDisplay || "Sabtu, 17 Oktober 2026"}</span>
           </div>
         </div>
 
@@ -241,15 +274,15 @@ export default function DailyReport({
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: '16%' }}>UNIT</th>
-                    <th style={{ width: '10%' }}>Status</th>
-                    <th style={{ width: '11%' }}>Design (T/D)</th>
-                    <th style={{ width: '11%' }}>Aktual (T/D)</th>
-                    <th style={{ width: '13%' }}>Target RPH (T/D)</th>
-                    <th style={{ width: '11%' }}>Target STS</th>
-                    <th style={{ width: '9%' }}>% Design</th>
-                    <th style={{ width: '9%' }}>% RPH</th>
-                    <th style={{ width: '10%' }}>% STS</th>
+                    <th style={{ width: "16%" }}>UNIT</th>
+                    <th style={{ width: "10%" }}>Status</th>
+                    <th style={{ width: "11%" }}>Design (T/D)</th>
+                    <th style={{ width: "11%" }}>Aktual (T/D)</th>
+                    <th style={{ width: "13%" }}>Target RPH (T/D)</th>
+                    <th style={{ width: "11%" }}>Target STS</th>
+                    <th style={{ width: "9%" }}>% Design</th>
+                    <th style={{ width: "9%" }}>% RPH</th>
+                    <th style={{ width: "10%" }}>% STS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -261,30 +294,38 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 021 HVU II',
-                          type: 'unit_status',
-                          unitKey: 'unit021',
+                          title: "UNIT 021 HVU II",
+                          type: "unit_status",
+                          unitKey: "unit021",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 021 HVU II',
-                          type: 'unit_status',
-                          unitKey: 'unit021',
+                          title: "UNIT 021 HVU II",
+                          type: "unit_status",
+                          unitKey: "unit021",
                         })
                       }
                       title="Klik untuk ubah status unit"
                     >
-                      {unitStatuses?.unit021 || 'Normal Operasi'}
+                      {unitStatuses?.unit021 || "Normal Operasi"}
                     </td>
                     <td className="text-center">{hvuDesign}</td>
-                    <td className="text-center font-semibold text-slate-900">{hvuActual}</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {hvuActual}
+                    </td>
                     <td className="text-center">{hvuTargetRph}</td>
                     <td className="text-center">{hvuTargetSts}</td>
-                    <td className="text-center font-semibold text-slate-800">{hvuPercentDesign}</td>
-                    <td className={getPercentClass(hvuPercentRph)}>{hvuPercentRph}</td>
-                    <td className={getPercentClass(hvuPercentSts)}>{hvuPercentSts}</td>
+                    <td className="text-center font-semibold text-slate-800">
+                      {hvuPercentDesign}
+                    </td>
+                    <td className={getPercentClass(hvuPercentRph)}>
+                      {hvuPercentRph}
+                    </td>
+                    <td className={getPercentClass(hvuPercentSts)}>
+                      {hvuPercentSts}
+                    </td>
                   </tr>
 
                   {/* UNIT 022 */}
@@ -295,30 +336,38 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 022 PDU II',
-                          type: 'unit_status',
-                          unitKey: 'unit022',
+                          title: "UNIT 022 PDU II",
+                          type: "unit_status",
+                          unitKey: "unit022",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 022 PDU II',
-                          type: 'unit_status',
-                          unitKey: 'unit022',
+                          title: "UNIT 022 PDU II",
+                          type: "unit_status",
+                          unitKey: "unit022",
                         })
                       }
                       title="Klik untuk ubah status unit"
                     >
-                      {unitStatuses?.unit022 || 'Normal Operasi'}
+                      {unitStatuses?.unit022 || "Normal Operasi"}
                     </td>
                     <td className="text-center">{pduDesign}</td>
-                    <td className="text-center font-semibold text-slate-900">{pduActual}</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {pduActual}
+                    </td>
                     <td className="text-center">{pduTargetRph}</td>
                     <td className="text-center">{pduTargetSts}</td>
-                    <td className="text-center font-semibold text-slate-800">{pduPercentDesign}</td>
-                    <td className={getPercentClass(pduPercentRph)}>{pduPercentRph}</td>
-                    <td className={getPercentClass(pduPercentSts)}>{pduPercentSts}</td>
+                    <td className="text-center font-semibold text-slate-800">
+                      {pduPercentDesign}
+                    </td>
+                    <td className={getPercentClass(pduPercentRph)}>
+                      {pduPercentRph}
+                    </td>
+                    <td className={getPercentClass(pduPercentSts)}>
+                      {pduPercentSts}
+                    </td>
                   </tr>
 
                   {/* UNIT 023 (Switchable Mode on double-click) */}
@@ -328,9 +377,9 @@ export default function DailyReport({
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 023 FEU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit023',
+                          title: "Unit 023 FEU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit023",
                         })
                       }
                     >
@@ -342,27 +391,30 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 023 FEU II',
-                          type: 'unit_status',
-                          unitKey: 'unit023',
+                          title: "UNIT 023 FEU II",
+                          type: "unit_status",
+                          unitKey: "unit023",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 023 FEU II',
-                          type: 'unit_status',
-                          unitKey: 'unit023',
+                          title: "UNIT 023 FEU II",
+                          type: "unit_status",
+                          unitKey: "unit023",
                         })
                       }
                       title="Klik untuk ubah status unit"
                     >
-                      {unitStatuses?.unit023 || 'Normal Operasi'}
+                      {unitStatuses?.unit023 || "Normal Operasi"}
                     </td>
                     <td rowSpan={2} className="text-center">
                       {feuDesign}
                     </td>
-                    <td rowSpan={2} className="text-center font-semibold text-slate-900">
+                    <td
+                      rowSpan={2}
+                      className="text-center font-semibold text-slate-900"
+                    >
                       {feuActual}
                     </td>
                     <td rowSpan={2} className="text-center">
@@ -371,7 +423,10 @@ export default function DailyReport({
                     <td rowSpan={2} className="text-center">
                       {feuTargetSts}
                     </td>
-                    <td rowSpan={2} className="text-center font-semibold text-slate-800">
+                    <td
+                      rowSpan={2}
+                      className="text-center font-semibold text-slate-800"
+                    >
                       {feuPercentDesign}
                     </td>
                     <td rowSpan={2} className={getPercentClass(feuPercentRph)}>
@@ -387,17 +442,17 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 023 FEU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit023',
+                          title: "Unit 023 FEU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit023",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 023 FEU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit023',
+                          title: "Unit 023 FEU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit023",
                         })
                       }
                     >
@@ -412,9 +467,9 @@ export default function DailyReport({
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 024 MDU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit024',
+                          title: "Unit 024 MDU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit024",
                         })
                       }
                     >
@@ -426,27 +481,30 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 024 MDU II',
-                          type: 'unit_status',
-                          unitKey: 'unit024',
+                          title: "UNIT 024 MDU II",
+                          type: "unit_status",
+                          unitKey: "unit024",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'UNIT 024 MDU II',
-                          type: 'unit_status',
-                          unitKey: 'unit024',
+                          title: "UNIT 024 MDU II",
+                          type: "unit_status",
+                          unitKey: "unit024",
                         })
                       }
                       title="Klik untuk ubah status unit"
                     >
-                      {unitStatuses?.unit024 || 'Normal Operasi'}
+                      {unitStatuses?.unit024 || "Normal Operasi"}
                     </td>
                     <td rowSpan={2} className="text-center">
                       {mduDesign}
                     </td>
-                    <td rowSpan={2} className="text-center font-semibold text-slate-900">
+                    <td
+                      rowSpan={2}
+                      className="text-center font-semibold text-slate-900"
+                    >
                       {mduActual}
                     </td>
                     <td rowSpan={2} className="text-center">
@@ -455,7 +513,10 @@ export default function DailyReport({
                     <td rowSpan={2} className="text-center">
                       {mduTargetSts}
                     </td>
-                    <td rowSpan={2} className="text-center font-semibold text-slate-800">
+                    <td
+                      rowSpan={2}
+                      className="text-center font-semibold text-slate-800"
+                    >
                       {mduPercentDesign}
                     </td>
                     <td rowSpan={2} className={getPercentClass(mduPercentRph)}>
@@ -471,17 +532,17 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 024 MDU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit024',
+                          title: "Unit 024 MDU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit024",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'Unit 024 MDU II Mode',
-                          type: 'unit_mode',
-                          unitKey: 'unit024',
+                          title: "Unit 024 MDU II Mode",
+                          type: "unit_mode",
+                          unitKey: "unit024",
                         })
                       }
                     >
@@ -505,24 +566,38 @@ export default function DailyReport({
                       onClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'HOS II',
-                          type: 'unit_status',
-                          unitKey: 'hos',
+                          title: "HOS II",
+                          type: "unit_status",
+                          unitKey: "hos",
                         })
                       }
                       onDoubleClick={() =>
                         setModalState({
                           isOpen: true,
-                          title: 'HOS II',
-                          type: 'unit_status',
-                          unitKey: 'hos',
+                          title: "HOS II",
+                          type: "unit_status",
+                          unitKey: "hos",
                         })
                       }
                       title="Klik untuk ubah status unit"
                     >
-                      {unitStatuses?.hos || 'Normal Operasi'}
+                      {unitStatuses?.hos || "Normal Operasi"}
                     </td>
-                    <td className="text-center">025P101AT</td>
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        list="pompa-hos-list"
+                        value={feuMduData?.pompa_hos ?? "025P101AT"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            pompa_hos: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-medium"
+                        title="Klik untuk mengubah Pompa HOS"
+                      />
+                    </td>
                     <td className="text-center font-semibold">{hosActual}</td>
                     <td className="text-center">12 Gas / 4 Oil</td>
                     <td colSpan={4} className="text-center font-semibold">
@@ -548,9 +623,23 @@ export default function DailyReport({
                     <td className="text-center">465</td>
                     <td className="text-center">0</td>
                     <td className="text-center">0</td>
-                    <td colSpan={2} className="text-center font-semibold">{levelCpi}</td>
-                    <td colSpan={2} className="text-center">
-                      CLEAR
+                    <td colSpan={2} className="text-center font-semibold">
+                      {levelCpi}
+                    </td>
+                    <td colSpan={2} className="text-center p-0">
+                      <input
+                        type="text"
+                        list="visual-perairan-list"
+                        value={feuMduData?.visual_perairan ?? "CLEAR"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            visual_perairan: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold uppercase"
+                        title="Klik untuk mengubah Visual Perairan"
+                      />
                     </td>
                   </tr>
                   <tr>
@@ -572,16 +661,86 @@ export default function DailyReport({
                     <td colSpan={2} className="text-center font-bold">
                       Tank Farm
                     </td>
-                    <td className="text-center font-bold text-slate-900">{calculatedStockHvi95}</td>
-                    <td className="text-center font-bold text-slate-900">{calculatedStockHvi160S}</td>
-                    <td className="text-center font-bold text-slate-900">{calculatedStockHvi650}</td>
-                    <td colSpan={2} className="text-center">Perbaikan</td>
-                    <td colSpan={2} className="text-center text-green">
-                      AUTO
+                    <td className="text-center font-bold text-slate-900">
+                      {calculatedStockHvi95}
+                    </td>
+                    <td className="text-center font-bold text-slate-900">
+                      {calculatedStockHvi160S}
+                    </td>
+                    <td className="text-center font-bold text-slate-900">
+                      {calculatedStockHvi650}
+                    </td>
+                    <td colSpan={2} className="text-center p-0">
+                      <input
+                        type="text"
+                        list="pompa-cpi-status-list"
+                        value={feuMduData?.status_pompa_cpi_a ?? "Perbaikan"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            status_pompa_cpi_a: e.target.value,
+                          })
+                        }
+                        className={`editable-input text-center font-bold ${
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("AUTO") ||
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("NORMAL") ||
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("OPERASI")
+                            ? "text-green"
+                            : String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("PERBAIKAN") ||
+                              String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("RUSAK")
+                            ? "text-red"
+                            : ""
+                        }`}
+                        title="Klik untuk mengubah Status Pompa 002P101A"
+                      />
+                    </td>
+                    <td colSpan={2} className="text-center p-0">
+                      <input
+                        type="text"
+                        list="pompa-cpi-status-list"
+                        value={feuMduData?.status_pompa_cpi_b ?? "AUTO"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            status_pompa_cpi_b: e.target.value,
+                          })
+                        }
+                        className={`editable-input text-center font-bold ${
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("AUTO") ||
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("NORMAL") ||
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("OPERASI")
+                            ? "text-green"
+                            : String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("PERBAIKAN") ||
+                              String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("RUSAK")
+                            ? "text-red"
+                            : ""
+                        }`}
+                        title="Klik untuk mengubah Status Pompa 002P101B"
+                      />
                     </td>
                   </tr>
                 </tbody>
               </table>
+
+              {/* Datalists for input suggestions */}
+              <datalist id="pompa-hos-list">
+                <option value="025P101AT" />
+                <option value="025P101BT" />
+              </datalist>
+
+              <datalist id="visual-perairan-list">
+                <option value="CLEAR" />
+                <option value="KERUH" />
+                <option value="TERDAPAT MINYAK" />
+              </datalist>
+
+              <datalist id="pompa-cpi-status-list">
+                <option value="AUTO" />
+                <option value="MANUAL" />
+                <option value="Perbaikan" />
+                <option value="Standby" />
+                <option value="Stop" />
+              </datalist>
             </div>
 
             {/* SECTION B: ISSUE OPERASIONAL (Double-click to edit) */}
@@ -590,8 +749,8 @@ export default function DailyReport({
               onDoubleClick={() =>
                 setModalState({
                   isOpen: true,
-                  title: 'Issue Operasional',
-                  type: 'operational',
+                  title: "Issue Operasional",
+                  type: "operational",
                 })
               }
             >
@@ -600,19 +759,23 @@ export default function DailyReport({
                 {issueOperational && issueOperational.length > 0 ? (
                   <ol className="list-decimal pl-5 space-y-1">
                     {issueOperational.map((issue, idx) => {
-                      let text = ''
-                      if (typeof issue === 'string') {
-                        text = issue
-                      } else if (typeof issue === 'object' && issue !== null) {
+                      let text = "";
+                      if (typeof issue === "string") {
+                        text = issue;
+                      } else if (typeof issue === "object" && issue !== null) {
                         if (issue.equipment || issue.issue) {
-                          text = `${issue.equipment ? issue.equipment + ' : ' : ''}${issue.issue || ''}${issue.mitigation ? ' (' + issue.mitigation + ')' : ''}`
+                          text = `${issue.equipment ? issue.equipment + " : " : ""}${issue.issue || ""}${issue.mitigation ? " (" + issue.mitigation + ")" : ""}`;
                         } else {
-                          text = issue.text || issue.title || issue.name || JSON.stringify(issue)
+                          text =
+                            issue.text ||
+                            issue.title ||
+                            issue.name ||
+                            JSON.stringify(issue);
                         }
                       } else {
-                        text = String(issue ?? '')
+                        text = String(issue ?? "");
                       }
-                      return <li key={idx}>{text}</li>
+                      return <li key={idx}>{text}</li>;
                     })}
                   </ol>
                 ) : (
@@ -632,10 +795,10 @@ export default function DailyReport({
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: '16%' }}>UNIT</th>
-                    <th style={{ width: '18%' }}>Produk</th>
-                    <th style={{ width: '12%' }}>AKTUAL</th>
-                    <th style={{ width: '54%' }}>ANALISA SAMPLE</th>
+                    <th style={{ width: "16%" }}>UNIT</th>
+                    <th style={{ width: "18%" }}>Produk</th>
+                    <th style={{ width: "12%" }}>AKTUAL</th>
+                    <th style={{ width: "54%" }}>ANALISA SAMPLE</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -653,7 +816,7 @@ export default function DailyReport({
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam('02103', 'Visco 60°C', '12.50', 'cSt')}
+                        {renderLimsParam("02103", "Visco 60°C", "12.50", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -667,7 +830,7 @@ export default function DailyReport({
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam('02104', 'Visco 60°C', '31.21', 'cSt')}
+                        {renderLimsParam("02104", "Visco 60°C", "31.21", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -681,7 +844,7 @@ export default function DailyReport({
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam('02105', 'Visco 60°C', '95.75', 'cSt')}
+                        {renderLimsParam("02105", "Visco 60°C", "95.75", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -695,7 +858,12 @@ export default function DailyReport({
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam('02107', 'Visco 100°C', '1166.00', 'cSt')}
+                        {renderLimsParam(
+                          "02107",
+                          "Visco 100°C",
+                          "1166.00",
+                          "cSt",
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -719,9 +887,9 @@ export default function DailyReport({
                         <span></span>
                         <span></span>
                         <span></span>
-                        {renderLimsParam('02203', 'Visco 100°C', '43.81')}
-                        {renderLimsParam('02203', 'FP PMCC', '288')}
-                        {renderLimsParam('02203', 'Color', 'L7.5')}
+                        {renderLimsParam("02203", "Visco 100°C", "43.81")}
+                        {renderLimsParam("02203", "FP PMCC", "288")}
+                        {renderLimsParam("02203", "Color", "L7.5")}
                       </div>
                     </td>
                   </tr>
@@ -754,9 +922,13 @@ export default function DailyReport({
                         <span></span>
                         <span></span>
                         <span></span>
-                        {renderLimsParam(sampleCode023, 'Visco 100°C', '14.960')}
-                        {renderLimsParam(sampleCode023, 'FP PMCC', '262')}
-                        {renderLimsParam(sampleCode023, 'RI 70°C', '1.4861')}
+                        {renderLimsParam(
+                          sampleCode023,
+                          "Visco 100°C",
+                          "14.960",
+                        )}
+                        {renderLimsParam(sampleCode023, "FP PMCC", "262")}
+                        {renderLimsParam(sampleCode023, "RI 70°C", "1.4861")}
                       </div>
                     </td>
                   </tr>
@@ -789,12 +961,12 @@ export default function DailyReport({
                         <span className="font-bold">VI</span>
                         <span className="font-bold">PP</span>
                         <span className="font-bold">App</span>
-                        {renderLimsParam(sampleCode024, 'Visco 100°C', '7.007')}
-                        {renderLimsParam(sampleCode024, 'FP PMCC', '214')}
-                        {renderLimsParam(sampleCode024, 'Color', 'L1.0')}
-                        {renderLimsParam(sampleCode024, 'VI', '99')}
-                        {renderLimsParam(sampleCode024, 'PP', '-9')}
-                        {renderLimsParam(sampleCode024, 'App', 'C&B')}
+                        {renderLimsParam(sampleCode024, "Visco 100°C", "7.007")}
+                        {renderLimsParam(sampleCode024, "FP PMCC", "214")}
+                        {renderLimsParam(sampleCode024, "Color", "L1.0")}
+                        {renderLimsParam(sampleCode024, "VI", "99")}
+                        {renderLimsParam(sampleCode024, "PP", "-9")}
+                        {renderLimsParam(sampleCode024, "App", "C&B")}
                       </div>
                     </td>
                   </tr>
@@ -816,14 +988,40 @@ export default function DailyReport({
               <table>
                 <thead>
                   <tr>
-                    <th style={{ background: 'linear-gradient(180deg, #0093e0 0%, #0076be 100%)', color: '#fff' }}></th>
-                    <th colSpan={3} style={{ background: 'linear-gradient(180deg, #0093e0 0%, #0076be 100%)', color: '#fff' }}>
+                    <th
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    ></th>
+                    <th
+                      colSpan={3}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
                       FEU
                     </th>
-                    <th colSpan={3} style={{ background: 'linear-gradient(180deg, #0093e0 0%, #0076be 100%)', color: '#fff' }}>
+                    <th
+                      colSpan={3}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
                       MDU
                     </th>
-                    <th style={{ background: 'linear-gradient(180deg, #0093e0 0%, #0076be 100%)', color: '#fff' }}>
+                    <th
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
                       NOTE
                     </th>
                   </tr>
@@ -841,12 +1039,19 @@ export default function DailyReport({
                 <tbody>
                   <tr>
                     <td className="text-center font-bold">LMO</td>
-                    <td className="text-center font-bold">{feuMduData?.feu_lmo_design || 2180}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.feu_lmo_design || 2180}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.feu_lmo_sts ?? 70}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, feu_lmo_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            feu_lmo_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
@@ -854,16 +1059,28 @@ export default function DailyReport({
                       <input
                         type="text"
                         value={feuMduData?.feu_rph ?? 65}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, feu_rph: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            feu_rph: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
-                    <td className="text-center font-bold">{feuMduData?.mdu_lmo_design || 841}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.mdu_lmo_design || 841}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.mdu_lmo_sts ?? 65}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_lmo_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            mdu_lmo_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
@@ -871,56 +1088,94 @@ export default function DailyReport({
                       <input
                         type="text"
                         value={feuMduData?.mdu_rph ?? 65}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_rph: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            mdu_rph: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
                     <td rowSpan={3} className="p-1">
                       <textarea
-                        value={feuMduData?.note ?? ''}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, note: e.target.value })}
+                        value={feuMduData?.note ?? ""}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            note: e.target.value,
+                          })
+                        }
                         className="editable-input w-full h-full min-h-[50px] resize-none text-[10px]"
                       />
                     </td>
                   </tr>
                   <tr>
                     <td className="text-center font-bold">MMO</td>
-                    <td className="text-center font-bold">{feuMduData?.feu_mmo_design || 2270}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.feu_mmo_design || 2270}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.feu_mmo_sts ?? 65}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, feu_mmo_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            feu_mmo_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
-                    <td className="text-center font-bold">{feuMduData?.mdu_mmo_design || 777}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.mdu_mmo_design || 777}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.mdu_mmo_sts ?? 65}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_mmo_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            mdu_mmo_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
                   </tr>
                   <tr>
                     <td className="text-center font-bold">DAO</td>
-                    <td className="text-center font-bold">{feuMduData?.feu_dao_design || 1786}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.feu_dao_design || 1786}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.feu_dao_sts ?? 70}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, feu_dao_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            feu_dao_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
-                    <td className="text-center font-bold">{feuMduData?.mdu_dao_design || 501}</td>
+                    <td className="text-center font-bold">
+                      {feuMduData?.mdu_dao_design || 501}
+                    </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
                         value={feuMduData?.mdu_dao_sts ?? 0}
-                        onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_dao_sts: e.target.value })}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            mdu_dao_sts: e.target.value,
+                          })
+                        }
                         className="editable-input text-center font-bold"
                       />
                     </td>
@@ -935,8 +1190,8 @@ export default function DailyReport({
               onDoubleClick={() =>
                 setModalState({
                   isOpen: true,
-                  title: 'Issue Maintenance',
-                  type: 'maintenance',
+                  title: "Issue Maintenance",
+                  type: "maintenance",
                 })
               }
             >
@@ -944,33 +1199,44 @@ export default function DailyReport({
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: '22%' }}>Equipment</th>
-                    <th style={{ width: '28%' }}>Issue</th>
-                    <th style={{ width: '50%' }}>Mitigasi / RTL</th>
+                    <th style={{ width: "22%" }}>Equipment</th>
+                    <th style={{ width: "28%" }}>Issue</th>
+                    <th style={{ width: "50%" }}>Mitigasi / RTL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {issueMaintenance && issueMaintenance.length > 0 ? (
                     issueMaintenance.map((item, idx) => {
-                      const equip = typeof item === 'object' && item !== null ? item.equipment : ''
+                      const equip =
+                        typeof item === "object" && item !== null
+                          ? item.equipment
+                          : "";
                       const iss =
-                        typeof item === 'object' && item !== null
+                        typeof item === "object" && item !== null
                           ? item.issue
-                          : typeof item === 'string'
+                          : typeof item === "string"
                             ? item
-                            : ''
-                      const mit = typeof item === 'object' && item !== null ? item.mitigation : ''
+                            : "";
+                      const mit =
+                        typeof item === "object" && item !== null
+                          ? item.mitigation
+                          : "";
                       return (
                         <tr key={idx}>
-                          <td className="text-center font-bold">{equip || '-'}</td>
-                          <td>{iss || '-'}</td>
-                          <td>{mit || '-'}</td>
+                          <td className="text-center font-bold">
+                            {equip || "-"}
+                          </td>
+                          <td>{iss || "-"}</td>
+                          <td>{mit || "-"}</td>
                         </tr>
-                      )
+                      );
                     })
                   ) : (
                     <tr>
-                      <td colSpan={3} className="text-center text-slate-400 italic py-2">
+                      <td
+                        colSpan={3}
+                        className="text-center text-slate-400 italic py-2"
+                      >
                         Tidak ada issue maintenance.
                       </td>
                     </tr>
@@ -984,44 +1250,58 @@ export default function DailyReport({
 
       {/* Double-click Edit Modal for Operational & Maintenance Issues */}
       <IssueEditModal
-        key={`issue-modal-${modalState.type || 'closed'}-${modalState.isOpen ? 'open' : 'closed'}`}
-        isOpen={modalState.isOpen && (modalState.type === 'operational' || modalState.type === 'maintenance')}
-        onClose={() => setModalState({ isOpen: false, title: '', type: null, unitKey: null })}
+        key={`issue-modal-${modalState.type || "closed"}-${modalState.isOpen ? "open" : "closed"}`}
+        isOpen={
+          modalState.isOpen &&
+          (modalState.type === "operational" ||
+            modalState.type === "maintenance")
+        }
+        onClose={() =>
+          setModalState({ isOpen: false, title: "", type: null, unitKey: null })
+        }
         title={modalState.title}
         type={modalState.type}
-        initialData={modalState.type === 'operational' ? issueOperational : issueMaintenance}
+        initialData={
+          modalState.type === "operational"
+            ? issueOperational
+            : issueMaintenance
+        }
         onSave={(updatedData) => {
-          if (modalState.type === 'operational') {
-            onIssueOperationalChange(updatedData)
+          if (modalState.type === "operational") {
+            onIssueOperationalChange(updatedData);
           } else {
-            onIssueMaintenanceChange(updatedData)
+            onIssueMaintenanceChange(updatedData);
           }
         }}
       />
 
       {/* Double-click Mode Switch Modal for Unit 023 & Unit 024 */}
       <UnitModeModal
-        isOpen={modalState.isOpen && modalState.type === 'unit_mode'}
-        onClose={() => setModalState({ isOpen: false, title: '', type: null, unitKey: null })}
+        isOpen={modalState.isOpen && modalState.type === "unit_mode"}
+        onClose={() =>
+          setModalState({ isOpen: false, title: "", type: null, unitKey: null })
+        }
         unitName={modalState.title}
-        currentMode={unitModes?.[modalState.unitKey] || 'MMO'}
+        currentMode={unitModes?.[modalState.unitKey] || "MMO"}
         onSelectMode={(newMode) => {
-          onUnitModeChange(modalState.unitKey, newMode)
+          onUnitModeChange(modalState.unitKey, newMode);
         }}
       />
 
       {/* Interactive Status Selection Modal for Units */}
       <UnitStatusModal
-        isOpen={modalState.isOpen && modalState.type === 'unit_status'}
-        onClose={() => setModalState({ isOpen: false, title: '', type: null, unitKey: null })}
+        isOpen={modalState.isOpen && modalState.type === "unit_status"}
+        onClose={() =>
+          setModalState({ isOpen: false, title: "", type: null, unitKey: null })
+        }
         unitName={modalState.title}
-        currentStatus={unitStatuses?.[modalState.unitKey] || 'Normal Operasi'}
+        currentStatus={unitStatuses?.[modalState.unitKey] || "Normal Operasi"}
         onSelectStatus={(newStatus) => {
           if (onUnitStatusChange && modalState.unitKey) {
-            onUnitStatusChange(modalState.unitKey, newStatus)
+            onUnitStatusChange(modalState.unitKey, newStatus);
           }
         }}
       />
     </div>
-  )
+  );
 }
