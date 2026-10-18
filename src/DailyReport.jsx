@@ -1060,9 +1060,19 @@ export default function DailyReport({
                       UNIT 021 HVU II
                     </td>
                     <td>
-                      SPO DIST
-                      <br />
-                      <span className="font-bold">LOC I</span>
+                      <div>SPO DIST</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_spo_dist ?? "LOC I"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_spo_dist: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki SPO DIST"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {spoActual} T/D
@@ -1076,9 +1086,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      LMO DIST
-                      <br />
-                      <span className="font-bold">041T-116</span>
+                      <div>LMO DIST</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_lmo_dist ?? "041T-116"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_lmo_dist: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki LMO DIST"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {lmoDistActual} T/D
@@ -1092,9 +1112,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      MMO DIST
-                      <br />
-                      <span className="font-bold">041T-117</span>
+                      <div>MMO DIST</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_mmo_dist ?? "041T-117"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_mmo_dist: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki MMO DIST"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {mmoDistActual} T/D
@@ -1108,9 +1138,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      SHORT RESIDUE
-                      <br />
-                      <span className="font-bold">041T-121/310</span>
+                      <div>SHORT RESIDUE</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_short_residue ?? "041T-121/310"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_short_residue: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki SHORT RESIDUE"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {shortResidueActual} T/D
@@ -1134,9 +1174,19 @@ export default function DailyReport({
                       UNIT 022 PDU II
                     </td>
                     <td>
-                      DAO
-                      <br />
-                      <span className="font-bold">041T-115</span>
+                      <div>DAO</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_dao ?? "041T-115"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_dao: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki DAO"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {daoActual} T/D
@@ -1154,9 +1204,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      ASPHALT
-                      <br />
-                      <span className="font-bold">42T-10</span>
+                      <div>ASPHALT</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_asphalt ?? "42T-10"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_asphalt: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki ASPHALT"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {asphaltActual} T/D
@@ -1170,9 +1230,19 @@ export default function DailyReport({
                       UNIT 023 FEU II
                     </td>
                     <td>
-                      RAFFINATE
-                      <br />
-                      <span className="font-bold">41T-315</span>
+                      <div>RAFFINATE</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_raffinate ?? "41T-315"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_raffinate: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki RAFFINATE"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {raffActual} T/D
@@ -1194,9 +1264,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      EXTRACT
-                      <br />
-                      <span className="font-bold">IFO</span>
+                      <div>EXTRACT</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_extract ?? "IFO"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_extract: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki EXTRACT"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {extractActual} T/D
@@ -1210,9 +1290,19 @@ export default function DailyReport({
                       UNIT 024 MDU II
                     </td>
                     <td>
-                      DOR
-                      <br />
-                      <span className="font-bold">41T-102</span>
+                      <div>DOR</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_dor ?? "41T-102"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_dor: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki DOR"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {dorActual} T/D
@@ -1236,9 +1326,19 @@ export default function DailyReport({
                   </tr>
                   <tr>
                     <td>
-                      SLACK WAX
-                      <br />
-                      <span className="font-bold">RFCC</span>
+                      <div>SLACK WAX</div>
+                      <input
+                        type="text"
+                        value={feuMduData?.dest_slack_wax ?? "RFCC"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            dest_slack_wax: e.target.value,
+                          })
+                        }
+                        className="editable-input text-left font-bold text-slate-900 p-0"
+                        title="Klik untuk mengubah tujuan/tangki SLACK WAX"
+                      />
                     </td>
                     <td className="text-center font-semibold text-slate-900">
                       {slackWaxActual} T/D

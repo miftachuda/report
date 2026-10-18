@@ -57,6 +57,16 @@ export default function App() {
     flow_hvi_95_loc3: null,
     flow_hvi_160s_loc3: null,
     flow_hvi_650_loc3: null,
+    dest_spo_dist: "LOC I",
+    dest_lmo_dist: "041T-116",
+    dest_mmo_dist: "041T-117",
+    dest_short_residue: "041T-121/310",
+    dest_dao: "041T-115",
+    dest_asphalt: "42T-10",
+    dest_raffinate: "41T-315",
+    dest_extract: "IFO",
+    dest_dor: "41T-102",
+    dest_slack_wax: "RFCC",
   });
 
   // State for Issue Operational (Section B)

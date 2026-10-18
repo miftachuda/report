@@ -345,45 +345,50 @@ html, body {
 .sample-grid {
   display: grid;
   align-items: center;
+  justify-content: start;
   justify-items: start;
   text-align: left;
-  width: 100%;
   font-size: clamp(10px, 0.75vw, 12.5px);
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 .sample-grid-single {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: clamp(8px, 0.9vw, 14px);
-  width: 100%;
-  font-size: clamp(11px, 0.8vw, 13px);
+  gap: clamp(6px, 0.6vw, 10px);
+  font-size: clamp(10.5px, 0.75vw, 12.5px);
+  line-height: 1.25;
   text-align: left;
 }
 
 .sample-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, auto);
+  column-gap: clamp(8px, 0.8vw, 14px);
+  row-gap: 2px;
   align-items: center;
+  justify-content: start;
   justify-items: start;
   text-align: left;
-  width: 100%;
-  column-gap: clamp(4px, 0.5vw, 8px);
-  row-gap: 2px;
-  font-size: clamp(10.5px, 0.75vw, 12.5px);
+  font-size: clamp(10px, 0.75vw, 12.5px);
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 .sample-grid-6 {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, auto);
+  column-gap: clamp(4px, 0.45vw, 9px);
+  row-gap: 2px;
   align-items: center;
+  justify-content: start;
   justify-items: start;
   text-align: left;
-  width: 100%;
-  column-gap: clamp(2px, 0.3vw, 5px);
-  row-gap: 2px;
   font-size: clamp(9.5px, 0.7vw, 11.5px);
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 .sample-grid .font-bold {
@@ -443,6 +448,14 @@ html, body {
   width: 100%;
   border-radius: 3px;
   transition: all 0.15s ease;
+}
+
+.editable-input.text-left {
+  text-align: left !important;
+}
+
+.editable-input.text-center {
+  text-align: center !important;
 }
 
 /* Hide datalist indicator so text is centered and doesn't get pushed to the right in Chrome & html2canvas */

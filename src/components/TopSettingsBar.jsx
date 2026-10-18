@@ -76,10 +76,12 @@ export default function TopSettingsBar({
             if (input.style.cssText) {
               div.style.cssText = input.style.cssText
             }
+            const isLeft = input.classList.contains('text-left')
+            const isRight = input.classList.contains('text-right')
             div.style.display = 'flex'
             div.style.alignItems = 'center'
-            div.style.justifyContent = 'center'
-            div.style.textAlign = 'center'
+            div.style.justifyContent = isLeft ? 'flex-start' : isRight ? 'flex-end' : 'center'
+            div.style.textAlign = isLeft ? 'left' : isRight ? 'right' : 'center'
             div.style.width = '100%'
             div.style.height = '100%'
             div.style.margin = '0'
