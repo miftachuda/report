@@ -208,6 +208,7 @@ export default function App() {
   const loadPhdTags = useCallback(
     async (currentRange, currentModes, currentTanks) => {
       const mode023 = currentModes?.unit023 || "MMO";
+      const mode024 = currentModes?.unit024 || "LMO";
 
       // Base operational tags (Kapasitas Feed)
       const activeTags = [
@@ -215,8 +216,8 @@ export default function App() {
         "021FY_004X.C1",
         "022FI_001.pv",
         "022FY_001X.C1",
-        "023FI_004.pv",
-        "024FI_001.pv",
+        "023FIC_004.pv",
+        "024FIC_001.pv",
         "025FIC_004.pv",
         "025FY_004X.PV",
         "002LI_051.PV",
@@ -256,6 +257,11 @@ export default function App() {
       if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
       else if (mode023 === "DAO") activeTags.push("023FY_004DX.C1");
       else activeTags.push("023FY_004CX.C1");
+
+      // Add SG tag for Unit 024 feed based on active mode
+      if (mode024 === "MMO") activeTags.push("024FY_001CX.C1");
+      else if (mode024 === "DAO") activeTags.push("024FY_001DX.C1");
+      else activeTags.push("024FY_001BX.C1");
 
       // Add tank level tags
       const targetTanks = [

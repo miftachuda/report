@@ -38,10 +38,23 @@ export default function DailyReport({
     unitKey: null,
   });
 
+  // Helper for case-insensitive PHD tag lookup
+  const getPhdTag = (tagName) => {
+    if (!phdData || !tagName) return null;
+    if (phdData[tagName] !== undefined && phdData[tagName] !== null) {
+      return Number(phdData[tagName]);
+    }
+    const lower = tagName.toLowerCase();
+    const match = Object.keys(phdData).find((k) => k.toLowerCase() === lower);
+    return match && phdData[match] !== undefined && phdData[match] !== null
+      ? Number(phdData[match])
+      : null;
+  };
+
   // Calculations for Kapasitas Feed
   // Unit 021 HVU II
-  const hvuFlow = phdData["021FI_004.pv"] ?? null;
-  const hvuSg = phdData["021FY_004X.C1"] ?? null;
+  const hvuFlow = getPhdTag("021FI_004.pv");
+  const hvuSg = getPhdTag("021FY_004X.C1");
   const hvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 2583;
   const hvuDesign = 3883;
   const hvuTargetRph = 2524;
@@ -54,8 +67,8 @@ export default function DailyReport({
     calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "102.4";
 
   // Unit 022 PDU II
-  const pduFlow = phdData["022FI_001.pv"] ?? null;
-  const pduSg = phdData["022FY_001X.C1"] ?? null;
+  const pduFlow = getPhdTag("022FI_001.pv");
+  const pduSg = getPhdTag("022FY_001X.C1");
   const pduActual = calculateActualTD(pduFlow, pduSg) ?? 635;
   const pduDesign = 784;
   const pduTargetRph = 627;
@@ -91,8 +104,8 @@ export default function DailyReport({
   const feuRphPercent = Number(feuMduData?.feu_rph || 65);
   const feuTargetRph = calculateTargetTD(feuRphPercent, feuDesign) ?? 1476;
   const feuTargetSts = calculateTargetTD(feuStsPercent, feuDesign) ?? 1476;
-  const feuFlow = phdData[feuTagFlow] ?? null;
-  const feuSg = phdData[feuTagSg] ?? null;
+  const feuFlow = getPhdTag(feuTagFlow) ?? getPhdTag("023FI_004.pv");
+  const feuSg = getPhdTag(feuTagSg);
   const feuActual = calculateActualTD(feuFlow, feuSg) ?? 1750;
   const feuPercentDesign =
     calculateAchievedPercent(feuActual, feuDesign) ?? "77.1";
@@ -105,23 +118,30 @@ export default function DailyReport({
   const mduMode = unitModes?.unit024 || "LMO";
   let mduDesign = 841;
   let mduStsPercent = feuMduData?.mdu_lmo_sts ?? 65;
+  let mduTagSg = "024FY_001BX.C1";
 
   if (mduMode === "MMO") {
     mduDesign = Number(feuMduData?.mdu_mmo_design || 777);
     mduStsPercent = Number(feuMduData?.mdu_mmo_sts || 65);
+    mduTagSg = "024FY_001CX.C1";
   } else if (mduMode === "DAO") {
     mduDesign = Number(feuMduData?.mdu_dao_design || 501);
     mduStsPercent = Number(feuMduData?.mdu_dao_sts || 0);
+    mduTagSg = "024FY_001DX.C1";
   } else {
     mduDesign = Number(feuMduData?.mdu_lmo_design || 841);
     mduStsPercent = Number(feuMduData?.mdu_lmo_sts || 65);
+    mduTagSg = "024FY_001BX.C1";
   }
 
   const mduRphPercent = Number(feuMduData?.mdu_rph || 65);
   const mduTargetRph = calculateTargetTD(mduRphPercent, mduDesign) ?? 547;
   const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 547;
-  const mduFlow = phdData["024FI_001.pv"] ?? null;
-  const mduActual = mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561;
+  const mduFlow = getPhdTag("024FIC_001.pv") ?? getPhdTag("024FI_001.pv");
+  const mduSg = getPhdTag(mduTagSg) ?? 0.85;
+  const mduActual =
+    calculateActualTD(mduFlow, mduSg) ??
+    (mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561);
   const mduPercentDesign =
     calculateAchievedPercent(mduActual, mduDesign) ?? "66.7";
   const mduPercentRph =
@@ -148,17 +168,13 @@ export default function DailyReport({
   };
 
   // Unit 025 HOS II & Levels
-  const hosFlow = phdData["025FI_004.pv"] ?? null;
-  const hosSg = phdData["021FY_058X.C1"] ?? null;
+  const hosFlow = getPhdTag("025FIC_004.pv") ?? getPhdTag("025FI_004.pv");
+  const hosSg = getPhdTag("021FY_058X.C1");
   const hosActual = calculateActualTD(hosFlow, hosSg) ?? 23808;
-  const level023C104 =
-    phdData["023LI_005.PV"] !== undefined && phdData["023LI_005.PV"] !== null
-      ? Number(phdData["023LI_005.PV"]).toFixed(1)
-      : "1.4";
-  const levelCpi =
-    phdData["002LI_051.PV"] !== undefined && phdData["002LI_051.PV"] !== null
-      ? Number(phdData["002LI_051.PV"]).toFixed(1)
-      : "22.0";
+  const rawLevel023 = getPhdTag("023LI_005.PV");
+  const level023C104 = rawLevel023 !== null ? rawLevel023.toFixed(1) : "1.4";
+  const rawLevelCpi = getPhdTag("002LI_051.PV");
+  const levelCpi = rawLevelCpi !== null ? rawLevelCpi.toFixed(1) : "22.0";
 
   // Tank Farm Product Stocks (Tons calculated from tank dimensions and tag levels)
   const tanksHvi95 = ["41T-101", "41T-102", "41T-104"];
@@ -192,18 +208,6 @@ export default function DailyReport({
     sampleCode024 = "02405";
   }
 
-  // Helper for case-insensitive PHD tag lookup
-  const getPhdTag = (tagName) => {
-    if (!phdData || !tagName) return null;
-    if (phdData[tagName] !== undefined && phdData[tagName] !== null) {
-      return Number(phdData[tagName]);
-    }
-    const lower = tagName.toLowerCase();
-    const match = Object.keys(phdData).find((k) => k.toLowerCase() === lower);
-    return match && phdData[match] !== undefined && phdData[match] !== null
-      ? Number(phdData[match])
-      : null;
-  };
 
   // Section Produksi Actual (T/D) Calculations:
   // Unit 021 HVU II
