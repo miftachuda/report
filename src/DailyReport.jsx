@@ -267,9 +267,30 @@ export default function DailyReport({
 
   // Tank Farm LOC II Flow Product based on active Unit 024 MDU II Mode:
   // LMO -> HVI 95, MMO -> HVI 160S, DAO -> HVI 650. Non-active modes display 0.
-  const flowHvi95Loc2 = mduMode === "LMO" ? dorActual : 0;
-  const flowHvi160sLoc2 = mduMode === "MMO" ? dorActual : 0;
-  const flowHvi650Loc2 = mduMode === "DAO" ? dorActual : 0;
+  const defaultFlowHvi95Loc2 = mduMode === "LMO" ? dorActual : 0;
+  const defaultFlowHvi160sLoc2 = mduMode === "MMO" ? dorActual : 0;
+  const defaultFlowHvi650Loc2 = mduMode === "DAO" ? dorActual : 0;
+
+  const flowHvi95Loc2 =
+    feuMduData?.flow_hvi_95_loc2 !== undefined &&
+    feuMduData?.flow_hvi_95_loc2 !== null &&
+    feuMduData?.flow_hvi_95_loc2 !== ""
+      ? feuMduData.flow_hvi_95_loc2
+      : defaultFlowHvi95Loc2;
+
+  const flowHvi160sLoc2 =
+    feuMduData?.flow_hvi_160s_loc2 !== undefined &&
+    feuMduData?.flow_hvi_160s_loc2 !== null &&
+    feuMduData?.flow_hvi_160s_loc2 !== ""
+      ? feuMduData.flow_hvi_160s_loc2
+      : defaultFlowHvi160sLoc2;
+
+  const flowHvi650Loc2 =
+    feuMduData?.flow_hvi_650_loc2 !== undefined &&
+    feuMduData?.flow_hvi_650_loc2 !== null &&
+    feuMduData?.flow_hvi_650_loc2 !== ""
+      ? feuMduData.flow_hvi_650_loc2
+      : defaultFlowHvi650Loc2;
 
   const slackWaxFlow = getPhdTag("024FI_031.PV");
   let slackWaxSgTag = "024FY_031X.c1";
@@ -718,14 +739,47 @@ export default function DailyReport({
                       Tank Farm
                     </td>
                     <td className="text-center font-bold">LOC II</td>
-                    <td className="text-center font-semibold text-slate-900">
-                      {flowHvi95Loc2}
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi95Loc2}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_95_loc2: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 95 LOC II"
+                      />
                     </td>
-                    <td className="text-center font-semibold text-slate-900">
-                      {flowHvi160sLoc2}
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi160sLoc2}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_160s_loc2: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 160S LOC II"
+                      />
                     </td>
-                    <td className="text-center font-semibold text-slate-900">
-                      {flowHvi650Loc2}
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        value={flowHvi650Loc2}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            flow_hvi_650_loc2: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-semibold text-slate-900"
+                        title="Klik untuk mengubah Flow HVI 650 LOC II"
+                      />
                     </td>
                     <td colSpan={2} className="text-center font-semibold">
                       {levelCpi}

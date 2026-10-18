@@ -51,6 +51,9 @@ export default function App() {
     status_pompa_cpi_a: "Perbaikan",
     status_pompa_cpi_b: "AUTO",
     burner_fg_fo: "12 Gas / 4 Oil",
+    flow_hvi_95_loc2: null,
+    flow_hvi_160s_loc2: null,
+    flow_hvi_650_loc2: null,
   });
 
   // State for Issue Operational (Section B)

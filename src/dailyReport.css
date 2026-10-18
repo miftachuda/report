@@ -140,13 +140,15 @@ html, body {
 
 /* CARDS: Proportional flex distribution so no empty gaps exist */
 .daily-report-body .card {
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--table-border);
   background-color: var(--table-bg-td);
   display: flex;
   flex-direction: column;
   min-height: 0;
+  outline: none;
+  box-shadow: none;
 }
 
 .card-feed {
@@ -166,10 +168,11 @@ html, body {
 .card-summary {
   flex: 2.0;
   min-height: 0;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--table-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  outline: none;
+  box-shadow: none;
 }
 
 .card-summary table {
@@ -177,39 +180,45 @@ html, body {
   border-spacing: 0;
   width: 100%;
   height: 100%;
+  border: none;
+  outline: none;
 }
 
 .card-summary thead tr:first-child th:first-child {
-  border-top-left-radius: 5px;
+  border-top-left-radius: 9px;
 }
 
 .card-summary thead tr:first-child th:last-child {
-  border-top-right-radius: 5px;
+  border-top-right-radius: 9px;
 }
 
 .card-summary tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 5px;
+  border-bottom-left-radius: 9px;
 }
 
-.card-summary tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 5px;
+.card-summary tbody tr:first-child td:last-child,
+.card-summary tbody tr:first-child td:last-child textarea {
+  border-bottom-right-radius: 9px;
 }
 
+/* Thin internal grid lines only - prevent double grid */
 .card-summary th,
 .card-summary td {
   border-top: none;
   border-left: none;
   border-right: 1px solid var(--table-border);
   border-bottom: 1px solid var(--table-border);
+  outline: none;
 }
 
-.card-summary th:last-child,
-.card-summary td:last-child {
-  border-right: none;
+.card-summary tr th:last-child,
+.card-summary tr td:last-child {
+  border-right: none !important;
 }
 
-.card-summary tbody tr:last-child td {
-  border-bottom: none;
+.card-summary tbody tr:last-child td,
+.card-summary tbody tr:first-child td:last-child {
+  border-bottom: none !important;
 }
 
 .card-maintenance {
