@@ -13,19 +13,16 @@ export default function UnitModeModal({
     {
       id: 'LMO',
       label: 'LMO (Light Machine Oil)',
-      desc: 'Unit 023: 023FI_004.pv & 023FY_004BX.C1 | Unit 024: 024FI_001.pv',
       badgeClass: 'bg-blue-50 text-blue-700 border-blue-300',
     },
     {
       id: 'MMO',
       label: 'MMO (Medium Machine Oil)',
-      desc: 'Unit 023: 023FI_004.pv & 023FY_004CX.C1 | Unit 024: 024FI_001.pv',
       badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-300',
     },
     {
       id: 'DAO',
       label: 'DAO (De-Asphalted Oil)',
-      desc: 'Unit 023: 023FI_004.pv & 023FY_004DX.C1 | Unit 024: 024FI_001.pv',
       badgeClass: 'bg-amber-50 text-amber-700 border-amber-300',
     },
   ]
@@ -67,14 +64,11 @@ export default function UnitModeModal({
                     : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/80 hover:border-slate-300'
                 }`}
               >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-slate-900 text-xs">{m.label}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${m.badgeClass}`}>
-                      {m.id}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono">{m.desc}</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 text-xs">{m.label}</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${m.badgeClass}`}>
+                    {m.id}
+                  </span>
                 </div>
 
                 {isSelected && (
