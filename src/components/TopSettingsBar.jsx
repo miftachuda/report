@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import html2canvas from 'html2canvas-pro'
+import { formatPhdApiDate } from '../services/phdApi.js'
 import {
   Settings,
   ChevronUp,
@@ -282,6 +283,15 @@ export default function TopSettingsBar({
                     }}
                     className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
                   />
+                </div>
+              </div>
+
+              {/* Exact Dates Supplied for API */}
+              <div className="bg-slate-950/80 rounded border border-slate-800 p-2 mb-2 text-[10.5px]">
+                <span className="text-slate-400 block mb-0.5 font-medium">Format Disupply ke API:</span>
+                <div className="flex flex-col gap-0.5 font-mono text-cyan-300 text-[10px]">
+                  <div>Start: {formatPhdApiDate(dateRange.start)}</div>
+                  <div>End: &nbsp;{formatPhdApiDate(dateRange.end)}</div>
                 </div>
               </div>
 

@@ -3,25 +3,57 @@
 const PHD_API_URL = 'https://apiv2.miftachuda.my.id/GetData'
 
 /**
+ * Format date string to DCS/PHD API specification: MM/DD/YYYY HH:mm:ss.000
+ * Example: 10/18/2026 23:00:00.000
+ */
+export function formatPhdApiDate(input) {
+  if (!input) input = new Date()
+  if (typeof input === 'string' && /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}\.\d{3}$/.test(input.trim())) {
+    return input.trim()
+  }
+
+  let d = input
+  if (typeof input === 'string') {
+    if (input.includes('T')) {
+      const [datePart, timePart] = input.split('T')
+      const [year, month, day] = datePart.split('-').map(Number)
+      const timeTokens = timePart.split(':').map(Number)
+      const hour = timeTokens[0] || 0
+      const minute = timeTokens[1] || 0
+      const second = timeTokens[2] || 0
+      d = new Date(year, month - 1, day, hour, minute, second)
+    } else {
+      d = new Date(input)
+    }
+  }
+
+  if (isNaN(d.getTime())) {
+    d = new Date()
+  }
+
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+
+  return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}.000`
+}
+
+/**
  * Fetch PHD tag data for a list of tag names within a given time range.
  * @param {string[]} tagNames - Array of tag names to query
- * @param {string} startTime - ISO string or 'YYYY-MM-DDTHH:mm:ss'
- * @param {string} endTime - ISO string or 'YYYY-MM-DDTHH:mm:ss'
- * @param {number} interval - Polling interval in ms (default 900000 = 15m)
- * @returns {Promise<Record<string, number>>} Map of TagName -> Latest Numeric Value
+ * @param {string} startTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
+ * @param {string} endTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
+ * @param {number|null} interval - Polling interval in ms (auto-computed if null)
+ * @returns {Promise<Record<string, number>>} Map of TagName -> Average Numeric Value
  */
 export async function fetchPhdData(tagNames, startTime, endTime, interval = null) {
   if (!tagNames || tagNames.length === 0) return {}
 
-  // Format ISO strings if needed
-  const formatTime = (t) => {
-    if (!t) return new Date().toISOString().slice(0, 19)
-    if (t instanceof Date) return t.toISOString().slice(0, 19)
-    return String(t).slice(0, 19)
-  }
-
-  const sTime = formatTime(startTime)
-  const eTime = formatTime(endTime)
+  const sTime = formatPhdApiDate(startTime)
+  const eTime = formatPhdApiDate(endTime)
 
   // Dynamically determine optimal polling interval if not explicitly supplied
   let queryInterval = interval
