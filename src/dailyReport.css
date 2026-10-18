@@ -348,12 +348,8 @@ html, body {
 }
 
 .lims-val-alert {
-  color: #b91c1c;
+  color: #dc2626;
   font-weight: 700;
-  background-color: #fecaca;
-  padding: 1px 3px;
-  border-radius: 3px;
-  border: 1px solid #f87171;
 }
 
 .lims-limit-range {

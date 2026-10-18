@@ -130,15 +130,36 @@ export default function DailyReport({
   const calculatedStockHvi160S = calculateProductGroupTons(tanksHvi160S, tanks, phdData) || 1048
   const calculatedStockHvi650 = calculateProductGroupTons(tanksHvi650, tanks, phdData) || 3481
 
+  // Unit 023 Produksi sample code based on active mode (LMO: 02302, MMO: 02302M, DAO: 02302D)
+  let sampleCode023 = '02302'
+  if (feuMode === 'MMO') {
+    sampleCode023 = '02302M'
+  } else if (feuMode === 'DAO') {
+    sampleCode023 = '02302D'
+  } else {
+    sampleCode023 = '02302'
+  }
+
+  // Unit 024 Produksi sample code based on active mode (LMO: 02405, MMO: 02405M, DAO: 02405D)
+  let sampleCode024 = '02405'
+  if (mduMode === 'MMO') {
+    sampleCode024 = '02405M'
+  } else if (mduMode === 'DAO') {
+    sampleCode024 = '02405D'
+  } else {
+    sampleCode024 = '02405'
+  }
+
   // Helper to render LIMS parameter cell with limit comparison
   const renderLimsParam = (sampleCode, paramName, fallbackVal, unit = '') => {
-    const sample = limsData?.samples?.[sampleCode]
+    const baseCode = sampleCode.replace(/[MD]$/, '')
+    const sample = limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode]
     let rawVal = sample?.[paramName]?.value ?? fallbackVal
 
-    // Find limit record in sampleLimits from PocketBase
-    const limitRecord = sampleLimits.find(
-      (lim) => lim.sample_code === sampleCode && lim.param_name === paramName
-    )
+    // Find limit record in sampleLimits from PocketBase matching the mode sample code
+    const limitRecord =
+      sampleLimits.find((lim) => lim.sample_code === sampleCode && lim.param_name === paramName) ||
+      sampleLimits.find((lim) => lim.sample_code === baseCode && lim.param_name === paramName)
 
     const evaluated = evaluateSampleLimit(rawVal, limitRecord)
 
@@ -183,11 +204,6 @@ export default function DailyReport({
           <div className="flex items-center gap-2">
             <span className="font-bold">Tanggal:</span>
             <span>{dateDisplay || 'Sabtu, 17 Oktober 2026'}</span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[10px] text-slate-500">
-            <span>Shift: <strong className="text-slate-700">{limsData?.shift || 'Malam'}</strong></span>
-            <span className="hidden md:inline">Double-click on sections or unit modes to edit</span>
           </div>
         </div>
 
@@ -268,7 +284,6 @@ export default function DailyReport({
                           unitKey: 'unit023',
                         })
                       }
-                      title="Double-click to toggle mode (LMO / MMO / DAO)"
                     >
                       UNIT 023 FEU II
                     </td>
@@ -319,7 +334,6 @@ export default function DailyReport({
                           unitKey: 'unit023',
                         })
                       }
-                      title="Klik untuk ubah mode (LMO / MMO / DAO)"
                     >
                       {feuMode}
                     </td>
@@ -337,7 +351,6 @@ export default function DailyReport({
                           unitKey: 'unit024',
                         })
                       }
-                      title="Double-click to switch mode (LMO / MMO / DAO)"
                     >
                       UNIT 024 MDU II
                     </td>
@@ -388,7 +401,6 @@ export default function DailyReport({
                           unitKey: 'unit024',
                         })
                       }
-                      title="Klik untuk ubah mode (LMO / MMO / DAO)"
                     >
                       {mduMode}
                     </td>
@@ -478,12 +490,8 @@ export default function DailyReport({
                   type: 'operational',
                 })
               }
-              title="Double-click to edit operational issues"
             >
-              <div className="card-title flex items-center justify-between px-3">
-                <span className="flex-1 text-center">ISSUE OPERASIONAL</span>
-                <span className="text-[9px] font-normal opacity-70">Double-click to edit</span>
-              </div>
+              <div className="card-title">ISSUE OPERASIONAL</div>
               <div className="operational-box">
                 {issueOperational && issueOperational.length > 0 ? (
                   <ol className="list-decimal pl-5 space-y-1">
@@ -505,7 +513,7 @@ export default function DailyReport({
                   </ol>
                 ) : (
                   <div className="text-slate-400 italic text-center py-2">
-                    Tidak ada issue operasional. (Double-click untuk menambahkan)
+                    Tidak ada issue operasional.
                   </div>
                 )}
               </div>
@@ -516,10 +524,7 @@ export default function DailyReport({
           <div className="right-col">
             {/* SECTION D: PRODUKSI (LIMS Integration) */}
             <div className="card card-produksi">
-              <div className="card-title flex items-center justify-between px-3">
-                <span className="flex-1 text-center">PRODUKSI</span>
-                <span className="text-[9px] font-normal opacity-70">LIMS Shift {limsData?.shift || 'Malam'}</span>
-              </div>
+              <div className="card-title">PRODUKSI</div>
               <table>
                 <thead>
                   <tr>
@@ -645,9 +650,9 @@ export default function DailyReport({
                         <span></span>
                         <span></span>
                         <span></span>
-                        {renderLimsParam('02302', 'Visco 100°C', '14.960')}
-                        {renderLimsParam('02302', 'FP PMCC', '262')}
-                        {renderLimsParam('02302', 'RI 70°C', '1.4861')}
+                        {renderLimsParam(sampleCode023, 'Visco 100°C', '14.960')}
+                        {renderLimsParam(sampleCode023, 'FP PMCC', '262')}
+                        {renderLimsParam(sampleCode023, 'RI 70°C', '1.4861')}
                       </div>
                     </td>
                   </tr>
@@ -680,12 +685,12 @@ export default function DailyReport({
                         <span className="font-bold">VI</span>
                         <span className="font-bold">PP</span>
                         <span className="font-bold">App</span>
-                        {renderLimsParam('02405', 'Visco 100°C', '7.007')}
-                        {renderLimsParam('02405', 'FP PMCC', '214')}
-                        {renderLimsParam('02405', 'Color', 'L1.0')}
-                        {renderLimsParam('02405', 'VI', '99')}
-                        {renderLimsParam('02405', 'PP', '-9')}
-                        {renderLimsParam('02405', 'App', 'C&B')}
+                        {renderLimsParam(sampleCode024, 'Visco 100°C', '7.007')}
+                        {renderLimsParam(sampleCode024, 'FP PMCC', '214')}
+                        {renderLimsParam(sampleCode024, 'Color', 'L1.0')}
+                        {renderLimsParam(sampleCode024, 'VI', '99')}
+                        {renderLimsParam(sampleCode024, 'PP', '-9')}
+                        {renderLimsParam(sampleCode024, 'App', 'C&B')}
                       </div>
                     </td>
                   </tr>
@@ -726,7 +731,7 @@ export default function DailyReport({
                     <th>Design (T/D)</th>
                     <th>STS (%)</th>
                     <th>RPH (%)</th>
-                    <th className="text-[9px] text-slate-500 font-normal">Editable</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -739,7 +744,6 @@ export default function DailyReport({
                         value={feuMduData?.feu_lmo_sts ?? 70}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, feu_lmo_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit FEU LMO STS %"
                       />
                     </td>
                     <td rowSpan={3} className="text-center font-bold p-0">
@@ -748,7 +752,6 @@ export default function DailyReport({
                         value={feuMduData?.feu_rph ?? 65}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, feu_rph: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit FEU Target RPH %"
                       />
                     </td>
                     <td className="text-center font-bold">{feuMduData?.mdu_lmo_design || 841}</td>
@@ -758,7 +761,6 @@ export default function DailyReport({
                         value={feuMduData?.mdu_lmo_sts ?? 65}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_lmo_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit MDU LMO STS %"
                       />
                     </td>
                     <td rowSpan={3} className="text-center font-bold p-0">
@@ -767,16 +769,13 @@ export default function DailyReport({
                         value={feuMduData?.mdu_rph ?? 65}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_rph: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit MDU Target RPH %"
                       />
                     </td>
                     <td rowSpan={3} className="p-1">
                       <textarea
                         value={feuMduData?.note ?? ''}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, note: e.target.value })}
-                        placeholder="Click to type operational note..."
                         className="editable-input w-full h-full min-h-[50px] resize-none text-[10px]"
-                        title="Click to edit FEU/MDU operational note"
                       />
                     </td>
                   </tr>
@@ -789,7 +788,6 @@ export default function DailyReport({
                         value={feuMduData?.feu_mmo_sts ?? 65}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, feu_mmo_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit FEU MMO STS %"
                       />
                     </td>
                     <td className="text-center font-bold">{feuMduData?.mdu_mmo_design || 777}</td>
@@ -799,7 +797,6 @@ export default function DailyReport({
                         value={feuMduData?.mdu_mmo_sts ?? 65}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_mmo_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit MDU MMO STS %"
                       />
                     </td>
                   </tr>
@@ -812,7 +809,6 @@ export default function DailyReport({
                         value={feuMduData?.feu_dao_sts ?? 70}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, feu_dao_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit FEU DAO STS %"
                       />
                     </td>
                     <td className="text-center font-bold">{feuMduData?.mdu_dao_design || 501}</td>
@@ -822,7 +818,6 @@ export default function DailyReport({
                         value={feuMduData?.mdu_dao_sts ?? 0}
                         onChange={(e) => onFeuMduChange({ ...feuMduData, mdu_dao_sts: e.target.value })}
                         className="editable-input text-center font-bold"
-                        title="Click to edit MDU DAO STS %"
                       />
                     </td>
                   </tr>
@@ -840,12 +835,8 @@ export default function DailyReport({
                   type: 'maintenance',
                 })
               }
-              title="Double-click to edit maintenance issues"
             >
-              <div className="card-title flex items-center justify-between px-3">
-                <span className="flex-1 text-center">ISSUE MAINTENANCE</span>
-                <span className="text-[9px] font-normal opacity-70">Double-click to edit</span>
-              </div>
+              <div className="card-title">ISSUE MAINTENANCE</div>
               <table>
                 <thead>
                   <tr>
@@ -876,7 +867,7 @@ export default function DailyReport({
                   ) : (
                     <tr>
                       <td colSpan={3} className="text-center text-slate-400 italic py-2">
-                        Tidak ada issue maintenance. (Double-click untuk menambahkan)
+                        Tidak ada issue maintenance.
                       </td>
                     </tr>
                   )}
