@@ -192,6 +192,77 @@ export default function DailyReport({
     sampleCode024 = "02405";
   }
 
+  // Helper for case-insensitive PHD tag lookup
+  const getPhdTag = (tagName) => {
+    if (!phdData || !tagName) return null;
+    if (phdData[tagName] !== undefined && phdData[tagName] !== null) {
+      return Number(phdData[tagName]);
+    }
+    const lower = tagName.toLowerCase();
+    const match = Object.keys(phdData).find((k) => k.toLowerCase() === lower);
+    return match && phdData[match] !== undefined && phdData[match] !== null
+      ? Number(phdData[match])
+      : null;
+  };
+
+  // Section Produksi Actual (T/D) Calculations:
+  // Unit 021 HVU II
+  const spoFlow = getPhdTag("021FIC_058.PV");
+  const spoSg = getPhdTag("021FY_058X.C1");
+  const spoActual = calculateActualTD(spoFlow, spoSg) ?? 250;
+
+  const lmoDistFlow = getPhdTag("021FIC_057.PV");
+  const lmoDistSg = getPhdTag("021FY_057X.C1");
+  const lmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 273;
+
+  const mmoDistFlow = getPhdTag("021FI_008.PV");
+  const mmoDistSg = getPhdTag("021FY_008X.PV");
+  const mmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 460;
+
+  const shortResidueFlow = getPhdTag("021FI_002.PV");
+  const shortResidueSg = getPhdTag("021FY_002X.PV");
+  const shortResidueActual = calculateActualTD(shortResidueFlow, shortResidueSg) ?? 1081;
+
+  // Unit 022 PDU II
+  const daoFlow = getPhdTag("022FI_007.PV");
+  const daoSg = getPhdTag("022FY_007X.C1");
+  const daoActual = calculateActualTD(daoFlow, daoSg) ?? 151;
+
+  const asphaltFlow = getPhdTag("022FI_013.PV");
+  const asphaltSg = getPhdTag("022FY_013X.PV");
+  const asphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 484;
+
+  // Unit 023 FEU II
+  const raffFlow1 = getPhdTag("023FI_031.PV");
+  const raffFlow2 = getPhdTag("023FI_703.PV");
+  let raffSgTag = "023FY_031CX.C1";
+  if (feuMode === "LMO") raffSgTag = "023FY_031BX.C1";
+  else if (feuMode === "DAO") raffSgTag = "023FY_031DX.C1";
+  const raffSg = getPhdTag(raffSgTag);
+  const totalRaffFlow =
+    raffFlow1 !== null || raffFlow2 !== null
+      ? Number(raffFlow1 || 0) + Number(raffFlow2 || 0)
+      : null;
+  const raffActual = calculateActualTD(totalRaffFlow, raffSg) ?? 1106;
+
+  const extractFlow = getPhdTag("023FI_028.pv") ?? getPhdTag("023FI_028.PV");
+  let extractSgTag = "023FY_028CX.C1";
+  if (feuMode === "LMO") extractSgTag = "023FY_028BX.C1";
+  else if (feuMode === "DAO") extractSgTag = "023FY_028DX.C1";
+  const extractSg = getPhdTag(extractSgTag);
+  const extractActual = calculateActualTD(extractFlow, extractSg) ?? 644;
+
+  // Unit 024 MDU II
+  const dorFlow = getPhdTag("024FI_023.PV");
+  let dorSgTag = "024FY_023BX.C1";
+  const dorSg = getPhdTag(dorSgTag);
+  const dorActual = calculateActualTD(dorFlow, dorSg) ?? 465;
+
+  const slackWaxFlow = getPhdTag("024FI_031.PV");
+  let slackWaxSgTag = "024FY_031X.PV";
+  const slackWaxSg = getPhdTag(slackWaxSgTag);
+  const slackWaxActual = calculateActualTD(slackWaxFlow, slackWaxSg) ?? 96;
+
   // Helper to render LIMS parameter cell with limit comparison
   const renderLimsParam = (sampleCode, paramName, fallbackVal, unit = "") => {
     const baseCode = sampleCode.replace(/[MD]$/, "");
@@ -812,7 +883,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">LOC I</span>
                     </td>
-                    <td className="text-center">250 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{spoActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -826,7 +897,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-116</span>
                     </td>
-                    <td className="text-center">273 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{lmoDistActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -840,7 +911,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-117</span>
                     </td>
-                    <td className="text-center">460 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{mmoDistActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -854,7 +925,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-121/310</span>
                     </td>
-                    <td className="text-center">1081 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{shortResidueActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -878,7 +949,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-115</span>
                     </td>
-                    <td className="text-center">151 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{daoActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -899,7 +970,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">42T-10</span>
                     </td>
-                    <td className="text-center">484 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{asphaltActual} T/D</td>
                     <td></td>
                   </tr>
 
@@ -913,7 +984,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">41T-315</span>
                     </td>
-                    <td className="text-center">1106 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{raffActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -938,7 +1009,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">IFO</span>
                     </td>
-                    <td className="text-center">644 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{extractActual} T/D</td>
                     <td></td>
                   </tr>
 
@@ -952,7 +1023,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">41T-102</span>
                     </td>
-                    <td className="text-center">465 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{dorActual} T/D</td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -976,7 +1047,7 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">RFCC</span>
                     </td>
-                    <td className="text-center">96 T/D</td>
+                    <td className="text-center font-semibold text-slate-900">{slackWaxActual} T/D</td>
                     <td></td>
                   </tr>
                 </tbody>

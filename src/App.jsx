@@ -196,21 +196,50 @@ export default function App() {
     async (currentRange, currentModes, currentTanks) => {
       const mode023 = currentModes?.unit023 || "MMO";
 
-      // Base operational tags
+      // Base operational tags (Kapasitas Feed)
       const activeTags = [
         "021FI_004.pv",
         "021FY_004X.C1",
         "022FI_001.pv",
         "022FY_001X.C1",
-        "023FIC_004.pv",
+        "023FI_004.pv",
         "024FI_001.pv",
         "025FIC_004.pv",
         "025FY_004X.PV",
         "002LI_051.PV",
         "023LI_005.PV",
+        // Produksi Unit 021 HVU II
+        "021FIC_058.PV",
+        "021FY_058X.C1",
+        "021FIC_057.PV",
+        "021FY_057X.C1",
+        "021FI_008.PV",
+        "021FY_008X.PV",
+        "021FI_002.PV",
+        "021FY_002X.PV",
+        // Produksi Unit 022 PDU II
+        "022FI_007.PV",
+        "022FY_007X.C1",
+        "022FI_013.PV",
+        "022FY_013X.PV",
+        // Produksi Unit 023 FEU II
+        "023FI_031.PV",
+        "023FI_703.PV",
+        "023FY_031BX.C1",
+        "023FY_031CX.C1",
+        "023FY_031DX.C1",
+        "023FI_028.pv",
+        "023FY_028BX.C1",
+        "023FY_028CX.C1",
+        "023FY_028DX.C1",
+        // Produksi Unit 024 MDU II
+        "024FI_023.PV",
+        "024FY_023BX.C1",
+        "024FI_031.PV",
+        "024FY_031X.PV",
       ];
 
-      // Add SG tag for Unit 023 based on active mode
+      // Add SG tag for Unit 023 feed based on active mode
       if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
       else if (mode023 === "DAO") activeTags.push("023FY_004DX.C1");
       else activeTags.push("023FY_004CX.C1");
