@@ -233,6 +233,10 @@ html, body {
   color: #dc2626;
   font-weight: 700;
 }
+.daily-report-body .text-yellow {
+  color: #ca8a04;
+  font-weight: 700;
+}
 
 /* STATUS DOTS & BADGES */
 .status-cell {

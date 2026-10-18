@@ -43,7 +43,8 @@ export default function DailyReport({
   const hvuDesign = 3883
   const hvuTargetRph = 2524
   const hvuTargetSts = 2524
-  const hvuPercentPrh = calculateAchievedPercent(hvuActual, hvuTargetRph) ?? '102.4'
+  const hvuPercentDesign = calculateAchievedPercent(hvuActual, hvuDesign) ?? '66.5'
+  const hvuPercentRph = calculateAchievedPercent(hvuActual, hvuTargetRph) ?? '102.4'
   const hvuPercentSts = calculateAchievedPercent(hvuActual, hvuTargetSts) ?? '102.4'
 
   // Unit 022 PDU II
@@ -53,7 +54,8 @@ export default function DailyReport({
   const pduDesign = 784
   const pduTargetRph = 627
   const pduTargetSts = 549
-  const pduPercentPrh = calculateAchievedPercent(pduActual, pduTargetRph) ?? '101.3'
+  const pduPercentDesign = calculateAchievedPercent(pduActual, pduDesign) ?? '81.1'
+  const pduPercentRph = calculateAchievedPercent(pduActual, pduTargetRph) ?? '101.3'
   const pduPercentSts = calculateAchievedPercent(pduActual, pduTargetSts) ?? '115.8'
 
   // Unit 023 FEU II (Active Mode: LMO / MMO / DAO)
@@ -83,7 +85,8 @@ export default function DailyReport({
   const feuFlow = phdData[feuTagFlow] ?? null
   const feuSg = phdData[feuTagSg] ?? null
   const feuActual = calculateActualTD(feuFlow, feuSg) ?? 1750
-  const feuPercentPrh = calculateAchievedPercent(feuActual, feuTargetRph) ?? '118.6'
+  const feuPercentDesign = calculateAchievedPercent(feuActual, feuDesign) ?? '77.1'
+  const feuPercentRph = calculateAchievedPercent(feuActual, feuTargetRph) ?? '118.6'
   const feuPercentSts = calculateAchievedPercent(feuActual, feuTargetSts) ?? '118.6'
 
   // Unit 024 MDU II (Active Mode: LMO / MMO / DAO)
@@ -107,8 +110,17 @@ export default function DailyReport({
   const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 547
   const mduFlow = phdData['024FI_001.pv'] ?? null
   const mduActual = mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561
-  const mduPercentPrh = calculateAchievedPercent(mduActual, mduTargetRph) ?? '102.6'
+  const mduPercentDesign = calculateAchievedPercent(mduActual, mduDesign) ?? '66.7'
+  const mduPercentRph = calculateAchievedPercent(mduActual, mduTargetRph) ?? '102.6'
   const mduPercentSts = calculateAchievedPercent(mduActual, mduTargetSts) ?? '102.6'
+
+  // Helper to color % STS and % RPH: yellow if below 100%, green if >= 100%
+  const getPercentClass = (val) => {
+    if (val === null || val === undefined || val === '') return 'text-center'
+    const num = Number(val)
+    if (isNaN(num)) return 'text-center'
+    return num < 100 ? 'text-center text-yellow' : 'text-center text-green'
+  }
 
   // Unit 025 HOS II & Levels
   const hosFlow = phdData['025FI_004.pv'] ?? null
@@ -218,13 +230,14 @@ export default function DailyReport({
                 <thead>
                   <tr>
                     <th style={{ width: '16%' }}>UNIT</th>
-                    <th style={{ width: '16%' }}>Status</th>
-                    <th style={{ width: '12%' }}>Design (T/D)</th>
-                    <th style={{ width: '12%' }}>Aktual (T/D)</th>
-                    <th style={{ width: '14%' }}>Target RPH (T/D)</th>
-                    <th style={{ width: '12%' }}>Target STS</th>
-                    <th style={{ width: '9%' }}>% PRH</th>
-                    <th style={{ width: '9%' }}>% STS</th>
+                    <th style={{ width: '10%' }}>Status</th>
+                    <th style={{ width: '11%' }}>Design (T/D)</th>
+                    <th style={{ width: '11%' }}>Aktual (T/D)</th>
+                    <th style={{ width: '13%' }}>Target RPH (T/D)</th>
+                    <th style={{ width: '11%' }}>Target STS</th>
+                    <th style={{ width: '9%' }}>% Design</th>
+                    <th style={{ width: '9%' }}>% RPH</th>
+                    <th style={{ width: '10%' }}>% STS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,18 +249,9 @@ export default function DailyReport({
                     <td className="text-center font-semibold text-slate-900">{hvuActual}</td>
                     <td className="text-center">{hvuTargetRph}</td>
                     <td className="text-center">{hvuTargetSts}</td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{hvuPercentPrh}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{hvuPercentSts}</span>
-                      </div>
-                    </td>
+                    <td className="text-center font-semibold text-slate-800">{hvuPercentDesign}</td>
+                    <td className={getPercentClass(hvuPercentRph)}>{hvuPercentRph}</td>
+                    <td className={getPercentClass(hvuPercentSts)}>{hvuPercentSts}</td>
                   </tr>
 
                   {/* UNIT 022 */}
@@ -258,18 +262,9 @@ export default function DailyReport({
                     <td className="text-center font-semibold text-slate-900">{pduActual}</td>
                     <td className="text-center">{pduTargetRph}</td>
                     <td className="text-center">{pduTargetSts}</td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{pduPercentPrh}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{pduPercentSts}</span>
-                      </div>
-                    </td>
+                    <td className="text-center font-semibold text-slate-800">{pduPercentDesign}</td>
+                    <td className={getPercentClass(pduPercentRph)}>{pduPercentRph}</td>
+                    <td className={getPercentClass(pduPercentSts)}>{pduPercentSts}</td>
                   </tr>
 
                   {/* UNIT 023 (Switchable Mode on double-click) */}
@@ -302,17 +297,14 @@ export default function DailyReport({
                     <td rowSpan={2} className="text-center">
                       {feuTargetSts}
                     </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{feuPercentPrh}</span>
-                      </div>
+                    <td rowSpan={2} className="text-center font-semibold text-slate-800">
+                      {feuPercentDesign}
                     </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{feuPercentSts}</span>
-                      </div>
+                    <td rowSpan={2} className={getPercentClass(feuPercentRph)}>
+                      {feuPercentRph}
+                    </td>
+                    <td rowSpan={2} className={getPercentClass(feuPercentSts)}>
+                      {feuPercentSts}
                     </td>
                   </tr>
                   <tr>
@@ -369,17 +361,14 @@ export default function DailyReport({
                     <td rowSpan={2} className="text-center">
                       {mduTargetSts}
                     </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{mduPercentPrh}</span>
-                      </div>
+                    <td rowSpan={2} className="text-center font-semibold text-slate-800">
+                      {mduPercentDesign}
                     </td>
-                    <td rowSpan={2}>
-                      <div className="status-cell">
-                        <span className="dot dot-green"></span>
-                        <span>{mduPercentSts}</span>
-                      </div>
+                    <td rowSpan={2} className={getPercentClass(mduPercentRph)}>
+                      {mduPercentRph}
+                    </td>
+                    <td rowSpan={2} className={getPercentClass(mduPercentSts)}>
+                      {mduPercentSts}
                     </td>
                   </tr>
                   <tr>
@@ -413,7 +402,7 @@ export default function DailyReport({
                     <th>Pompa HOS</th>
                     <th>Aktual (T/D)</th>
                     <th>Burner FG/FO</th>
-                    <th colSpan={3}>Level 023C104</th>
+                    <th colSpan={4}>Level 023C104</th>
                   </tr>
                   <tr>
                     <td className="text-center">HOS II</td>
@@ -421,7 +410,7 @@ export default function DailyReport({
                     <td className="text-center">025P101AT</td>
                     <td className="text-center font-semibold">{hosActual}</td>
                     <td className="text-center">12 Gas / 4 Oil</td>
-                    <td colSpan={3} className="text-center font-semibold">
+                    <td colSpan={4} className="text-center font-semibold">
                       {level023C104}
                     </td>
                   </tr>
@@ -433,7 +422,7 @@ export default function DailyReport({
                     <th>Flow HVI 95</th>
                     <th>Flow HVI 160S</th>
                     <th>Flow HVI 650</th>
-                    <th>Level CPI (%)</th>
+                    <th colSpan={2}>Level CPI (%)</th>
                     <th colSpan={2}>VISUAL PERAIRAN</th>
                   </tr>
                   <tr>
@@ -444,7 +433,7 @@ export default function DailyReport({
                     <td className="text-center">465</td>
                     <td className="text-center">0</td>
                     <td className="text-center">0</td>
-                    <td className="text-center font-semibold">{levelCpi}</td>
+                    <td colSpan={2} className="text-center font-semibold">{levelCpi}</td>
                     <td colSpan={2} className="text-center">
                       CLEAR
                     </td>
@@ -454,14 +443,14 @@ export default function DailyReport({
                     <td className="text-center">0</td>
                     <td className="text-center">0</td>
                     <td className="text-center">256</td>
-                    <th colSpan={3}>STATUS POMPA CPI</th>
+                    <th colSpan={4}>STATUS POMPA CPI</th>
                   </tr>
                   <tr>
                     <th colSpan={2}>Stock Product (MTon)</th>
                     <th>HVI 95</th>
                     <th>HVI 160S</th>
                     <th>HVI 650</th>
-                    <th>002P101A</th>
+                    <th colSpan={2}>002P101A</th>
                     <th colSpan={2}>002P101B</th>
                   </tr>
                   <tr>
@@ -471,7 +460,7 @@ export default function DailyReport({
                     <td className="text-center font-bold text-slate-900">{calculatedStockHvi95}</td>
                     <td className="text-center font-bold text-slate-900">{calculatedStockHvi160S}</td>
                     <td className="text-center font-bold text-slate-900">{calculatedStockHvi650}</td>
-                    <td className="text-center">Perbaikan</td>
+                    <td colSpan={2} className="text-center">Perbaikan</td>
                     <td colSpan={2} className="text-center text-green">
                       AUTO
                     </td>
