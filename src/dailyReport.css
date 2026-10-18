@@ -140,15 +140,15 @@ html, body {
 
 /* CARDS: Proportional flex distribution so no empty gaps exist */
 .daily-report-body .card {
-  border-radius: 8px;
+  border-radius: 16px !important;
   overflow: hidden;
-  border: 1px solid var(--table-border);
+  border: none !important;
   background-color: var(--table-bg-td);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  outline: none;
-  box-shadow: none;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .card-feed {
@@ -168,11 +168,11 @@ html, body {
 .card-summary {
   flex: 2.0;
   min-height: 0;
-  border-radius: 10px;
+  border-radius: 16px !important;
   overflow: hidden;
-  border: 1px solid var(--table-border);
-  outline: none;
-  box-shadow: none;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .card-summary table {
@@ -180,28 +180,28 @@ html, body {
   border-spacing: 0;
   width: 100%;
   height: 100%;
-  border: none;
-  outline: none;
+  border: none !important;
+  outline: none !important;
 }
 
 .card-summary thead tr:first-child th:first-child {
-  border-top-left-radius: 9px;
+  border-top-left-radius: 16px;
 }
 
 .card-summary thead tr:first-child th:last-child {
-  border-top-right-radius: 9px;
+  border-top-right-radius: 16px;
 }
 
 .card-summary tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 9px;
+  border-bottom-left-radius: 16px;
 }
 
 .card-summary tbody tr:first-child td:last-child,
 .card-summary tbody tr:first-child td:last-child textarea {
-  border-bottom-right-radius: 9px;
+  border-bottom-right-radius: 16px;
 }
 
-/* Thin internal grid lines only - prevent double grid */
+/* Thin internal grid lines only - prevent double grid and remove outer perimeter border */
 .card-summary th,
 .card-summary td {
   border-top: none;
@@ -217,7 +217,7 @@ html, body {
 }
 
 .card-summary tbody tr:last-child td,
-.card-summary tbody tr:first-child td:last-child {
+.card-summary tbody tr td[rowspan="3"] {
   border-bottom: none !important;
 }
 
@@ -243,6 +243,7 @@ html, body {
   height: 100%;
   flex: 1;
   border-collapse: collapse;
+  border: none !important;
 }
 
 .daily-report-body th {
@@ -263,6 +264,26 @@ html, body {
   vertical-align: middle;
   font-size: clamp(9.5px, 0.7vw, 11.5px);
   line-height: 1.25;
+}
+
+/* Remove outer perimeter border on tables - keeping thin internal grid lines */
+.daily-report-body table tr > th:first-child,
+.daily-report-body table tr > td:first-child {
+  border-left: none !important;
+}
+
+.daily-report-body table tr > th:last-child,
+.daily-report-body table tr > td:last-child {
+  border-right: none !important;
+}
+
+.daily-report-body table thead tr:first-child > th {
+  border-top: none !important;
+}
+
+.daily-report-body table tbody tr:last-child > td,
+.daily-report-body .card-produksi tbody tr:nth-last-child(2) td[rowspan="2"] {
+  border-bottom: none !important;
 }
 
 /* UTILITIES */
@@ -323,31 +344,63 @@ html, body {
 /* SAMPLE GRID INSIDE PRODUKSI */
 .sample-grid {
   display: grid;
-  grid-template-columns: repeat(6, auto);
-  column-gap: clamp(2px, 0.3vw, 5px);
-  row-gap: 1px;
   align-items: center;
-  justify-content: start;
-  font-size: clamp(8.5px, 0.62vw, 10px);
-  line-height: 1.1;
-  white-space: nowrap;
+  width: 100%;
+  font-size: clamp(10px, 0.75vw, 12.5px);
+  line-height: 1.25;
+}
+
+.sample-grid-single {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 0.9vw, 14px);
+  width: 100%;
+  font-size: clamp(11px, 0.8vw, 13px);
+}
+
+.sample-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  column-gap: clamp(4px, 0.5vw, 8px);
+  row-gap: 2px;
+  font-size: clamp(10.5px, 0.75vw, 12.5px);
+}
+
+.sample-grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  column-gap: clamp(2px, 0.3vw, 5px);
+  row-gap: 2px;
+  font-size: clamp(9.5px, 0.7vw, 11.5px);
+}
+
+.sample-grid .font-bold {
+  color: #0f172a;
+  font-size: clamp(10px, 0.72vw, 12px);
 }
 
 .card-produksi td {
-  padding: clamp(1px, 0.22vh, 2.5px) clamp(2px, 0.3vw, 4px) !important;
-  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
-  line-height: 1.12 !important;
+  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px) !important;
+  font-size: clamp(9px, 0.68vw, 11px) !important;
+  line-height: 1.2 !important;
 }
 
 .card-produksi th {
-  padding: clamp(2px, 0.3vh, 3.5px) clamp(2px, 0.3vw, 4px) !important;
-  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
-  line-height: 1.15 !important;
+  padding: clamp(2.5px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px) !important;
+  font-size: clamp(9px, 0.68vw, 11px) !important;
+  line-height: 1.2 !important;
 }
 
 .card-produksi .onspec-cell {
   padding: 1px 2px !important;
-  font-size: clamp(8px, 0.58vw, 9.5px) !important;
+  font-size: clamp(8.5px, 0.6vw, 10px) !important;
 }
 
 /* ISSUE OPERATIONAL BOX */
@@ -380,10 +433,21 @@ html, body {
   font-size: inherit;
   font-weight: inherit;
   color: inherit;
-  text-align: inherit;
+  text-align: center;
   width: 100%;
   border-radius: 3px;
   transition: all 0.15s ease;
+}
+
+/* Hide datalist indicator so text is centered and doesn't get pushed to the right in Chrome & html2canvas */
+.editable-input::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .editable-input:hover {
@@ -430,6 +494,7 @@ html, body {
   cursor: pointer;
   transition: background-color 0.15s ease;
   user-select: none;
+  border-right: 1px solid var(--table-td-border) !important;
 }
 
 .unit-mode-badge:hover {

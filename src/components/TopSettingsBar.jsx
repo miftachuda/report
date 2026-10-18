@@ -65,6 +65,54 @@ export default function TopSettingsBar({
         backgroundColor: '#eef5f9',
         windowWidth: 1920,
         windowHeight: 1080,
+        onclone: (clonedDoc) => {
+          // Replace all <input> elements with styled <div> elements
+          // This fixes the html2canvas bug where datalist inputs or colSpan inputs shift text to the right
+          const inputs = clonedDoc.querySelectorAll('input')
+          inputs.forEach((input) => {
+            const div = clonedDoc.createElement('div')
+            div.textContent = input.value || input.placeholder || ''
+            div.className = input.className
+            if (input.style.cssText) {
+              div.style.cssText = input.style.cssText
+            }
+            div.style.display = 'flex'
+            div.style.alignItems = 'center'
+            div.style.justifyContent = 'center'
+            div.style.textAlign = 'center'
+            div.style.width = '100%'
+            div.style.height = '100%'
+            div.style.margin = '0'
+            div.style.padding = '0'
+            div.style.border = 'none'
+            div.style.background = 'transparent'
+            div.style.boxSizing = 'border-box'
+
+            if (input.parentNode) {
+              input.parentNode.replaceChild(div, input)
+            }
+          })
+
+          // Also convert textareas to clean divs
+          const textareas = clonedDoc.querySelectorAll('textarea')
+          textareas.forEach((textarea) => {
+            const div = clonedDoc.createElement('div')
+            div.textContent = textarea.value || ''
+            div.className = textarea.className
+            if (textarea.style.cssText) {
+              div.style.cssText = textarea.style.cssText
+            }
+            div.style.whiteSpace = 'pre-wrap'
+            div.style.wordBreak = 'break-word'
+            div.style.border = 'none'
+            div.style.background = 'transparent'
+            div.style.boxSizing = 'border-box'
+
+            if (textarea.parentNode) {
+              textarea.parentNode.replaceChild(div, textarea)
+            }
+          })
+        },
       })
 
       const link = document.createElement('a')

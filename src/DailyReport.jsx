@@ -316,7 +316,7 @@ export default function DailyReport({
     const evaluated = evaluateSampleLimit(rawVal, limitRecord);
 
     return (
-      <span className="inline-flex items-center gap-0.5">
+      <span className="inline-flex items-center justify-center gap-0.5">
         <span
           className={
             evaluated.isOutOfRange ? "lims-val-alert" : "lims-val-normal"
@@ -329,7 +329,7 @@ export default function DailyReport({
         >
           {evaluated.formattedValue}
         </span>
-        {unit && <span className="font-bold text-[8.5px] ml-0.5">{unit}</span>}
+        {unit && <span className="font-bold text-[9.5px] ml-0.5">{unit}</span>}
         {evaluated.limitLabel && (
           <span className="lims-limit-range" title="Specification Limits">
             {evaluated.limitLabel}
@@ -1007,7 +1007,7 @@ export default function DailyReport({
                       {spoActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02103", "Visco 60°C", "12.50", "cSt")}
                       </div>
@@ -1023,7 +1023,7 @@ export default function DailyReport({
                       {lmoDistActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02104", "Visco 60°C", "31.21", "cSt")}
                       </div>
@@ -1039,7 +1039,7 @@ export default function DailyReport({
                       {mmoDistActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02105", "Visco 60°C", "95.75", "cSt")}
                       </div>
@@ -1055,7 +1055,7 @@ export default function DailyReport({
                       {shortResidueActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam(
                           "02107",
@@ -1081,13 +1081,10 @@ export default function DailyReport({
                       {daoActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-3">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
                         <span className="font-bold">COL</span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
                         {renderLimsParam("02203", "Visco 100°C", "43.81")}
                         {renderLimsParam("02203", "FP PMCC", "288")}
                         {renderLimsParam("02203", "Color", "L7.5")}
@@ -1120,13 +1117,10 @@ export default function DailyReport({
                       {raffActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-3">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
                         <span className="font-bold">RI</span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
                         {renderLimsParam(
                           sampleCode023,
                           "Visco 100°C",
@@ -1163,7 +1157,7 @@ export default function DailyReport({
                       {dorActual} T/D
                     </td>
                     <td>
-                      <div className="sample-grid">
+                      <div className="sample-grid sample-grid-6">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
                         <span className="font-bold">COL</span>
