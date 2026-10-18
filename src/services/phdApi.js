@@ -41,33 +41,15 @@ export function formatPhdApiDate(input) {
   return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}.000`
 }
 
+// In-flight request management to prevent redundant concurrent queries
+let activeRequestKey = null
+let activeRequestPromise = null
+let activeAbortController = null
+
 /**
- * Fetch PHD tag data for a list of tag names within a given time range.
- * @param {string[]} tagNames - Array of tag names to query
- * @param {string} startTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
- * @param {string} endTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
- * @param {number|null} interval - Polling interval in ms (auto-computed if null)
- * @returns {Promise<Record<string, number>>} Map of TagName -> Average Numeric Value
+ * Internal worker to execute the network fetch for PHD data
  */
-export async function fetchPhdData(tagNames, startTime, endTime, interval = null) {
-  if (!tagNames || tagNames.length === 0) return {}
-
-  const sTime = formatPhdApiDate(startTime)
-  const eTime = formatPhdApiDate(endTime)
-
-  // Dynamically determine optimal polling interval if not explicitly supplied
-  let queryInterval = interval
-  if (!queryInterval) {
-    const diffMs = Math.abs(new Date(eTime).getTime() - new Date(sTime).getTime())
-    if (diffMs <= 15 * 60 * 1000) {
-      queryInterval = 60000 // 1 minute for small ranges (Now, Last 10 min)
-    } else if (diffMs <= 3 * 3600 * 1000) {
-      queryInterval = 300000 // 5 minutes for Last 1h - 3h
-    } else {
-      queryInterval = 900000 // 15 minutes for 8h - 24h
-    }
-  }
-
+async function executePhdFetch(tagNames, sTime, eTime, queryInterval, controller) {
   const payload = [
     {
       TagName: Array.from(new Set(tagNames)),
@@ -77,8 +59,10 @@ export async function fetchPhdData(tagNames, startTime, endTime, interval = null
     },
   ]
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 12000)
+  // Increased timeout to 45s for large tag batches and server query queues
+  const timeoutId = setTimeout(() => {
+    controller.abort(new DOMException('PHD query timed out after 45s', 'TimeoutError'))
+  }, 45000)
 
   try {
     const response = await fetch(PHD_API_URL, {
@@ -136,7 +120,19 @@ export async function fetchPhdData(tagNames, startTime, endTime, interval = null
     return tagValues
   } catch (err) {
     clearTimeout(timeoutId)
-    console.warn('[PHD API] fetch failed, using cached tags:', err.message)
+
+    // If request was superseded by a newer query or intentionally aborted, handle cleanly
+    const isSuperseded =
+      err.name === 'AbortError' &&
+      (err.message?.includes('Superseded') ||
+        controller.signal.reason?.message?.includes?.('Superseded') ||
+        controller.signal.reason === 'Superseded')
+
+    if (isSuperseded) {
+      return {}
+    }
+
+    console.warn('[PHD API] fetch failed, using cached tags:', err.message || err)
     try {
       return JSON.parse(localStorage.getItem('cached_phd_tags') || '{}')
     } catch {
@@ -144,4 +140,66 @@ export async function fetchPhdData(tagNames, startTime, endTime, interval = null
     }
   }
 }
+
+/**
+ * Fetch PHD tag data for a list of tag names within a given time range.
+ * Automatically deduplicates duplicate in-flight requests and cancels stale requests.
+ * @param {string[]} tagNames - Array of tag names to query
+ * @param {string} startTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
+ * @param {string} endTime - Formatted as 'MM/DD/YYYY HH:mm:ss.000' or ISO
+ * @param {number|null} interval - Polling interval in ms (auto-computed if null)
+ * @returns {Promise<Record<string, number>>} Map of TagName -> Average Numeric Value
+ */
+export async function fetchPhdData(tagNames, startTime, endTime, interval = null) {
+  if (!tagNames || tagNames.length === 0) return {}
+
+  const sTime = formatPhdApiDate(startTime)
+  const eTime = formatPhdApiDate(endTime)
+
+  // Dynamically determine optimal polling interval if not explicitly supplied
+  let queryInterval = interval
+  if (!queryInterval) {
+    const diffMs = Math.abs(new Date(eTime).getTime() - new Date(sTime).getTime())
+    if (diffMs <= 15 * 60 * 1000) {
+      queryInterval = 60000 // 1 minute for small ranges (Now, Last 10 min)
+    } else if (diffMs <= 3 * 3600 * 1000) {
+      queryInterval = 300000 // 5 minutes for Last 1h - 3h
+    } else {
+      queryInterval = 900000 // 15 minutes for 8h - 24h
+    }
+  }
+
+  const uniqueTags = Array.from(new Set(tagNames)).sort()
+  const requestKey = `${sTime}|${eTime}|${queryInterval}|${uniqueTags.join(',')}`
+
+  // 1. If an identical request is already actively in-flight, return the existing promise
+  if (activeRequestPromise && activeRequestKey === requestKey) {
+    return activeRequestPromise
+  }
+
+  // 2. If a different query was in-flight, cleanly abort it
+  if (activeAbortController) {
+    try {
+      activeAbortController.abort(new DOMException('Superseded by newer query', 'AbortError'))
+    } catch {
+      // ignore
+    }
+  }
+
+  const controller = new AbortController()
+  activeAbortController = controller
+  activeRequestKey = requestKey
+
+  activeRequestPromise = executePhdFetch(uniqueTags, sTime, eTime, queryInterval, controller)
+    .finally(() => {
+      if (activeRequestKey === requestKey) {
+        activeRequestPromise = null
+        activeRequestKey = null
+        activeAbortController = null
+      }
+    })
+
+  return activeRequestPromise
+}
+
 

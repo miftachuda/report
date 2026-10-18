@@ -135,6 +135,9 @@ export default function App() {
     setIsRefreshing(true);
     const today = getTodayDateStr();
 
+    let resolvedTanks = tanks;
+    let resolvedModes = unitModes;
+
     try {
       // Check PB Health
       const isHealthy = await checkPocketBaseHealth();
@@ -148,7 +151,10 @@ export default function App() {
         fetchLimsData(),
       ]);
 
-      if (pbTanks && pbTanks.length > 0) setTanks(pbTanks);
+      if (pbTanks && pbTanks.length > 0) {
+        setTanks(pbTanks);
+        resolvedTanks = pbTanks;
+      }
       if (pbLimits && pbLimits.length > 0) setSampleLimits(pbLimits);
       if (limsResult) setLimsData(limsResult);
 
@@ -172,6 +178,7 @@ export default function App() {
         }
         if (pbReport.unit_modes) {
           setUnitModes(pbReport.unit_modes);
+          resolvedModes = pbReport.unit_modes;
           if (pbReport.unit_modes.statuses) {
             setUnitStatuses((prev) => ({
               ...prev,
@@ -194,7 +201,8 @@ export default function App() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [normalizeOperationalIssues, normalizeMaintenanceIssues]);
+    return { unitModes: resolvedModes, tanks: resolvedTanks };
+  }, [normalizeOperationalIssues, normalizeMaintenanceIssues, tanks, unitModes]);
 
   // 2. Query PHD Tags based on active modes & tank tags
   const loadPhdTags = useCallback(
@@ -313,15 +321,20 @@ export default function App() {
     [unitModes, tanks, loadPhdTags],
   );
 
-  // Initial mount trigger
+  // Initial mount trigger: load PB/LIMS first, then query PHD tags once
   useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
-
-  // Trigger PHD fetch when modes or tanks change
-  useEffect(() => {
-    loadPhdTags(dateRange, unitModes, tanks);
-  }, [unitModes, tanks, loadPhdTags]);
+    let active = true;
+    const init = async () => {
+      const res = await loadInitialData();
+      if (active) {
+        loadPhdTags(dateRange, res?.unitModes || unitModes, res?.tanks || tanks);
+      }
+    };
+    init();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 3. Auto-save helper to sync changes with PocketBase daily_report
   const triggerAutoSync = (updatedFields) => {
@@ -378,7 +391,22 @@ export default function App() {
     const updated = { ...unitModes, [unitKey]: newMode };
     setUnitModes(updated);
     triggerAutoSync({ unit_modes: updated });
+    loadPhdTags(dateRange, updated, tanks);
   };
+
+  // Synchronized full refresh
+  const handleRefresh = useCallback(async () => {
+    let currentRange = dateRange;
+    if (phdPreset !== "custom") {
+      const refreshed = calculateDateRangeForPreset(phdPreset);
+      if (refreshed) {
+        currentRange = refreshed;
+        setDateRange(refreshed);
+      }
+    }
+    const res = await loadInitialData();
+    await loadPhdTags(currentRange, res?.unitModes || unitModes, res?.tanks || tanks);
+  }, [dateRange, phdPreset, loadInitialData, loadPhdTags, unitModes, tanks]);
 
   // Operational Unit Status change handler (Unit 021, Unit 022, Unit 023, Unit 024, HOS II)
   const handleUnitStatusChange = (unitKey, newStatus) => {
@@ -471,18 +499,7 @@ export default function App() {
         onDateRangeChange={handleDateRangeChange}
         phdPreset={phdPreset}
         onPhdPresetChange={handlePhdPresetChange}
-        onRefreshData={() => {
-          let currentRange = dateRange;
-          if (phdPreset !== "custom") {
-            const refreshed = calculateDateRangeForPreset(phdPreset);
-            if (refreshed) {
-              currentRange = refreshed;
-              setDateRange(refreshed);
-            }
-          }
-          loadInitialData();
-          loadPhdTags(currentRange, unitModes, tanks);
-        }}
+        onRefreshData={handleRefresh}
         onManualSave={handleManualSave}
         isSaving={isSaving}
         isRefreshing={isRefreshing}
