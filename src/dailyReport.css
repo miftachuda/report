@@ -314,3 +314,71 @@ html, body {
 .operational-box li {
   margin-bottom: clamp(2px, 0.4vh, 5px);
 }
+/* Inline editable inputs for FEU/MDU and other cells */
+.editable-input {
+  background: transparent;
+  border: 1px dashed transparent;
+  padding: 1px 3px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  text-align: inherit;
+  width: 100%;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.editable-input:hover {
+  border-color: #94a3b8;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.editable-input:focus {
+  border-color: #4f46e5;
+  background: #ffffff;
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(79, 70, 229, 0.2);
+}
+
+/* LIMS sample value range highlighting */
+.lims-val-normal {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.lims-val-alert {
+  color: #b91c1c;
+  font-weight: 700;
+  background-color: #fecaca;
+  padding: 1px 3px;
+  border-radius: 3px;
+  border: 1px solid #f87171;
+}
+
+.lims-limit-range {
+  font-size: 8px;
+  color: #64748b;
+  font-weight: 500;
+  margin-left: 3px;
+}
+
+/* Double-click hint on cards */
+.interactive-card {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+
+.interactive-card:hover {
+  box-shadow: 0 0 0 1.5px #3b82f6;
+}
+
+.unit-mode-badge {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.unit-mode-badge:hover {
+  transform: scale(1.05);
+}

@@ -1,9 +1,334 @@
+import { useState, useEffect, useCallback, useRef } from 'react'
+import TopSettingsBar from './components/TopSettingsBar.jsx'
 import DailyReport from './DailyReport.jsx'
+import {
+  getDailyReport,
+  saveDailyReport,
+  getTanks,
+  getSampleLimits,
+  archiveDailyReport,
+  checkPocketBaseHealth,
+} from './services/pocketbase.js'
+import { fetchPhdData } from './services/phdApi.js'
+import { fetchLimsData } from './services/limsApi.js'
 
 export default function App() {
+  const getTodayDateStr = () => new Date().toISOString().slice(0, 10)
+
+  // Date Range for PHD queries
+  const [dateRange, setDateRange] = useState(() => {
+    const today = getTodayDateStr()
+    return {
+      start: `${today}T00:00`,
+      end: `${today}T23:59`,
+    }
+  })
+
+  // State for FEU MDU Table (Section A)
+  const [feuMduData, setFeuMduData] = useState({
+    feu_lmo_design: 2180,
+    feu_lmo_sts: 70,
+    feu_rph: 65,
+    feu_mmo_design: 2270,
+    feu_mmo_sts: 65,
+    feu_dao_design: 1786,
+    feu_dao_sts: 70,
+    mdu_lmo_design: 841,
+    mdu_lmo_sts: 65,
+    mdu_rph: 65,
+    mdu_mmo_design: 777,
+    mdu_mmo_sts: 65,
+    mdu_dao_design: 501,
+    mdu_dao_sts: 0,
+    note: '',
+  })
+
+  // State for Issue Operational (Section B)
+  const [issueOperational, setIssueOperational] = useState([
+    'Unit FEU II 023 : Ketahanan stock furfural',
+    '024K-101 : Temperature discharge panas & ASC hunting',
+    '021F-102 : Flow fuel gas max 197 M3/h',
+  ])
+
+  // State for Issue Maintenance (Section B)
+  const [issueMaintenance, setIssueMaintenance] = useState([
+    {
+      equipment: '024P-107A',
+      issue: 'Motor vibrasi',
+      mitigation: 'Perbaikan motor di WS bls ( WO No. 8302570004 )',
+    },
+    {
+      equipment: '002P-101A',
+      issue: 'Casing bocor',
+      mitigation: 'Perbaikan pompa di WS bls',
+    },
+  ])
+
+  // State for Switchable Modes: Unit 023 & Unit 024 (Section C)
+  const [unitModes, setUnitModes] = useState({
+    unit023: 'MMO',
+    unit024: 'LMO',
+  })
+
+  // PocketBase collections state
+  const [tanks, setTanks] = useState([])
+  const [sampleLimits, setSampleLimits] = useState([])
+  const [phdData, setPhdData] = useState({})
+  const [limsData, setLimsData] = useState({ samples: {}, shift: 'Malam' })
+
+  // Status & loading indicators
+  const [pocketBaseConnected, setPocketBaseConnected] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastSavedTime, setLastSavedTime] = useState(null)
+
+  const autoSaveDebounceTimer = useRef(null)
+
+  // 1. Load initial PocketBase, LIMS, and Tank data
+  const loadInitialData = useCallback(async () => {
+    setIsRefreshing(true)
+    const today = getTodayDateStr()
+
+    try {
+      // Check PB Health
+      const isHealthy = await checkPocketBaseHealth()
+      setPocketBaseConnected(isHealthy)
+
+      // Fetch PB collections in parallel
+      const [pbReport, pbTanks, pbLimits, limsResult] = await Promise.all([
+        getDailyReport(today),
+        getTanks(),
+        getSampleLimits(),
+        fetchLimsData(),
+      ])
+
+      if (pbTanks && pbTanks.length > 0) setTanks(pbTanks)
+      if (pbLimits && pbLimits.length > 0) setSampleLimits(pbLimits)
+      if (limsResult) setLimsData(limsResult)
+
+      // Populate existing daily report if available
+      if (pbReport) {
+        if (pbReport.feu_mdu_data) setFeuMduData(pbReport.feu_mdu_data)
+        if (pbReport.issue_operational) setIssueOperational(pbReport.issue_operational)
+        if (pbReport.issue_maintenance) setIssueMaintenance(pbReport.issue_maintenance)
+        if (pbReport.unit_modes) setUnitModes(pbReport.unit_modes)
+        setLastSavedTime(pbReport.updated || pbReport.created || pbReport.updated_at)
+      }
+    } catch (err) {
+      console.error('Error loading initial report data:', err)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [])
+
+  // 2. Query PHD Tags based on active modes & tank tags
+  const loadPhdTags = useCallback(
+    async (currentRange, currentModes, currentTanks) => {
+      const mode023 = currentModes?.unit023 || 'MMO'
+
+      // Base operational tags
+      const activeTags = [
+        '021FI_004.pv',
+        '021FY_004X.C1',
+        '022FI_001.pv',
+        '022FY_001X.C1',
+        '023FI_004.pv',
+        '024FI_001.pv',
+        '025FI_004.pv',
+        '025FY_004X.PV',
+        '002LI_051.PV',
+        '023LI_005.PV',
+      ]
+
+      // Add SG tag for Unit 023 based on active mode
+      if (mode023 === 'LMO') activeTags.push('023FY_004BX.C1')
+      else if (mode023 === 'DAO') activeTags.push('023FY_004DX.C1')
+      else activeTags.push('023FY_004CX.C1')
+
+      // Add tank level tags
+      const targetTanks = [
+        '41T101',
+        '41T102',
+        '41T104',
+        '41T103',
+        '41T107',
+        '41T108',
+        '41T105',
+        '41T106',
+        '41T109',
+        '41T110',
+      ]
+
+      targetTanks.forEach((name) => {
+        const found = currentTanks.find((t) => t.tank_name === name)
+        if (found?.tag_level) {
+          activeTags.push(found.tag_level)
+        } else {
+          activeTags.push(`${name}_P_LEVEL.PV`)
+        }
+      })
+
+      try {
+        const results = await fetchPhdData(activeTags, currentRange.start, currentRange.end)
+        setPhdData((prev) => ({ ...prev, ...results }))
+      } catch (err) {
+        console.error('Error fetching PHD tags:', err)
+      }
+    },
+    []
+  )
+
+  // Initial mount trigger
+  useEffect(() => {
+    loadInitialData()
+  }, [loadInitialData])
+
+  // Trigger PHD fetch when date range or modes change
+  useEffect(() => {
+    loadPhdTags(dateRange, unitModes, tanks)
+  }, [dateRange, unitModes, tanks, loadPhdTags])
+
+  // 3. Auto-save helper to sync changes with PocketBase daily_report
+  const triggerAutoSync = (updatedFields) => {
+    clearTimeout(autoSaveDebounceTimer.current)
+    autoSaveDebounceTimer.current = setTimeout(async () => {
+      const today = getTodayDateStr()
+      const payload = {
+        feu_mdu_data: updatedFields.feu_mdu_data ?? feuMduData,
+        issue_operational: updatedFields.issue_operational ?? issueOperational,
+        issue_maintenance: updatedFields.issue_maintenance ?? issueMaintenance,
+        unit_modes: updatedFields.unit_modes ?? unitModes,
+      }
+      try {
+        await saveDailyReport(today, payload)
+        setLastSavedTime(new Date().toISOString())
+      } catch (err) {
+        console.error('Auto-sync to PocketBase failed:', err)
+      }
+    }, 600)
+  }
+
+  // Section A: FEU MDU change handler
+  const handleFeuMduChange = (newData) => {
+    setFeuMduData(newData)
+    triggerAutoSync({ feu_mdu_data: newData })
+  }
+
+  // Section B: Issue Operational change handler
+  const handleIssueOperationalChange = (newData) => {
+    setIssueOperational(newData)
+    triggerAutoSync({ issue_operational: newData })
+  }
+
+  // Section B: Issue Maintenance change handler
+  const handleIssueMaintenanceChange = (newData) => {
+    setIssueMaintenance(newData)
+    triggerAutoSync({ issue_maintenance: newData })
+  }
+
+  // Section C: Switchable Unit Mode change handler
+  const handleUnitModeChange = (unitKey, newMode) => {
+    const updated = { ...unitModes, [unitKey]: newMode }
+    setUnitModes(updated)
+    triggerAutoSync({ unit_modes: updated })
+  }
+
+  // 4. Manual Save & 23:00 Archive Trigger
+  const handleManualSave = async (isAuto = false) => {
+    setIsSaving(true)
+    const today = getTodayDateStr()
+
+    try {
+      // 1. Sync daily_report
+      const currentReportState = {
+        feu_mdu_data: feuMduData,
+        issue_operational: issueOperational,
+        issue_maintenance: issueMaintenance,
+        unit_modes: unitModes,
+      }
+      await saveDailyReport(today, currentReportState)
+
+      // 2. Archive snapshot to report_daily_archive
+      const snapshotPayload = {
+        date: today,
+        date_range: dateRange,
+        saved_at: new Date().toISOString(),
+        is_auto_scheduled: isAuto,
+        feu_mdu_data: feuMduData,
+        issue_operational: issueOperational,
+        issue_maintenance: issueMaintenance,
+        unit_modes: unitModes,
+        phd_data_snapshot: phdData,
+        lims_snapshot: limsData,
+      }
+
+      await archiveDailyReport(today, snapshotPayload)
+      setLastSavedTime(new Date().toISOString())
+      setPocketBaseConnected(true)
+    } catch (err) {
+      console.error('Save to PocketBase error:', err)
+      throw err
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Format date display for header
+  const formatDateDisplay = () => {
+    const now = new Date()
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ]
+    return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
+  }
+
   return (
-    <div className="h-screen w-screen overflow-hidden">
-      <DailyReport />
+    <div className="min-h-screen w-screen flex flex-col overflow-hidden bg-[#eef5f9]">
+      {/* Top Collapsible Controls Bar */}
+      <TopSettingsBar
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        onRefreshData={() => {
+          loadInitialData()
+          loadPhdTags(dateRange, unitModes, tanks)
+        }}
+        onManualSave={handleManualSave}
+        isSaving={isSaving}
+        isRefreshing={isRefreshing}
+        pocketBaseConnected={pocketBaseConnected}
+        lastSavedTime={lastSavedTime}
+      />
+
+      {/* Main Operational Report Dashboard */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <DailyReport
+          dateDisplay={formatDateDisplay()}
+          feuMduData={feuMduData}
+          onFeuMduChange={handleFeuMduChange}
+          issueOperational={issueOperational}
+          onIssueOperationalChange={handleIssueOperationalChange}
+          issueMaintenance={issueMaintenance}
+          onIssueMaintenanceChange={handleIssueMaintenanceChange}
+          unitModes={unitModes}
+          onUnitModeChange={handleUnitModeChange}
+          phdData={phdData}
+          tanks={tanks}
+          sampleLimits={sampleLimits}
+          limsData={limsData}
+        />
+      </div>
     </div>
   )
 }
