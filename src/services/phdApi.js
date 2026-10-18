@@ -69,21 +69,23 @@ export async function fetchPhdData(tagNames, startTime, endTime, interval = null
       return {}
     }
 
-    // Map each Tag to its latest valid value
+    // Map each Tag to its average value across the queried time range
     const tagValues = {}
     data.forEach((item) => {
       if (!item.TagName) return
       let val = null
 
       if (Array.isArray(item.Value) && item.Value.length > 0) {
-        // Look for the last non-null numeric value in the time series
-        for (let i = item.Value.length - 1; i >= 0; i--) {
+        let sum = 0
+        let count = 0
+        for (let i = 0; i < item.Value.length; i++) {
           const v = item.Value[i]
           if (v !== null && v !== undefined && !isNaN(Number(v))) {
-            val = Number(v)
-            break
+            sum += Number(v)
+            count++
           }
         }
+        val = count > 0 ? sum / count : null
       } else if (item.Value !== null && item.Value !== undefined && !isNaN(Number(item.Value))) {
         val = Number(item.Value)
       }
