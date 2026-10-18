@@ -17,6 +17,8 @@ import {
 export default function TopSettingsBar({
   dateRange,
   onDateRangeChange,
+  phdPreset = 'this_day',
+  onPhdPresetChange,
   onRefreshData,
   onManualSave,
   isSaving,
@@ -126,15 +128,36 @@ export default function TopSettingsBar({
     <div className="w-full bg-slate-900 text-slate-100 border-b border-slate-700 shadow-md text-xs select-none">
       {/* Collapsed Bar / Trigger */}
       <div className="flex items-center justify-between px-3 py-1.5 max-w-[1850px] mx-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 font-semibold text-slate-200 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 font-semibold text-slate-200 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition cursor-pointer text-xs"
           >
             <Settings className="w-3.5 h-3.5 text-amber-400" />
-            <span>Operational Controls &amp; Settings</span>
-            {isOpen ? <ChevronUp className="w-3.5 h-3.5 ml-1" /> : <ChevronDown className="w-3.5 h-3.5 ml-1" />}
+            <span>Settings</span>
+            {isOpen ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
           </button>
+
+          {/* PHD Range Preset Dropdown (always visible in top bar) */}
+          <div className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs transition">
+            <Calendar className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+            <span className="text-[11px] text-slate-400 font-medium hidden md:inline">PHD Query:</span>
+            <select
+              value={phdPreset || 'this_day'}
+              onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
+              className="bg-transparent text-xs text-indigo-200 font-semibold focus:outline-hidden cursor-pointer"
+              title="Pilih rentang waktu query PHD DCS"
+            >
+              <option value="now" className="bg-slate-900 text-white">Now</option>
+              <option value="last_10m" className="bg-slate-900 text-white">Last 10 min</option>
+              <option value="last_1h" className="bg-slate-900 text-white">Last 1 hour</option>
+              <option value="last_3h" className="bg-slate-900 text-white">Last 3 hour</option>
+              <option value="last_8h" className="bg-slate-900 text-white">Last 8 hour</option>
+              <option value="last_24h" className="bg-slate-900 text-white">Last 24 hour</option>
+              <option value="this_day" className="bg-slate-900 text-white">This Day (00:00 - now)</option>
+              <option value="custom" className="bg-slate-900 text-white">Custom Range...</option>
+            </select>
+          </div>
 
           {/* Quick status badges */}
           <div className="hidden sm:flex items-center gap-2 text-[11px]">
@@ -211,88 +234,81 @@ export default function TopSettingsBar({
       {isOpen && (
         <div className="border-t border-slate-800 bg-slate-950/90 p-3 max-w-[1850px] mx-auto animate-in fade-in duration-150">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. PHD Date Range Picker */}
+            {/* 1. PHD Date Range Picker with Dropdown & Direct Datetime Supply */}
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
-              <label className="block text-slate-300 font-semibold mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                PHD Query Date Range
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                  PHD Query Range
+                </label>
+                <select
+                  value={phdPreset || 'this_day'}
+                  onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs text-indigo-300 font-semibold focus:outline-hidden cursor-pointer"
+                >
+                  <option value="now" className="bg-slate-900 text-white">Now</option>
+                  <option value="last_10m" className="bg-slate-900 text-white">Last 10 min</option>
+                  <option value="last_1h" className="bg-slate-900 text-white">Last 1 hour</option>
+                  <option value="last_3h" className="bg-slate-900 text-white">Last 3 hour</option>
+                  <option value="last_8h" className="bg-slate-900 text-white">Last 8 hour</option>
+                  <option value="last_24h" className="bg-slate-900 text-white">Last 24 hour</option>
+                  <option value="this_day" className="bg-slate-900 text-white">This Day (00:00 - now)</option>
+                  <option value="custom" className="bg-slate-900 text-white">Custom Range...</option>
+                </select>
+              </div>
 
+              {/* Exact Dates Supplied for API */}
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">Start Time</span>
+                  <span className="text-[10px] text-slate-400 block mb-0.5">Start Time (API)</span>
                   <input
                     type="datetime-local"
                     value={dateRange.start}
-                    onChange={(e) => onDateRangeChange({ ...dateRange, start: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500"
+                    onChange={(e) => {
+                      if (onPhdPresetChange) onPhdPresetChange('custom')
+                      onDateRangeChange({ ...dateRange, start: e.target.value })
+                    }}
+                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">End Time</span>
+                  <span className="text-[10px] text-slate-400 block mb-0.5">End Time (API)</span>
                   <input
                     type="datetime-local"
                     value={dateRange.end}
-                    onChange={(e) => onDateRangeChange({ ...dateRange, end: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500"
+                    onChange={(e) => {
+                      if (onPhdPresetChange) onPhdPresetChange('custom')
+                      onDateRangeChange({ ...dateRange, end: e.target.value })
+                    }}
+                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
                   />
                 </div>
               </div>
 
-              {/* Quick Shift Presets */}
+              {/* Quick Preset Buttons */}
               <div className="flex gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().slice(0, 10)
-                    onDateRangeChange({
-                      start: `${today}T07:00`,
-                      end: `${today}T15:00`,
-                    })
-                  }}
-                  className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300 transition"
-                >
-                  Shift Pagi
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().slice(0, 10)
-                    onDateRangeChange({
-                      start: `${today}T15:00`,
-                      end: `${today}T23:00`,
-                    })
-                  }}
-                  className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300 transition"
-                >
-                  Shift Sore
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().slice(0, 10)
-                    onDateRangeChange({
-                      start: `${today}T00:00`,
-                      end: `${today}T07:00`,
-                    })
-                  }}
-                  className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300 transition"
-                >
-                  Shift Malam
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().slice(0, 10)
-                    onDateRangeChange({
-                      start: `${today}T00:00`,
-                      end: `${today}T23:59`,
-                    })
-                  }}
-                  className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300 transition"
-                >
-                  24H Today
-                </button>
+                {[
+                  { id: 'now', label: 'Now' },
+                  { id: 'last_10m', label: 'Last 10m' },
+                  { id: 'last_1h', label: '1h' },
+                  { id: 'last_3h', label: '3h' },
+                  { id: 'last_8h', label: '8h' },
+                  { id: 'last_24h', label: '24h' },
+                  { id: 'this_day', label: 'This Day' },
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => onPhdPresetChange && onPhdPresetChange(p.id)}
+                    className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
+                      phdPreset === p.id
+                        ? 'bg-indigo-600 text-white font-bold'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
             </div>
 

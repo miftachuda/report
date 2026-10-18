@@ -10,7 +10,7 @@ const PHD_API_URL = 'https://apiv2.miftachuda.my.id/GetData'
  * @param {number} interval - Polling interval in ms (default 900000 = 15m)
  * @returns {Promise<Record<string, number>>} Map of TagName -> Latest Numeric Value
  */
-export async function fetchPhdData(tagNames, startTime, endTime, interval = 900000) {
+export async function fetchPhdData(tagNames, startTime, endTime, interval = null) {
   if (!tagNames || tagNames.length === 0) return {}
 
   // Format ISO strings if needed
@@ -23,12 +23,25 @@ export async function fetchPhdData(tagNames, startTime, endTime, interval = 9000
   const sTime = formatTime(startTime)
   const eTime = formatTime(endTime)
 
+  // Dynamically determine optimal polling interval if not explicitly supplied
+  let queryInterval = interval
+  if (!queryInterval) {
+    const diffMs = Math.abs(new Date(eTime).getTime() - new Date(sTime).getTime())
+    if (diffMs <= 15 * 60 * 1000) {
+      queryInterval = 60000 // 1 minute for small ranges (Now, Last 10 min)
+    } else if (diffMs <= 3 * 3600 * 1000) {
+      queryInterval = 300000 // 5 minutes for Last 1h - 3h
+    } else {
+      queryInterval = 900000 // 15 minutes for 8h - 24h
+    }
+  }
+
   const payload = [
     {
       TagName: Array.from(new Set(tagNames)),
       StartTime: sTime,
       EndTime: eTime,
-      Interval: interval,
+      Interval: queryInterval,
     },
   ]
 

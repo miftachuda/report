@@ -11,18 +11,33 @@ import {
 } from "./services/pocketbase.js";
 import { fetchPhdData } from "./services/phdApi.js";
 import { fetchLimsData } from "./services/limsApi.js";
+import { calculateDateRangeForPreset } from "./utils/calculations.js";
 
 export default function App() {
   const getTodayDateStr = () => new Date().toISOString().slice(0, 10);
 
+  // PHD query preset ('now' | 'last_10m' | 'last_1h' | 'last_3h' | 'last_8h' | 'last_24h' | 'this_day' | 'custom')
+  const [phdPreset, setPhdPreset] = useState("this_day");
+
   // Date Range for PHD queries
   const [dateRange, setDateRange] = useState(() => {
-    const today = getTodayDateStr();
-    return {
-      start: `${today}T00:00`,
-      end: `${today}T23:59`,
-    };
+    return (
+      calculateDateRangeForPreset("this_day") || {
+        start: `${getTodayDateStr()}T00:00`,
+        end: `${getTodayDateStr()}T23:59`,
+      }
+    );
   });
+
+  const handlePhdPresetChange = (newPreset) => {
+    setPhdPreset(newPreset);
+    if (newPreset !== "custom") {
+      const calculated = calculateDateRangeForPreset(newPreset);
+      if (calculated) {
+        setDateRange(calculated);
+      }
+    }
+  };
 
   // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
   const [feuMduData, setFeuMduData] = useState({
@@ -437,9 +452,19 @@ export default function App() {
       <TopSettingsBar
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
+        phdPreset={phdPreset}
+        onPhdPresetChange={handlePhdPresetChange}
         onRefreshData={() => {
+          let currentRange = dateRange;
+          if (phdPreset !== "custom") {
+            const refreshed = calculateDateRangeForPreset(phdPreset);
+            if (refreshed) {
+              currentRange = refreshed;
+              setDateRange(refreshed);
+            }
+          }
           loadInitialData();
-          loadPhdTags(dateRange, unitModes, tanks);
+          loadPhdTags(currentRange, unitModes, tanks);
         }}
         onManualSave={handleManualSave}
         isSaving={isSaving}

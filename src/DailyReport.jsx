@@ -149,7 +149,7 @@ export default function DailyReport({
 
   // Unit 025 HOS II & Levels
   const hosFlow = phdData["025FI_004.pv"] ?? null;
-  const hosSg = phdData["025FY_004X.PV"] ?? null;
+  const hosSg = phdData["021FY_058X.C1"] ?? null;
   const hosActual = calculateActualTD(hosFlow, hosSg) ?? 23808;
   const level023C104 =
     phdData["023LI_005.PV"] !== undefined && phdData["023LI_005.PV"] !== null
@@ -216,12 +216,13 @@ export default function DailyReport({
   const lmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 273;
 
   const mmoDistFlow = getPhdTag("021FI_008.PV");
-  const mmoDistSg = getPhdTag("021FY_008X.PV");
+  const mmoDistSg = getPhdTag("021FY_008X.c1");
   const mmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 460;
 
   const shortResidueFlow = getPhdTag("021FI_002.PV");
-  const shortResidueSg = getPhdTag("021FY_002X.PV");
-  const shortResidueActual = calculateActualTD(shortResidueFlow, shortResidueSg) ?? 1081;
+  const shortResidueSg = getPhdTag("021FY_002X.C1");
+  const shortResidueActual =
+    calculateActualTD(shortResidueFlow, shortResidueSg) ?? 1081;
 
   // Unit 022 PDU II
   const daoFlow = getPhdTag("022FI_007.PV");
@@ -229,7 +230,7 @@ export default function DailyReport({
   const daoActual = calculateActualTD(daoFlow, daoSg) ?? 151;
 
   const asphaltFlow = getPhdTag("022FI_013.PV");
-  const asphaltSg = getPhdTag("022FY_013X.PV");
+  const asphaltSg = getPhdTag("022FY_013X.C1");
   const asphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 484;
 
   // Unit 023 FEU II
@@ -259,7 +260,7 @@ export default function DailyReport({
   const dorActual = calculateActualTD(dorFlow, dorSg) ?? 465;
 
   const slackWaxFlow = getPhdTag("024FI_031.PV");
-  let slackWaxSgTag = "024FY_031X.PV";
+  let slackWaxSgTag = "024FY_031X.c1";
   const slackWaxSg = getPhdTag(slackWaxSgTag);
   const slackWaxActual = calculateActualTD(slackWaxFlow, slackWaxSg) ?? 96;
 
@@ -753,14 +754,28 @@ export default function DailyReport({
                           })
                         }
                         className={`editable-input text-center font-bold ${
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("AUTO") ||
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("NORMAL") ||
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("OPERASI")
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                            .toUpperCase()
+                            .includes("AUTO") ||
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                            .toUpperCase()
+                            .includes("NORMAL") ||
+                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                            .toUpperCase()
+                            .includes("OPERASI")
                             ? "text-green"
-                            : String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("PERBAIKAN") ||
-                              String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan").toUpperCase().includes("RUSAK")
-                            ? "text-red"
-                            : ""
+                            : String(
+                                  feuMduData?.status_pompa_cpi_a ?? "Perbaikan",
+                                )
+                                  .toUpperCase()
+                                  .includes("PERBAIKAN") ||
+                                String(
+                                  feuMduData?.status_pompa_cpi_a ?? "Perbaikan",
+                                )
+                                  .toUpperCase()
+                                  .includes("RUSAK")
+                              ? "text-red"
+                              : ""
                         }`}
                         title="Klik untuk mengubah Status Pompa 002P101A"
                       />
@@ -777,14 +792,24 @@ export default function DailyReport({
                           })
                         }
                         className={`editable-input text-center font-bold ${
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("AUTO") ||
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("NORMAL") ||
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("OPERASI")
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                            .toUpperCase()
+                            .includes("AUTO") ||
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                            .toUpperCase()
+                            .includes("NORMAL") ||
+                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                            .toUpperCase()
+                            .includes("OPERASI")
                             ? "text-green"
-                            : String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("PERBAIKAN") ||
-                              String(feuMduData?.status_pompa_cpi_b ?? "AUTO").toUpperCase().includes("RUSAK")
-                            ? "text-red"
-                            : ""
+                            : String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                                  .toUpperCase()
+                                  .includes("PERBAIKAN") ||
+                                String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                                  .toUpperCase()
+                                  .includes("RUSAK")
+                              ? "text-red"
+                              : ""
                         }`}
                         title="Klik untuk mengubah Status Pompa 002P101B"
                       />
@@ -883,7 +908,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">LOC I</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{spoActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {spoActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -897,7 +924,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-116</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{lmoDistActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {lmoDistActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -911,7 +940,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-117</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{mmoDistActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {mmoDistActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -925,7 +956,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-121/310</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{shortResidueActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {shortResidueActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -949,7 +982,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">041T-115</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{daoActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {daoActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -970,7 +1005,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">42T-10</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{asphaltActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {asphaltActual} T/D
+                    </td>
                     <td></td>
                   </tr>
 
@@ -984,7 +1021,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">41T-315</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{raffActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {raffActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -1009,7 +1048,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">IFO</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{extractActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {extractActual} T/D
+                    </td>
                     <td></td>
                   </tr>
 
@@ -1023,7 +1064,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">41T-102</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{dorActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {dorActual} T/D
+                    </td>
                     <td>
                       <div className="sample-grid">
                         <span className="font-bold">Visco</span>
@@ -1047,7 +1090,9 @@ export default function DailyReport({
                       <br />
                       <span className="font-bold">RFCC</span>
                     </td>
-                    <td className="text-center font-semibold text-slate-900">{slackWaxActual} T/D</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {slackWaxActual} T/D
+                    </td>
                     <td></td>
                   </tr>
                 </tbody>

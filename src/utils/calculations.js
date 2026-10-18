@@ -148,3 +148,68 @@ export function evaluateSampleLimit(rawValue, limitRecord) {
   }
 }
 
+/**
+ * PHD Query Range Presets
+ */
+export const PHD_DATE_PRESETS = [
+  { id: 'now', label: 'Now' },
+  { id: 'last_10m', label: 'Last 10 min' },
+  { id: 'last_1h', label: 'Last 1 hour' },
+  { id: 'last_3h', label: 'Last 3 hour' },
+  { id: 'last_8h', label: 'Last 8 hour' },
+  { id: 'last_24h', label: 'Last 24 hour' },
+  { id: 'this_day', label: 'This Day (00:00 - now)' },
+  { id: 'custom', label: 'Custom Range...' },
+]
+
+/**
+ * Calculate start and end datetime-local strings based on selected preset
+ * @param {'now' | 'last_10m' | 'last_1h' | 'last_3h' | 'last_8h' | 'last_24h' | 'this_day'} presetKey
+ * @returns {{ start: string, end: string } | null}
+ */
+export function calculateDateRangeForPreset(presetKey) {
+  const now = new Date()
+
+  const pad = (n) => String(n).padStart(2, '0')
+  const toLocalIso = (d) => {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  const endStr = toLocalIso(now)
+
+  switch (presetKey) {
+    case 'now': {
+      // 5 min window up to current time
+      const start = new Date(now.getTime() - 5 * 60 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'last_10m': {
+      const start = new Date(now.getTime() - 10 * 60 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'last_1h': {
+      const start = new Date(now.getTime() - 60 * 60 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'last_3h': {
+      const start = new Date(now.getTime() - 3 * 3600 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'last_8h': {
+      const start = new Date(now.getTime() - 8 * 3600 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'last_24h': {
+      const start = new Date(now.getTime() - 24 * 3600 * 1000)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    case 'this_day': {
+      // Today 00:00:00 to now
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+      return { start: toLocalIso(start), end: endStr }
+    }
+    default:
+      return null
+  }
+}
+
