@@ -260,8 +260,16 @@ export default function DailyReport({
   // Unit 024 MDU II
   const dorFlow = getPhdTag("024FI_023.PV");
   let dorSgTag = "024FY_023BX.C1";
+  if (mduMode === "MMO") dorSgTag = "024FY_023CX.C1";
+  else if (mduMode === "DAO") dorSgTag = "024FY_023DX.C1";
   const dorSg = getPhdTag(dorSgTag);
   const dorActual = calculateActualTD(dorFlow, dorSg) ?? 465;
+
+  // Tank Farm LOC II Flow Product based on active Unit 024 MDU II Mode:
+  // LMO -> HVI 95, MMO -> HVI 160S, DAO -> HVI 650. Non-active modes display 0.
+  const flowHvi95Loc2 = mduMode === "LMO" ? dorActual : 0;
+  const flowHvi160sLoc2 = mduMode === "MMO" ? dorActual : 0;
+  const flowHvi650Loc2 = mduMode === "DAO" ? dorActual : 0;
 
   const slackWaxFlow = getPhdTag("024FI_031.PV");
   let slackWaxSgTag = "024FY_031X.c1";
@@ -675,7 +683,21 @@ export default function DailyReport({
                       />
                     </td>
                     <td className="text-center font-semibold">{hosActual}</td>
-                    <td className="text-center">12 Gas / 4 Oil</td>
+                    <td className="text-center p-0">
+                      <input
+                        type="text"
+                        list="burner-fg-fo-list"
+                        value={feuMduData?.burner_fg_fo ?? "12 Gas / 4 Oil"}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            burner_fg_fo: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-medium"
+                        title="Klik untuk mengubah Burner FG/FO"
+                      />
+                    </td>
                     <td colSpan={4} className="text-center font-semibold">
                       {level023C104}
                     </td>
@@ -696,9 +718,15 @@ export default function DailyReport({
                       Tank Farm
                     </td>
                     <td className="text-center font-bold">LOC II</td>
-                    <td className="text-center">465</td>
-                    <td className="text-center">0</td>
-                    <td className="text-center">0</td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {flowHvi95Loc2}
+                    </td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {flowHvi160sLoc2}
+                    </td>
+                    <td className="text-center font-semibold text-slate-900">
+                      {flowHvi650Loc2}
+                    </td>
                     <td colSpan={2} className="text-center font-semibold">
                       {levelCpi}
                     </td>
@@ -840,6 +868,15 @@ export default function DailyReport({
                 <option value="Perbaikan" />
                 <option value="Standby" />
                 <option value="Stop" />
+              </datalist>
+
+              <datalist id="burner-fg-fo-list">
+                <option value="12 Gas / 4 Oil" />
+                <option value="16 Gas / 0 Oil" />
+                <option value="14 Gas / 2 Oil" />
+                <option value="10 Gas / 6 Oil" />
+                <option value="8 Gas / 8 Oil" />
+                <option value="0 Gas / 16 Oil" />
               </datalist>
             </div>
 

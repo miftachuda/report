@@ -50,6 +50,7 @@ export default function App() {
     visual_perairan: "CLEAR",
     status_pompa_cpi_a: "Perbaikan",
     status_pompa_cpi_b: "AUTO",
+    burner_fg_fo: "12 Gas / 4 Oil",
   });
 
   // State for Issue Operational (Section B)
@@ -235,7 +236,7 @@ export default function App() {
         "022FI_007.PV",
         "022FY_007X.C1",
         "022FI_013.PV",
-        "022FY_013X.PV",
+        "022FY_013X.c1",
         // Produksi Unit 023 FEU II
         "023FI_031.PV",
         "023FI_703.PV",
@@ -249,6 +250,8 @@ export default function App() {
         // Produksi Unit 024 MDU II
         "024FI_023.PV",
         "024FY_023BX.C1",
+        "024FY_023CX.C1",
+        "024FY_023DX.C1",
         "024FI_031.PV",
         "024FY_031X.PV",
       ];
