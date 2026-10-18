@@ -29,16 +29,6 @@ export default function App() {
     );
   });
 
-  const handlePhdPresetChange = (newPreset) => {
-    setPhdPreset(newPreset);
-    if (newPreset !== "custom") {
-      const calculated = calculateDateRangeForPreset(newPreset);
-      if (calculated) {
-        setDateRange(calculated);
-      }
-    }
-  };
-
   // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
   const [feuMduData, setFeuMduData] = useState({
     feu_lmo_design: 2180,
@@ -282,6 +272,7 @@ export default function App() {
         }
       });
 
+      setIsRefreshing(true);
       try {
         const results = await fetchPhdData(
           activeTags,
@@ -291,9 +282,35 @@ export default function App() {
         setPhdData((prev) => ({ ...prev, ...results }));
       } catch (err) {
         console.error("Error fetching PHD tags:", err);
+      } finally {
+        setIsRefreshing(false);
       }
     },
     [],
+  );
+
+  // Auto-refresh when switching preset
+  const handlePhdPresetChange = useCallback(
+    (newPreset) => {
+      setPhdPreset(newPreset);
+      if (newPreset !== "custom") {
+        const calculated = calculateDateRangeForPreset(newPreset);
+        if (calculated) {
+          setDateRange(calculated);
+          loadPhdTags(calculated, unitModes, tanks);
+        }
+      }
+    },
+    [unitModes, tanks, loadPhdTags],
+  );
+
+  // Auto-refresh when manually switching date range
+  const handleDateRangeChange = useCallback(
+    (newRange) => {
+      setDateRange(newRange);
+      loadPhdTags(newRange, unitModes, tanks);
+    },
+    [unitModes, tanks, loadPhdTags],
   );
 
   // Initial mount trigger
@@ -301,10 +318,10 @@ export default function App() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Trigger PHD fetch when date range or modes change
+  // Trigger PHD fetch when modes or tanks change
   useEffect(() => {
     loadPhdTags(dateRange, unitModes, tanks);
-  }, [dateRange, unitModes, tanks, loadPhdTags]);
+  }, [unitModes, tanks, loadPhdTags]);
 
   // 3. Auto-save helper to sync changes with PocketBase daily_report
   const triggerAutoSync = (updatedFields) => {
@@ -451,7 +468,7 @@ export default function App() {
       {/* Top Collapsible Controls Bar */}
       <TopSettingsBar
         dateRange={dateRange}
-        onDateRangeChange={setDateRange}
+        onDateRangeChange={handleDateRangeChange}
         phdPreset={phdPreset}
         onPhdPresetChange={handlePhdPresetChange}
         onRefreshData={() => {
