@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, X, Save } from './Icons.jsx'
 
 export default function IssueEditModal({
@@ -9,13 +9,41 @@ export default function IssueEditModal({
   initialData,
   onSave,
 }) {
-  const [data, setData] = useState(() => {
+  const [data, setData] = useState([])
+
+  // Re-sync and normalize data whenever modal is opened or type/initialData changes
+  useEffect(() => {
+    if (!isOpen) return
+
     if (type === 'operational') {
-      return Array.isArray(initialData) ? [...initialData] : []
+      const normalized = Array.isArray(initialData)
+        ? initialData.map((item) => {
+            if (typeof item === 'string') return item
+            if (typeof item === 'object' && item !== null) {
+              return item.equipment
+                ? `${item.equipment} : ${item.issue || ''}${item.mitigation ? ' (' + item.mitigation + ')' : ''}`
+                : item.issue || JSON.stringify(item)
+            }
+            return String(item ?? '')
+          })
+        : []
+      setData(normalized)
     } else {
-      return Array.isArray(initialData) ? initialData.map((x) => ({ ...x })) : []
+      const normalized = Array.isArray(initialData)
+        ? initialData.map((item) => {
+            if (typeof item === 'object' && item !== null) {
+              return {
+                equipment: item.equipment || '',
+                issue: item.issue || '',
+                mitigation: item.mitigation || '',
+              }
+            }
+            return { equipment: '', issue: String(item ?? ''), mitigation: '' }
+          })
+        : []
+      setData(normalized)
     }
-  })
+  }, [isOpen, type, initialData])
 
   if (!isOpen) return null
 
@@ -32,7 +60,30 @@ export default function IssueEditModal({
   }
 
   const handleSave = () => {
-    onSave(data)
+    if (type === 'operational') {
+      const normalized = data.map((item) => {
+        if (typeof item === 'string') return item
+        if (typeof item === 'object' && item !== null) {
+          return item.equipment
+            ? `${item.equipment} : ${item.issue || ''}${item.mitigation ? ' (' + item.mitigation + ')' : ''}`
+            : item.issue || JSON.stringify(item)
+        }
+        return String(item ?? '')
+      })
+      onSave(normalized)
+    } else {
+      const normalized = data.map((item) => {
+        if (typeof item === 'object' && item !== null) {
+          return {
+            equipment: item.equipment || '',
+            issue: item.issue || '',
+            mitigation: item.mitigation || '',
+          }
+        }
+        return { equipment: '', issue: String(item ?? ''), mitigation: '' }
+      })
+      onSave(normalized)
+    }
     onClose()
   }
 

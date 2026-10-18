@@ -487,9 +487,21 @@ export default function DailyReport({
               <div className="operational-box">
                 {issueOperational && issueOperational.length > 0 ? (
                   <ol className="list-decimal pl-5 space-y-1">
-                    {issueOperational.map((issue, idx) => (
-                      <li key={idx}>{issue}</li>
-                    ))}
+                    {issueOperational.map((issue, idx) => {
+                      let text = ''
+                      if (typeof issue === 'string') {
+                        text = issue
+                      } else if (typeof issue === 'object' && issue !== null) {
+                        if (issue.equipment || issue.issue) {
+                          text = `${issue.equipment ? issue.equipment + ' : ' : ''}${issue.issue || ''}${issue.mitigation ? ' (' + issue.mitigation + ')' : ''}`
+                        } else {
+                          text = issue.text || issue.title || issue.name || JSON.stringify(issue)
+                        }
+                      } else {
+                        text = String(issue ?? '')
+                      }
+                      return <li key={idx}>{text}</li>
+                    })}
                   </ol>
                 ) : (
                   <div className="text-slate-400 italic text-center py-2">
@@ -844,13 +856,23 @@ export default function DailyReport({
                 </thead>
                 <tbody>
                   {issueMaintenance && issueMaintenance.length > 0 ? (
-                    issueMaintenance.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="text-center font-bold">{item.equipment || '-'}</td>
-                        <td>{item.issue || '-'}</td>
-                        <td>{item.mitigation || '-'}</td>
-                      </tr>
-                    ))
+                    issueMaintenance.map((item, idx) => {
+                      const equip = typeof item === 'object' && item !== null ? item.equipment : ''
+                      const iss =
+                        typeof item === 'object' && item !== null
+                          ? item.issue
+                          : typeof item === 'string'
+                            ? item
+                            : ''
+                      const mit = typeof item === 'object' && item !== null ? item.mitigation : ''
+                      return (
+                        <tr key={idx}>
+                          <td className="text-center font-bold">{equip || '-'}</td>
+                          <td>{iss || '-'}</td>
+                          <td>{mit || '-'}</td>
+                        </tr>
+                      )
+                    })
                   ) : (
                     <tr>
                       <td colSpan={3} className="text-center text-slate-400 italic py-2">
@@ -867,6 +889,7 @@ export default function DailyReport({
 
       {/* Double-click Edit Modal for Operational & Maintenance Issues */}
       <IssueEditModal
+        key={`issue-modal-${modalState.type || 'closed'}-${modalState.isOpen ? 'open' : 'closed'}`}
         isOpen={modalState.isOpen && (modalState.type === 'operational' || modalState.type === 'maintenance')}
         onClose={() => setModalState({ isOpen: false, title: '', type: null, unitKey: null })}
         title={modalState.title}

@@ -84,6 +84,34 @@ export default function App() {
 
   const autoSaveDebounceTimer = useRef(null)
 
+  // Safe normalizers for issues
+  const normalizeOperationalIssues = useCallback((issues) => {
+    if (!Array.isArray(issues)) return []
+    return issues.map((item) => {
+      if (typeof item === 'string') return item
+      if (typeof item === 'object' && item !== null) {
+        return item.equipment
+          ? `${item.equipment} : ${item.issue || ''}${item.mitigation ? ' (' + item.mitigation + ')' : ''}`
+          : item.issue || JSON.stringify(item)
+      }
+      return String(item ?? '')
+    })
+  }, [])
+
+  const normalizeMaintenanceIssues = useCallback((issues) => {
+    if (!Array.isArray(issues)) return []
+    return issues.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return {
+          equipment: item.equipment || '',
+          issue: item.issue || '',
+          mitigation: item.mitigation || '',
+        }
+      }
+      return { equipment: '', issue: String(item ?? ''), mitigation: '' }
+    })
+  }, [])
+
   // 1. Load initial PocketBase, LIMS, and Tank data
   const loadInitialData = useCallback(async () => {
     setIsRefreshing(true)
@@ -109,8 +137,12 @@ export default function App() {
       // Populate existing daily report if available
       if (pbReport) {
         if (pbReport.feu_mdu_data) setFeuMduData(pbReport.feu_mdu_data)
-        if (pbReport.issue_operational) setIssueOperational(pbReport.issue_operational)
-        if (pbReport.issue_maintenance) setIssueMaintenance(pbReport.issue_maintenance)
+        if (pbReport.issue_operational) {
+          setIssueOperational(normalizeOperationalIssues(pbReport.issue_operational))
+        }
+        if (pbReport.issue_maintenance) {
+          setIssueMaintenance(normalizeMaintenanceIssues(pbReport.issue_maintenance))
+        }
         if (pbReport.unit_modes) setUnitModes(pbReport.unit_modes)
         setLastSavedTime(pbReport.updated || pbReport.created || pbReport.updated_at)
       }
@@ -119,7 +151,7 @@ export default function App() {
     } finally {
       setIsRefreshing(false)
     }
-  }, [])
+  }, [normalizeOperationalIssues, normalizeMaintenanceIssues])
 
   // 2. Query PHD Tags based on active modes & tank tags
   const loadPhdTags = useCallback(
@@ -216,14 +248,16 @@ export default function App() {
 
   // Section B: Issue Operational change handler
   const handleIssueOperationalChange = (newData) => {
-    setIssueOperational(newData)
-    triggerAutoSync({ issue_operational: newData })
+    const normalized = normalizeOperationalIssues(newData)
+    setIssueOperational(normalized)
+    triggerAutoSync({ issue_operational: normalized })
   }
 
   // Section B: Issue Maintenance change handler
   const handleIssueMaintenanceChange = (newData) => {
-    setIssueMaintenance(newData)
-    triggerAutoSync({ issue_maintenance: newData })
+    const normalized = normalizeMaintenanceIssues(newData)
+    setIssueMaintenance(normalized)
+    triggerAutoSync({ issue_maintenance: normalized })
   }
 
   // Section C: Switchable Unit Mode change handler
