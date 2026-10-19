@@ -149,12 +149,25 @@ export default function DailyReport({
   const mduPercentSts =
     calculateAchievedPercent(mduActual, mduTargetSts) ?? "102.6";
 
-  // Helper to color % STS and % RPH: yellow if below 100%, green if >= 100%
-  const getPercentClass = (val) => {
-    if (val === null || val === undefined || val === "") return "text-center";
+  // Render % RPH and % STS cell with circle dot on left (green >= 100, yellow < 100) and black text
+  const renderPercentCell = (val, rowSpan = 1) => {
+    if (val === null || val === undefined || val === "") {
+      return <td rowSpan={rowSpan} className="text-center">-</td>;
+    }
     const num = Number(val);
-    if (isNaN(num)) return "text-center";
-    return num < 100 ? "text-center text-yellow" : "text-center text-green";
+    const isGreen = !isNaN(num) && num >= 100;
+    const dotClass = isGreen
+      ? "percent-dot percent-dot-green"
+      : "percent-dot percent-dot-yellow";
+
+    return (
+      <td rowSpan={rowSpan} className="text-center">
+        <span className="inline-flex items-center justify-center">
+          <span className={dotClass}></span>
+          <span className="percent-cell-val">{val}</span>
+        </span>
+      </td>
+    );
   };
 
   // Helper to color operation status (Normal Operasi: green, Shutdown: red, Sirkulasi: yellow, etc.)
@@ -361,6 +374,51 @@ export default function DailyReport({
     );
   };
 
+  // Helper to determine if all LIMS parameters for a given sample are within limit (On Spec)
+  const isSampleOnSpec = (sampleCode, paramList) => {
+    const baseCode = sampleCode.replace(/[MD]$/, "");
+    const sample =
+      limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode];
+
+    for (const item of paramList) {
+      const rawVal = sample?.[item.paramName]?.value ?? item.fallbackVal;
+      const limitRecord =
+        sampleLimits.find(
+          (lim) =>
+            lim.sample_code === sampleCode && lim.param_name === item.paramName,
+        ) ||
+        sampleLimits.find(
+          (lim) =>
+            lim.sample_code === baseCode && lim.param_name === item.paramName,
+        );
+      const evaluated = evaluateSampleLimit(rawVal, limitRecord);
+      if (evaluated.isOutOfRange) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Helper to render On Spec / Off Spec circle dot and badge text on top of sample analysis
+  const renderSpecStatus = (isOnSpec) => {
+    return (
+      <div className="spec-status-badge">
+        <span
+          className={`spec-status-dot ${
+            isOnSpec ? "dot-onspec" : "dot-offspec"
+          }`}
+        ></span>
+        <span
+          className={`spec-status-text ${
+            isOnSpec ? "text-onspec" : "text-offspec"
+          }`}
+        >
+          {isOnSpec ? "(ON SPEC)" : "(OFF SPEC)"}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div id="report-dashboard-capture" className="daily-report-body">
       <div className="dashboard-container">
@@ -447,12 +505,8 @@ export default function DailyReport({
                     <td className="text-center font-semibold text-slate-800">
                       {hvuPercentDesign}
                     </td>
-                    <td className={getPercentClass(hvuPercentRph)}>
-                      {hvuPercentRph}
-                    </td>
-                    <td className={getPercentClass(hvuPercentSts)}>
-                      {hvuPercentSts}
-                    </td>
+                    {renderPercentCell(hvuPercentRph)}
+                    {renderPercentCell(hvuPercentSts)}
                   </tr>
 
                   {/* UNIT 022 */}
@@ -489,12 +543,8 @@ export default function DailyReport({
                     <td className="text-center font-semibold text-slate-800">
                       {pduPercentDesign}
                     </td>
-                    <td className={getPercentClass(pduPercentRph)}>
-                      {pduPercentRph}
-                    </td>
-                    <td className={getPercentClass(pduPercentSts)}>
-                      {pduPercentSts}
-                    </td>
+                    {renderPercentCell(pduPercentRph)}
+                    {renderPercentCell(pduPercentSts)}
                   </tr>
 
                   {/* UNIT 023 (Switchable Mode on double-click) */}
@@ -556,12 +606,8 @@ export default function DailyReport({
                     >
                       {feuPercentDesign}
                     </td>
-                    <td rowSpan={2} className={getPercentClass(feuPercentRph)}>
-                      {feuPercentRph}
-                    </td>
-                    <td rowSpan={2} className={getPercentClass(feuPercentSts)}>
-                      {feuPercentSts}
-                    </td>
+                    {renderPercentCell(feuPercentRph, 2)}
+                    {renderPercentCell(feuPercentSts, 2)}
                   </tr>
                   <tr>
                     <td
@@ -646,12 +692,8 @@ export default function DailyReport({
                     >
                       {mduPercentDesign}
                     </td>
-                    <td rowSpan={2} className={getPercentClass(mduPercentRph)}>
-                      {mduPercentRph}
-                    </td>
-                    <td rowSpan={2} className={getPercentClass(mduPercentSts)}>
-                      {mduPercentSts}
-                    </td>
+                    {renderPercentCell(mduPercentRph, 2)}
+                    {renderPercentCell(mduPercentSts, 2)}
                   </tr>
                   <tr>
                     <td
@@ -1078,6 +1120,11 @@ export default function DailyReport({
                       {spoActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec("02103", [
+                          { paramName: "Visco 60°C", fallbackVal: "12.50" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02103", "Visco 60°C", "12.50", "cSt")}
@@ -1104,6 +1151,11 @@ export default function DailyReport({
                       {lmoDistActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec("02104", [
+                          { paramName: "Visco 60°C", fallbackVal: "31.21" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02104", "Visco 60°C", "31.21", "cSt")}
@@ -1130,6 +1182,11 @@ export default function DailyReport({
                       {mmoDistActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec("02105", [
+                          { paramName: "Visco 60°C", fallbackVal: "95.75" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam("02105", "Visco 60°C", "95.75", "cSt")}
@@ -1156,6 +1213,11 @@ export default function DailyReport({
                       {shortResidueActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec("02107", [
+                          { paramName: "Visco 100°C", fallbackVal: "1166.00" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
                         {renderLimsParam(
@@ -1192,6 +1254,13 @@ export default function DailyReport({
                       {daoActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec("02203", [
+                          { paramName: "Visco 100°C", fallbackVal: "43.81" },
+                          { paramName: "FP PMCC", fallbackVal: "288" },
+                          { paramName: "Color", fallbackVal: "L7.5" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-3">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
@@ -1248,6 +1317,13 @@ export default function DailyReport({
                       {raffActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec(sampleCode023, [
+                          { paramName: "Visco 100°C", fallbackVal: "14.960" },
+                          { paramName: "FP PMCC", fallbackVal: "262" },
+                          { paramName: "RI 70°C", fallbackVal: "1.4861" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-3">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
@@ -1308,6 +1384,16 @@ export default function DailyReport({
                       {dorActual} T/D
                     </td>
                     <td>
+                      {renderSpecStatus(
+                        isSampleOnSpec(sampleCode024, [
+                          { paramName: "Visco 100°C", fallbackVal: "7.007" },
+                          { paramName: "FP PMCC", fallbackVal: "214" },
+                          { paramName: "Color", fallbackVal: "L1.0" },
+                          { paramName: "VI", fallbackVal: "99" },
+                          { paramName: "PP", fallbackVal: "-9" },
+                          { paramName: "App", fallbackVal: "C&B" },
+                        ]),
+                      )}
                       <div className="sample-grid sample-grid-6">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>

@@ -341,6 +341,68 @@ html, body {
   font-size: clamp(9.5px, 0.7vw, 11px) !important;
 }
 
+/* Circle dot on left side of % RPH and % STS */
+.percent-dot {
+  display: inline-block;
+  width: clamp(6.5px, 0.52vw, 8px);
+  height: clamp(6.5px, 0.52vw, 8px);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.percent-dot-green {
+  background-color: #16a34a;
+}
+
+.percent-dot-yellow {
+  background-color: #eab308;
+}
+
+.percent-cell-val {
+  color: #0f172a !important;
+  font-weight: 700;
+}
+
+/* Spec Status Badge on top of Analisa Sample */
+.spec-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+  user-select: none;
+}
+
+.spec-status-dot {
+  display: inline-block;
+  width: clamp(6.5px, 0.52vw, 8px);
+  height: clamp(6.5px, 0.52vw, 8px);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.spec-status-dot.dot-onspec {
+  background-color: #16a34a;
+}
+
+.spec-status-dot.dot-offspec {
+  background-color: #dc2626;
+}
+
+.spec-status-text {
+  font-weight: 700;
+  font-size: clamp(8.5px, 0.65vw, 10.5px);
+  line-height: 1;
+}
+
+.spec-status-text.text-onspec {
+  color: #15803d;
+}
+
+.spec-status-text.text-offspec {
+  color: #dc2626;
+}
+
 /* SAMPLE GRID INSIDE PRODUKSI */
 .sample-grid {
   display: grid;

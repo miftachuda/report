@@ -17,14 +17,14 @@ export default function App() {
   const getTodayDateStr = () => new Date().toISOString().slice(0, 10);
 
   // PHD query preset ('now' | 'last_10m' | 'last_1h' | 'last_3h' | 'last_8h' | 'last_24h' | 'this_day' | 'custom')
-  const [phdPreset, setPhdPreset] = useState("this_day");
+  const [phdPreset, setPhdPreset] = useState("now");
 
   // Date Range for PHD queries
   const [dateRange, setDateRange] = useState(() => {
     return (
-      calculateDateRangeForPreset("this_day") || {
-        start: `${getTodayDateStr()}T00:00`,
-        end: `${getTodayDateStr()}T23:59`,
+      calculateDateRangeForPreset("now") || {
+        start: new Date(Date.now() - 5 * 60 * 1000).toISOString().slice(0, 16),
+        end: new Date().toISOString().slice(0, 16),
       }
     );
   });

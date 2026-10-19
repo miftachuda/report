@@ -18,7 +18,7 @@ import {
 export default function TopSettingsBar({
   dateRange,
   onDateRangeChange,
-  phdPreset = 'this_day',
+  phdPreset = 'now',
   onPhdPresetChange,
   onRefreshData,
   onManualSave,
@@ -194,7 +194,7 @@ export default function TopSettingsBar({
             <Calendar className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
             <span className="text-[11px] text-slate-400 font-medium hidden md:inline">PHD Query:</span>
             <select
-              value={phdPreset || 'this_day'}
+              value={phdPreset || 'now'}
               onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
               className="bg-transparent text-xs text-indigo-200 font-semibold focus:outline-hidden cursor-pointer"
               title="Pilih rentang waktu query PHD DCS"
@@ -293,7 +293,7 @@ export default function TopSettingsBar({
                   PHD Query Range
                 </label>
                 <select
-                  value={phdPreset || 'this_day'}
+                  value={phdPreset || 'now'}
                   onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
                   className="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs text-indigo-300 font-semibold focus:outline-hidden cursor-pointer"
                 >
