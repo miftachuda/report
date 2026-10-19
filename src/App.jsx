@@ -8,6 +8,9 @@ import {
   getTanks,
   getSampleLimits,
   archiveDailyReport,
+  getLatestArchiveReport,
+  getLastSavedLocalArchive,
+  getLastSavedLocalReport,
   checkPocketBaseHealth,
 } from "./services/pocketbase.js";
 import { fetchPhdData } from "./services/phdApi.js";
@@ -16,6 +19,11 @@ import { calculateDateRangeForPreset } from "./utils/calculations.js";
 
 export default function App() {
   const getTodayDateStr = () => new Date().toISOString().slice(0, 10);
+
+  // Synchronously retrieve last saved record from local storage on first load
+  const initialArchive = getLastSavedLocalArchive();
+  const initialPayload = initialArchive?.payload_data || initialArchive;
+  const initialDaily = getLastSavedLocalReport();
 
   // PHD query preset ('now' | 'last_10m' | 'last_1h' | 'last_3h' | 'last_8h' | 'last_24h' | 'this_day' | 'custom')
   const [phdPreset, setPhdPreset] = useState("now");
@@ -30,8 +38,8 @@ export default function App() {
     );
   });
 
-  // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
-  const [feuMduData, setFeuMduData] = useState({
+  // Default FEU MDU Table values
+  const defaultFeuMdu = {
     feu_lmo_design: 2180,
     feu_lmo_sts: 70,
     feu_rph: 65,
@@ -68,55 +76,140 @@ export default function App() {
     dest_extract: "IFO",
     dest_dor: "41T-102",
     dest_slack_wax: "RFCC",
+  };
+
+  // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
+  const [feuMduData, setFeuMduData] = useState(() => {
+    const saved = initialPayload?.feu_mdu_data || initialDaily?.feu_mdu_data;
+    if (saved) return { ...defaultFeuMdu, ...saved };
+    return defaultFeuMdu;
   });
 
   // State for Issue Operational (Section B)
-  const [issueOperational, setIssueOperational] = useState([
-    "Unit FEU II 023 : Ketahanan stock furfural",
-    "024K-101 : Temperature discharge panas & ASC hunting",
-    "021F-102 : Flow fuel gas max 197 M3/h",
-  ]);
+  const [issueOperational, setIssueOperational] = useState(() => {
+    const saved = initialPayload?.issue_operational || initialDaily?.issue_operational;
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    return [
+      "Unit FEU II 023 : Ketahanan stock furfural",
+      "024K-101 : Temperature discharge panas & ASC hunting",
+      "021F-102 : Flow fuel gas max 197 M3/h",
+    ];
+  });
 
   // State for Issue Maintenance (Section B)
-  const [issueMaintenance, setIssueMaintenance] = useState([
-    {
-      equipment: "024P-107A",
-      issue: "Motor vibrasi",
-      mitigation: "Perbaikan motor di WS bls ( WO No. 8302570004 )",
-    },
-    {
-      equipment: "002P-101A",
-      issue: "Casing bocor",
-      mitigation: "Perbaikan pompa di WS bls",
-    },
-  ]);
+  const [issueMaintenance, setIssueMaintenance] = useState(() => {
+    const saved = initialPayload?.issue_maintenance || initialDaily?.issue_maintenance;
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    return [
+      {
+        equipment: "024P-107A",
+        issue: "Motor vibrasi",
+        mitigation: "Perbaikan motor di WS bls ( WO No. 8302570004 )",
+      },
+      {
+        equipment: "002P-101A",
+        issue: "Casing bocor",
+        mitigation: "Perbaikan pompa di WS bls",
+      },
+    ];
+  });
 
   // State for Switchable Modes: Unit 023 & Unit 024 (Section C)
-  const [unitModes, setUnitModes] = useState({
-    unit023: "MMO",
-    unit024: "LMO",
+  const [unitModes, setUnitModes] = useState(() => {
+    const saved = initialPayload?.unit_modes || initialDaily?.unit_modes;
+    if (saved) {
+      return {
+        unit023: saved.unit023 || "MMO",
+        unit024: saved.unit024 || "LMO",
+      };
+    }
+    return {
+      unit023: "MMO",
+      unit024: "LMO",
+    };
   });
 
   // State for Unit Operational Statuses: Unit 021, 022, 023, 024, HOS II
-  const [unitStatuses, setUnitStatuses] = useState({
-    unit021: "Normal Operasi",
-    unit022: "Normal Operasi",
-    unit023: "Normal Operasi",
-    unit024: "Normal Operasi",
-    hos: "Normal Operasi",
+  const [unitStatuses, setUnitStatuses] = useState(() => {
+    const saved =
+      initialPayload?.unit_statuses ||
+      initialPayload?.feu_mdu_data?.unit_statuses ||
+      initialDaily?.unit_modes?.statuses ||
+      initialDaily?.feu_mdu_data?.unit_statuses;
+    if (saved) return saved;
+    return {
+      unit021: "Normal Operasi",
+      unit022: "Normal Operasi",
+      unit023: "Normal Operasi",
+      unit024: "Normal Operasi",
+      hos: "Normal Operasi",
+    };
   });
 
   // PocketBase collections state
-  const [tanks, setTanks] = useState([]);
-  const [sampleLimits, setSampleLimits] = useState([]);
-  const [phdData, setPhdData] = useState({});
-  const [limsData, setLimsData] = useState({ samples: {}, shift: "Malam" });
+  const [tanks, setTanks] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_tanks");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [sampleLimits, setSampleLimits] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_sample_limits");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [phdData, setPhdData] = useState(() => {
+    if (
+      initialPayload?.phd_data_snapshot &&
+      Object.keys(initialPayload.phd_data_snapshot).length > 0
+    ) {
+      return initialPayload.phd_data_snapshot;
+    }
+    try {
+      return JSON.parse(localStorage.getItem("cached_phd_tags") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  const [limsData, setLimsData] = useState(() => {
+    if (
+      initialPayload?.lims_snapshot?.samples &&
+      Object.keys(initialPayload.lims_snapshot.samples).length > 0
+    ) {
+      return initialPayload.lims_snapshot;
+    }
+    try {
+      const cached = localStorage.getItem("cached_lims_data");
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return { samples: {}, shift: "Malam" };
+  });
 
   // Status & loading indicators
   const [pocketBaseConnected, setPocketBaseConnected] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [lastSavedTime, setLastSavedTime] = useState(() => {
+    return (
+      initialArchive?.saved_at ||
+      initialArchive?.created ||
+      initialPayload?.saved_at ||
+      initialDaily?.updated_at ||
+      null
+    );
+  });
 
   const autoSaveDebounceTimer = useRef(null);
 
@@ -161,22 +254,90 @@ export default function App() {
       const isHealthy = await checkPocketBaseHealth();
       setPocketBaseConnected(isHealthy);
 
-      // Fetch PB collections in parallel
-      const [pbReport, pbTanks, pbLimits, limsResult] = await Promise.all([
-        getDailyReport(today),
-        getTanks(),
-        getSampleLimits(),
-        fetchLimsData(),
-      ]);
+      // Fetch PB collections, latest archive snapshot, and LIMS in parallel
+      const [pbReport, latestArchive, pbTanks, pbLimits, limsResult] =
+        await Promise.all([
+          getDailyReport(today),
+          getLatestArchiveReport(),
+          getTanks(),
+          getSampleLimits(),
+          fetchLimsData(),
+        ]);
 
       if (pbTanks && pbTanks.length > 0) {
         setTanks(pbTanks);
         resolvedTanks = pbTanks;
       }
       if (pbLimits && pbLimits.length > 0) setSampleLimits(pbLimits);
-      if (limsResult) setLimsData(limsResult);
+      if (
+        limsResult &&
+        limsResult.samples &&
+        Object.keys(limsResult.samples).length > 0
+      ) {
+        setLimsData(limsResult);
+      }
 
-      // Populate existing daily report if available
+      // 1. Hydrate from latest archive snapshot if available
+      const archivePayload = latestArchive?.payload_data;
+      if (archivePayload) {
+        // Pre-fill PHD tags from archive snapshot (merged with any existing tags)
+        if (
+          archivePayload.phd_data_snapshot &&
+          Object.keys(archivePayload.phd_data_snapshot).length > 0
+        ) {
+          setPhdData((prev) => ({
+            ...archivePayload.phd_data_snapshot,
+            ...prev,
+          }));
+        }
+
+        // Pre-fill LIMS from archive snapshot if fresh API returned empty
+        if (
+          archivePayload.lims_snapshot &&
+          (!limsResult ||
+            !limsResult.samples ||
+            Object.keys(limsResult.samples).length === 0)
+        ) {
+          setLimsData(archivePayload.lims_snapshot);
+        }
+
+        // If today's report has not been saved yet, populate from latest archive
+        if (!pbReport) {
+          if (archivePayload.feu_mdu_data) {
+            setFeuMduData((prev) => ({
+              ...prev,
+              ...archivePayload.feu_mdu_data,
+            }));
+          }
+          if (archivePayload.issue_operational) {
+            setIssueOperational(
+              normalizeOperationalIssues(archivePayload.issue_operational),
+            );
+          }
+          if (archivePayload.issue_maintenance) {
+            setIssueMaintenance(
+              normalizeMaintenanceIssues(archivePayload.issue_maintenance),
+            );
+          }
+          if (archivePayload.unit_modes) {
+            setUnitModes(archivePayload.unit_modes);
+            resolvedModes = archivePayload.unit_modes;
+          }
+          if (archivePayload.unit_statuses) {
+            setUnitStatuses((prev) => ({
+              ...prev,
+              ...archivePayload.unit_statuses,
+            }));
+          }
+          setLastSavedTime(
+            latestArchive.created ||
+              archivePayload.saved_at ||
+              latestArchive.updated,
+          );
+        }
+      }
+
+      // 2. Populate today's existing daily report if available (takes precedence for today's data)
       if (pbReport) {
         if (pbReport.feu_mdu_data) {
           setFeuMduData((prev) => ({
@@ -313,7 +474,9 @@ export default function App() {
           currentRange.start,
           currentRange.end,
         );
-        setPhdData((prev) => ({ ...prev, ...results }));
+        if (results && Object.keys(results).length > 0) {
+          setPhdData((prev) => ({ ...prev, ...results }));
+        }
       } catch (err) {
         console.error("Error fetching PHD tags:", err);
       } finally {

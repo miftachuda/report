@@ -153,7 +153,11 @@ export default function DailyReport({
   // Render % RPH and % STS cell with circle dot on left (green >= 100, yellow < 100) and black text
   const renderPercentCell = (val, rowSpan = 1) => {
     if (val === null || val === undefined || val === "") {
-      return <td rowSpan={rowSpan} className="text-center">-</td>;
+      return (
+        <td rowSpan={rowSpan} className="text-center">
+          -
+        </td>
+      );
     }
     const num = Number(val);
     const isGreen = !isNaN(num) && num >= 100;
@@ -221,7 +225,6 @@ export default function DailyReport({
   } else {
     sampleCode024 = "02405";
   }
-
 
   // Section Produksi Actual (T/D) Calculations:
   // Unit 021 HVU II
@@ -334,7 +337,12 @@ export default function DailyReport({
   const slackWaxActual = calculateActualTD(slackWaxFlow, slackWaxSg) ?? 0;
 
   // Helper to render LIMS parameter cell with limit comparison
-  const renderLimsParam = (sampleCode, paramName, fallbackVal = "0", unit = "") => {
+  const renderLimsParam = (
+    sampleCode,
+    paramName,
+    fallbackVal = "0",
+    unit = "",
+  ) => {
     const baseCode = sampleCode.replace(/[MD]$/, "");
     const sample =
       limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode];
@@ -434,11 +442,7 @@ export default function DailyReport({
           </div>
           <div className="banner-title">DAILY REPORT LOC II</div>
           <div className="logo-right">
-            <img
-              src={locLogo}
-              alt="LOC II"
-              className="logo-loc"
-            />
+            <img src={locLogo} alt="LOC II" className="logo-loc" />
             <img
               src={pertaminaLogo}
               alt="Pertamina Patra Niaga"
@@ -1226,12 +1230,7 @@ export default function DailyReport({
                       )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam(
-                          "02107",
-                          "Visco 100°C",
-                          "0",
-                          "cSt",
-                        )}
+                        {renderLimsParam("02107", "Visco 100°C", "0", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -1334,11 +1333,7 @@ export default function DailyReport({
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
                         <span className="font-bold">RI</span>
-                        {renderLimsParam(
-                          sampleCode023,
-                          "Visco 100°C",
-                          "0",
-                        )}
+                        {renderLimsParam(sampleCode023, "Visco 100°C", "0")}
                         {renderLimsParam(sampleCode023, "FP PMCC", "0")}
                         {renderLimsParam(sampleCode023, "RI 70°C", "0")}
                       </div>

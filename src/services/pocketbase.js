@@ -71,6 +71,7 @@ export async function saveDailyReport(dateStr, data) {
     updated_at: new Date().toISOString(),
   }
   localStorage.setItem(`daily_report_${dateStr}`, JSON.stringify(payload))
+  localStorage.setItem('last_saved_daily_report', JSON.stringify(payload))
 
   try {
     // Check if record exists
@@ -105,6 +106,22 @@ export async function saveDailyReport(dateStr, data) {
     console.warn(`[PocketBase] saveDailyReport remote error (persisted locally):`, err.message)
     return { success: false, localOnly: true, error: err.message, data: payload }
   }
+}
+
+/**
+ * Fetch the latest saved daily_report record
+ */
+export async function getLatestDailyReport() {
+  try {
+    const res = await apiRequest(`/api/collections/daily_report/records?sort=-date,-created&perPage=1`)
+    if (res.items && res.items.length > 0) {
+      localStorage.setItem('last_saved_daily_report', JSON.stringify(res.items[0]))
+      return res.items[0]
+    }
+  } catch (err) {
+    console.warn('[PocketBase] getLatestDailyReport remote error:', err.message)
+  }
+  return getLastSavedLocalReport()
 }
 
 /**
@@ -158,6 +175,7 @@ export async function archiveDailyReport(dateStr, payloadData) {
 
   // Backup locally
   localStorage.setItem(`daily_archive_${dateStr}`, JSON.stringify(archiveItem))
+  localStorage.setItem('last_saved_archive', JSON.stringify(archiveItem))
 
   try {
     // Check if record exists for this date
@@ -195,6 +213,90 @@ export async function archiveDailyReport(dateStr, payloadData) {
     console.warn('[PocketBase] archiveDailyReport error:', err.message)
     throw err
   }
+}
+
+/**
+ * Get latest archive snapshot synchronously from localStorage
+ */
+export function getLastSavedLocalArchive() {
+  try {
+    const direct = localStorage.getItem('last_saved_archive')
+    if (direct) {
+      const parsed = JSON.parse(direct)
+      if (parsed) {
+        if (typeof parsed.payload_data === 'string') {
+          try { parsed.payload_data = JSON.parse(parsed.payload_data) } catch {}
+        }
+        return parsed
+      }
+    }
+  } catch {}
+
+  try {
+    const keys = Object.keys(localStorage)
+      .filter((k) => k.startsWith('daily_archive_'))
+      .sort()
+      .reverse()
+    if (keys.length > 0) {
+      const parsed = JSON.parse(localStorage.getItem(keys[0]))
+      if (parsed) {
+        if (typeof parsed.payload_data === 'string') {
+          try { parsed.payload_data = JSON.parse(parsed.payload_data) } catch {}
+        }
+        return parsed
+      }
+    }
+  } catch {}
+
+  return null
+}
+
+/**
+ * Get latest daily_report payload synchronously from localStorage
+ */
+export function getLastSavedLocalReport() {
+  try {
+    const direct = localStorage.getItem('last_saved_daily_report')
+    if (direct) return JSON.parse(direct)
+  } catch {}
+
+  try {
+    const keys = Object.keys(localStorage)
+      .filter((k) => k.startsWith('daily_report_'))
+      .sort()
+      .reverse()
+    if (keys.length > 0) {
+      return JSON.parse(localStorage.getItem(keys[0]))
+    }
+  } catch {}
+
+  return null
+}
+
+/**
+ * Fetch latest archive report from database with localStorage fallback
+ */
+export async function getLatestArchiveReport() {
+  try {
+    const res = await apiRequest('/api/collections/report_daily_archive/records?sort=-date,-created&perPage=1')
+    if (res.items && res.items.length > 0) {
+      const record = res.items[0]
+      if (record && typeof record.payload_data === 'string') {
+        try {
+          record.payload_data = JSON.parse(record.payload_data)
+        } catch {}
+      }
+      try {
+        localStorage.setItem('last_saved_archive', JSON.stringify(record))
+      } catch {}
+      return record
+    }
+  } catch (err) {
+    console.warn('[Database] getLatestArchiveReport remote error:', err.message)
+  }
+
+  // Fallback to local storage
+  return getLastSavedLocalArchive()
 }
 
 /**
