@@ -74,11 +74,23 @@ export async function saveDailyReport(dateStr, data) {
 
   try {
     // Check if record exists
-    const filter = encodeURIComponent(`date="${dateStr}"`)
+    const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
     const res = await apiRequest(`/api/collections/daily_report/records?filter=${filter}`)
 
     if (res.items && res.items.length > 0) {
       const existingId = res.items[0].id
+      // Clean up extra duplicate records if any exist
+      if (res.items.length > 1) {
+        for (let i = 1; i < res.items.length; i++) {
+          try {
+            await apiRequest(`/api/collections/daily_report/records/${res.items[i].id}`, {
+              method: 'DELETE',
+            })
+          } catch {
+            // ignore
+          }
+        }
+      }
       return await apiRequest(`/api/collections/daily_report/records/${existingId}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),
@@ -136,6 +148,7 @@ export async function getSampleLimits() {
 /**
  * 4. report_daily_archive Collection
  * Fields: date, payload_data
+ * Checks for existing record on the same date and replaces (PATCH) it instead of creating duplicates
  */
 export async function archiveDailyReport(dateStr, payloadData) {
   const archiveItem = {
@@ -144,13 +157,40 @@ export async function archiveDailyReport(dateStr, payloadData) {
   }
 
   // Backup locally
-  localStorage.setItem(`daily_archive_${dateStr}_${Date.now()}`, JSON.stringify(archiveItem))
+  localStorage.setItem(`daily_archive_${dateStr}`, JSON.stringify(archiveItem))
 
   try {
-    return await apiRequest(`/api/collections/report_daily_archive/records`, {
-      method: 'POST',
-      body: JSON.stringify(archiveItem),
-    })
+    // Check if record exists for this date
+    const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
+    const res = await apiRequest(`/api/collections/report_daily_archive/records?filter=${filter}`)
+
+    if (res.items && res.items.length > 0) {
+      const existingId = res.items[0].id
+      // Clean up extra duplicate records if any exist from previous saves
+      if (res.items.length > 1) {
+        for (let i = 1; i < res.items.length; i++) {
+          try {
+            await apiRequest(`/api/collections/report_daily_archive/records/${res.items[i].id}`, {
+              method: 'DELETE',
+            })
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      // Replace / update existing record
+      return await apiRequest(`/api/collections/report_daily_archive/records/${existingId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(archiveItem),
+      })
+    } else {
+      // Create new record
+      return await apiRequest(`/api/collections/report_daily_archive/records`, {
+        method: 'POST',
+        body: JSON.stringify(archiveItem),
+      })
+    }
   } catch (err) {
     console.warn('[PocketBase] archiveDailyReport error:', err.message)
     throw err
