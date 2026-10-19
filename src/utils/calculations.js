@@ -25,7 +25,8 @@ export function calculateTargetTD(percentage, design) {
  * Calculate achieved percentage: (Actual / Target) * 100
  */
 export function calculateAchievedPercent(actual, target) {
-  if (!actual || !target || Number(target) <= 0) return null
+  if (actual === null || actual === undefined || isNaN(Number(actual))) return null
+  if (!target || isNaN(Number(target)) || Number(target) <= 0) return null
   return ((Number(actual) / Number(target)) * 100).toFixed(1)
 }
 

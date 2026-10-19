@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./dailyReport.css";
 import danantaraLogo from "./assets/danantara.png";
 import pertaminaLogo from "./assets/pertamina.png";
+import locLogo from "./assets/loc.png";
 import IssueEditModal from "./components/IssueEditModal.jsx";
 import UnitModeModal from "./components/UnitModeModal.jsx";
 import UnitStatusModal from "./components/UnitStatusModal.jsx";
@@ -55,30 +56,30 @@ export default function DailyReport({
   // Unit 021 HVU II
   const hvuFlow = getPhdTag("021FI_004.pv");
   const hvuSg = getPhdTag("021FY_004X.C1");
-  const hvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 2583;
+  const hvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 0;
   const hvuDesign = 3883;
   const hvuTargetRph = 2524;
   const hvuTargetSts = 2524;
   const hvuPercentDesign =
-    calculateAchievedPercent(hvuActual, hvuDesign) ?? "66.5";
+    calculateAchievedPercent(hvuActual, hvuDesign) ?? "0";
   const hvuPercentRph =
-    calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "102.4";
+    calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "0";
   const hvuPercentSts =
-    calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "102.4";
+    calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "0";
 
   // Unit 022 PDU II
   const pduFlow = getPhdTag("022FI_001.pv");
   const pduSg = getPhdTag("022FY_001X.C1");
-  const pduActual = calculateActualTD(pduFlow, pduSg) ?? 635;
+  const pduActual = calculateActualTD(pduFlow, pduSg) ?? 0;
   const pduDesign = 784;
   const pduTargetRph = 627;
   const pduTargetSts = 549;
   const pduPercentDesign =
-    calculateAchievedPercent(pduActual, pduDesign) ?? "81.1";
+    calculateAchievedPercent(pduActual, pduDesign) ?? "0";
   const pduPercentRph =
-    calculateAchievedPercent(pduActual, pduTargetRph) ?? "101.3";
+    calculateAchievedPercent(pduActual, pduTargetRph) ?? "0";
   const pduPercentSts =
-    calculateAchievedPercent(pduActual, pduTargetSts) ?? "115.8";
+    calculateAchievedPercent(pduActual, pduTargetSts) ?? "0";
 
   // Unit 023 FEU II (Active Mode: LMO / MMO / DAO)
   const feuMode = unitModes?.unit023 || "MMO";
@@ -102,17 +103,17 @@ export default function DailyReport({
   }
 
   const feuRphPercent = Number(feuMduData?.feu_rph || 65);
-  const feuTargetRph = calculateTargetTD(feuRphPercent, feuDesign) ?? 1476;
-  const feuTargetSts = calculateTargetTD(feuStsPercent, feuDesign) ?? 1476;
+  const feuTargetRph = calculateTargetTD(feuRphPercent, feuDesign) ?? 0;
+  const feuTargetSts = calculateTargetTD(feuStsPercent, feuDesign) ?? 0;
   const feuFlow = getPhdTag(feuTagFlow) ?? getPhdTag("023FI_004.pv");
   const feuSg = getPhdTag(feuTagSg);
-  const feuActual = calculateActualTD(feuFlow, feuSg) ?? 1750;
+  const feuActual = calculateActualTD(feuFlow, feuSg) ?? 0;
   const feuPercentDesign =
-    calculateAchievedPercent(feuActual, feuDesign) ?? "77.1";
+    calculateAchievedPercent(feuActual, feuDesign) ?? "0";
   const feuPercentRph =
-    calculateAchievedPercent(feuActual, feuTargetRph) ?? "118.6";
+    calculateAchievedPercent(feuActual, feuTargetRph) ?? "0";
   const feuPercentSts =
-    calculateAchievedPercent(feuActual, feuTargetSts) ?? "118.6";
+    calculateAchievedPercent(feuActual, feuTargetSts) ?? "0";
 
   // Unit 024 MDU II (Active Mode: LMO / MMO / DAO)
   const mduMode = unitModes?.unit024 || "LMO";
@@ -135,19 +136,19 @@ export default function DailyReport({
   }
 
   const mduRphPercent = Number(feuMduData?.mdu_rph || 65);
-  const mduTargetRph = calculateTargetTD(mduRphPercent, mduDesign) ?? 547;
-  const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 547;
+  const mduTargetRph = calculateTargetTD(mduRphPercent, mduDesign) ?? 0;
+  const mduTargetSts = calculateTargetTD(mduStsPercent, mduDesign) ?? 0;
   const mduFlow = getPhdTag("024FIC_001.pv") ?? getPhdTag("024FI_001.pv");
   const mduSg = getPhdTag(mduTagSg) ?? 0.85;
   const mduActual =
     calculateActualTD(mduFlow, mduSg) ??
-    (mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 561);
+    (mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 0);
   const mduPercentDesign =
-    calculateAchievedPercent(mduActual, mduDesign) ?? "66.7";
+    calculateAchievedPercent(mduActual, mduDesign) ?? "0";
   const mduPercentRph =
-    calculateAchievedPercent(mduActual, mduTargetRph) ?? "102.6";
+    calculateAchievedPercent(mduActual, mduTargetRph) ?? "0";
   const mduPercentSts =
-    calculateAchievedPercent(mduActual, mduTargetSts) ?? "102.6";
+    calculateAchievedPercent(mduActual, mduTargetSts) ?? "0";
 
   // Render % RPH and % STS cell with circle dot on left (green >= 100, yellow < 100) and black text
   const renderPercentCell = (val, rowSpan = 1) => {
@@ -183,11 +184,11 @@ export default function DailyReport({
   // Unit 025 HOS II & Levels
   const hosFlow = getPhdTag("025FIC_004.pv") ?? getPhdTag("025FI_004.pv");
   const hosSg = getPhdTag("021FY_058X.C1");
-  const hosActual = calculateActualTD(hosFlow, hosSg) ?? 23808;
+  const hosActual = calculateActualTD(hosFlow, hosSg) ?? 0;
   const rawLevel023 = getPhdTag("023LI_005.PV");
-  const level023C104 = rawLevel023 !== null ? rawLevel023.toFixed(1) : "1.4";
+  const level023C104 = rawLevel023 !== null ? rawLevel023.toFixed(1) : "0";
   const rawLevelCpi = getPhdTag("002LI_051.PV");
-  const levelCpi = rawLevelCpi !== null ? rawLevelCpi.toFixed(1) : "22.0";
+  const levelCpi = rawLevelCpi !== null ? rawLevelCpi.toFixed(1) : "0";
 
   // Tank Farm Product Stocks (Tons calculated from tank dimensions and tag levels)
   const tanksHvi95 = ["41T-101", "41T-102", "41T-104"];
@@ -195,11 +196,11 @@ export default function DailyReport({
   const tanksHvi650 = ["41T-105", "41T-106", "41T-109", "41T-110"];
 
   const calculatedStockHvi95 =
-    calculateProductGroupTons(tanksHvi95, tanks, phdData) || 2951;
+    calculateProductGroupTons(tanksHvi95, tanks, phdData) || 0;
   const calculatedStockHvi160S =
-    calculateProductGroupTons(tanksHvi160S, tanks, phdData) || 1048;
+    calculateProductGroupTons(tanksHvi160S, tanks, phdData) || 0;
   const calculatedStockHvi650 =
-    calculateProductGroupTons(tanksHvi650, tanks, phdData) || 3481;
+    calculateProductGroupTons(tanksHvi650, tanks, phdData) || 0;
 
   // Unit 023 Produksi sample code based on active mode (LMO: 02302, MMO: 02302M, DAO: 02302D)
   let sampleCode023 = "02302";
@@ -226,29 +227,29 @@ export default function DailyReport({
   // Unit 021 HVU II
   const spoFlow = getPhdTag("021FIC_058.PV");
   const spoSg = getPhdTag("021FY_058X.C1");
-  const spoActual = calculateActualTD(spoFlow, spoSg) ?? 250;
+  const spoActual = calculateActualTD(spoFlow, spoSg) ?? 0;
 
   const lmoDistFlow = getPhdTag("021FIC_057.PV");
   const lmoDistSg = getPhdTag("021FY_057X.C1");
-  const lmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 273;
+  const lmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 0;
 
   const mmoDistFlow = getPhdTag("021FI_008.PV");
   const mmoDistSg = getPhdTag("021FY_008X.c1");
-  const mmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 460;
+  const mmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 0;
 
   const shortResidueFlow = getPhdTag("021FI_002.PV");
   const shortResidueSg = getPhdTag("021FY_002X.C1");
   const shortResidueActual =
-    calculateActualTD(shortResidueFlow, shortResidueSg) ?? 1081;
+    calculateActualTD(shortResidueFlow, shortResidueSg) ?? 0;
 
   // Unit 022 PDU II
   const daoFlow = getPhdTag("022FI_007.PV");
   const daoSg = getPhdTag("022FY_007X.C1");
-  const daoActual = calculateActualTD(daoFlow, daoSg) ?? 151;
+  const daoActual = calculateActualTD(daoFlow, daoSg) ?? 0;
 
   const asphaltFlow = getPhdTag("022FI_013.PV");
   const asphaltSg = getPhdTag("022FY_013X.C1");
-  const asphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 484;
+  const asphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 0;
 
   // Unit 023 FEU II
   const raffFlow1 = getPhdTag("023FI_031.PV");
@@ -261,14 +262,14 @@ export default function DailyReport({
     raffFlow1 !== null || raffFlow2 !== null
       ? Number(raffFlow1 || 0) + Number(raffFlow2 || 0)
       : null;
-  const raffActual = calculateActualTD(totalRaffFlow, raffSg) ?? 1106;
+  const raffActual = calculateActualTD(totalRaffFlow, raffSg) ?? 0;
 
   const extractFlow = getPhdTag("023FI_028.pv") ?? getPhdTag("023FI_028.PV");
   let extractSgTag = "023FY_028CX.C1";
   if (feuMode === "LMO") extractSgTag = "023FY_028BX.C1";
   else if (feuMode === "DAO") extractSgTag = "023FY_028DX.C1";
   const extractSg = getPhdTag(extractSgTag);
-  const extractActual = calculateActualTD(extractFlow, extractSg) ?? 644;
+  const extractActual = calculateActualTD(extractFlow, extractSg) ?? 0;
 
   // Unit 024 MDU II
   const dorFlow = getPhdTag("024FI_023.PV");
@@ -276,7 +277,7 @@ export default function DailyReport({
   if (mduMode === "MMO") dorSgTag = "024FY_023CX.C1";
   else if (mduMode === "DAO") dorSgTag = "024FY_023DX.C1";
   const dorSg = getPhdTag(dorSgTag);
-  const dorActual = calculateActualTD(dorFlow, dorSg) ?? 465;
+  const dorActual = calculateActualTD(dorFlow, dorSg) ?? 0;
 
   // Tank Farm LOC II Flow Product based on active Unit 024 MDU II Mode:
   // LMO -> HVI 95, MMO -> HVI 160S, DAO -> HVI 650. Non-active modes display 0.
@@ -325,15 +326,15 @@ export default function DailyReport({
     feuMduData?.flow_hvi_650_loc3 !== null &&
     feuMduData?.flow_hvi_650_loc3 !== ""
       ? feuMduData.flow_hvi_650_loc3
-      : 256;
+      : 0;
 
   const slackWaxFlow = getPhdTag("024FI_031.PV");
   let slackWaxSgTag = "024FY_031X.c1";
   const slackWaxSg = getPhdTag(slackWaxSgTag);
-  const slackWaxActual = calculateActualTD(slackWaxFlow, slackWaxSg) ?? 96;
+  const slackWaxActual = calculateActualTD(slackWaxFlow, slackWaxSg) ?? 0;
 
   // Helper to render LIMS parameter cell with limit comparison
-  const renderLimsParam = (sampleCode, paramName, fallbackVal, unit = "") => {
+  const renderLimsParam = (sampleCode, paramName, fallbackVal = "0", unit = "") => {
     const baseCode = sampleCode.replace(/[MD]$/, "");
     const sample =
       limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode];
@@ -433,6 +434,11 @@ export default function DailyReport({
           </div>
           <div className="banner-title">DAILY REPORT LOC II</div>
           <div className="logo-right">
+            <img
+              src={locLogo}
+              alt="LOC II"
+              className="logo-loc"
+            />
             <img
               src={pertaminaLogo}
               alt="Pertamina Patra Niaga"
@@ -1122,12 +1128,12 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec("02103", [
-                          { paramName: "Visco 60°C", fallbackVal: "12.50" },
+                          { paramName: "Visco 60°C", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam("02103", "Visco 60°C", "12.50", "cSt")}
+                        {renderLimsParam("02103", "Visco 60°C", "0", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -1153,12 +1159,12 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec("02104", [
-                          { paramName: "Visco 60°C", fallbackVal: "31.21" },
+                          { paramName: "Visco 60°C", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam("02104", "Visco 60°C", "31.21", "cSt")}
+                        {renderLimsParam("02104", "Visco 60°C", "0", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -1184,12 +1190,12 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec("02105", [
-                          { paramName: "Visco 60°C", fallbackVal: "95.75" },
+                          { paramName: "Visco 60°C", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-single">
                         <span className="font-bold">Visco</span>
-                        {renderLimsParam("02105", "Visco 60°C", "95.75", "cSt")}
+                        {renderLimsParam("02105", "Visco 60°C", "0", "cSt")}
                       </div>
                     </td>
                   </tr>
@@ -1215,7 +1221,7 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec("02107", [
-                          { paramName: "Visco 100°C", fallbackVal: "1166.00" },
+                          { paramName: "Visco 100°C", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-single">
@@ -1223,7 +1229,7 @@ export default function DailyReport({
                         {renderLimsParam(
                           "02107",
                           "Visco 100°C",
-                          "1166.00",
+                          "0",
                           "cSt",
                         )}
                       </div>
@@ -1256,18 +1262,18 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec("02203", [
-                          { paramName: "Visco 100°C", fallbackVal: "43.81" },
-                          { paramName: "FP PMCC", fallbackVal: "288" },
-                          { paramName: "Color", fallbackVal: "L7.5" },
+                          { paramName: "Visco 100°C", fallbackVal: "0" },
+                          { paramName: "FP PMCC", fallbackVal: "0" },
+                          { paramName: "Color", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-3">
                         <span className="font-bold">Visco</span>
                         <span className="font-bold">FP</span>
                         <span className="font-bold">COL</span>
-                        {renderLimsParam("02203", "Visco 100°C", "43.81")}
-                        {renderLimsParam("02203", "FP PMCC", "288")}
-                        {renderLimsParam("02203", "Color", "L7.5")}
+                        {renderLimsParam("02203", "Visco 100°C", "0")}
+                        {renderLimsParam("02203", "FP PMCC", "0")}
+                        {renderLimsParam("02203", "Color", "0")}
                       </div>
                     </td>
                   </tr>
@@ -1319,9 +1325,9 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec(sampleCode023, [
-                          { paramName: "Visco 100°C", fallbackVal: "14.960" },
-                          { paramName: "FP PMCC", fallbackVal: "262" },
-                          { paramName: "RI 70°C", fallbackVal: "1.4861" },
+                          { paramName: "Visco 100°C", fallbackVal: "0" },
+                          { paramName: "FP PMCC", fallbackVal: "0" },
+                          { paramName: "RI 70°C", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-3">
@@ -1331,10 +1337,10 @@ export default function DailyReport({
                         {renderLimsParam(
                           sampleCode023,
                           "Visco 100°C",
-                          "14.960",
+                          "0",
                         )}
-                        {renderLimsParam(sampleCode023, "FP PMCC", "262")}
-                        {renderLimsParam(sampleCode023, "RI 70°C", "1.4861")}
+                        {renderLimsParam(sampleCode023, "FP PMCC", "0")}
+                        {renderLimsParam(sampleCode023, "RI 70°C", "0")}
                       </div>
                     </td>
                   </tr>
@@ -1386,12 +1392,12 @@ export default function DailyReport({
                     <td>
                       {renderSpecStatus(
                         isSampleOnSpec(sampleCode024, [
-                          { paramName: "Visco 100°C", fallbackVal: "7.007" },
-                          { paramName: "FP PMCC", fallbackVal: "214" },
-                          { paramName: "Color", fallbackVal: "L1.0" },
-                          { paramName: "VI", fallbackVal: "99" },
-                          { paramName: "PP", fallbackVal: "-9" },
-                          { paramName: "App", fallbackVal: "C&B" },
+                          { paramName: "Visco 100°C", fallbackVal: "0" },
+                          { paramName: "FP PMCC", fallbackVal: "0" },
+                          { paramName: "Color", fallbackVal: "0" },
+                          { paramName: "VI", fallbackVal: "0" },
+                          { paramName: "PP", fallbackVal: "0" },
+                          { paramName: "App", fallbackVal: "0" },
                         ]),
                       )}
                       <div className="sample-grid sample-grid-6">
@@ -1401,12 +1407,12 @@ export default function DailyReport({
                         <span className="font-bold">VI</span>
                         <span className="font-bold">PP</span>
                         <span className="font-bold">App</span>
-                        {renderLimsParam(sampleCode024, "Visco 100°C", "7.007")}
-                        {renderLimsParam(sampleCode024, "FP PMCC", "214")}
-                        {renderLimsParam(sampleCode024, "Color", "L1.0")}
-                        {renderLimsParam(sampleCode024, "VI", "99")}
-                        {renderLimsParam(sampleCode024, "PP", "-9")}
-                        {renderLimsParam(sampleCode024, "App", "C&B")}
+                        {renderLimsParam(sampleCode024, "Visco 100°C", "0")}
+                        {renderLimsParam(sampleCode024, "FP PMCC", "0")}
+                        {renderLimsParam(sampleCode024, "Color", "0")}
+                        {renderLimsParam(sampleCode024, "VI", "0")}
+                        {renderLimsParam(sampleCode024, "PP", "0")}
+                        {renderLimsParam(sampleCode024, "App", "0")}
                       </div>
                     </td>
                   </tr>
