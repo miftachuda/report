@@ -167,9 +167,9 @@ export default function DailyReport({
 
     return (
       <td rowSpan={rowSpan} className="text-center">
-        <span className="inline-flex items-center justify-center">
+        <span className="percent-cell-val font-bold">
           <span className={dotClass}></span>
-          <span className="percent-cell-val">{val}</span>
+          <span>{val}</span>
         </span>
       </td>
     );
@@ -360,7 +360,7 @@ export default function DailyReport({
     const evaluated = evaluateSampleLimit(rawVal, limitRecord);
 
     return (
-      <span className="inline-flex items-center justify-start gap-0.5 text-left">
+      <span className="lims-param-cell inline-flex items-baseline justify-start gap-0.5 text-left">
         <span
           className={
             evaluated.isOutOfRange ? "lims-val-alert" : "lims-val-normal"
@@ -467,17 +467,28 @@ export default function DailyReport({
             <div className="card card-feed">
               <div className="card-title">KAPASITAS FEED</div>
               <table>
+                <colgroup>
+                  <col style={{ width: "15.5%" }} />
+                  <col style={{ width: "11.5%" }} />
+                  <col style={{ width: "9.5%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "11.5%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "9.5%" }} />
+                  <col style={{ width: "11.25%" }} />
+                  <col style={{ width: "11.25%" }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={{ width: "16%" }}>UNIT</th>
-                    <th style={{ width: "10%" }}>Status</th>
-                    <th style={{ width: "11%" }}>Design (T/D)</th>
-                    <th style={{ width: "11%" }}>Aktual (T/D)</th>
-                    <th style={{ width: "13%" }}>Target RPH (T/D)</th>
-                    <th style={{ width: "11%" }}>Target STS</th>
-                    <th style={{ width: "9%" }}>% Design</th>
-                    <th style={{ width: "9%" }}>% RPH</th>
-                    <th style={{ width: "10%" }}>% STS</th>
+                    <th>UNIT</th>
+                    <th>Status</th>
+                    <th>Design (T/D)</th>
+                    <th>Aktual (T/D)</th>
+                    <th>Target RPH</th>
+                    <th>Target STS</th>
+                    <th>% Design</th>
+                    <th>% RPH</th>
+                    <th>% STS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1097,12 +1108,18 @@ export default function DailyReport({
             <div className="card card-produksi">
               <div className="card-title">PRODUKSI</div>
               <table>
+                <colgroup>
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "54%" }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={{ width: "16%" }}>UNIT</th>
-                    <th style={{ width: "18%" }}>Produk</th>
-                    <th style={{ width: "12%" }}>AKTUAL</th>
-                    <th style={{ width: "54%" }}>ANALISA SAMPLE</th>
+                    <th>UNIT</th>
+                    <th>Produk</th>
+                    <th>AKTUAL</th>
+                    <th>ANALISA SAMPLE</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1439,6 +1456,16 @@ export default function DailyReport({
             {/* SECTION A: FEU / MDU / NOTE SUMMARY TABLE (Directly Editable with Auto-Save) */}
             <div className="card card-summary">
               <table>
+                <colgroup>
+                  <col style={{ width: "9%" }} />
+                  <col style={{ width: "13.5%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "13.5%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "24%" }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th
@@ -1559,7 +1586,7 @@ export default function DailyReport({
                             note: e.target.value,
                           })
                         }
-                        className="editable-input w-full h-full min-h-[50px] resize-none text-[11.5px] font-medium leading-relaxed"
+                        className="editable-input w-full h-full min-h-0 resize-none text-[10.5px] font-medium leading-normal p-1 overflow-y-auto block"
                       />
                     </td>
                   </tr>
@@ -1650,11 +1677,16 @@ export default function DailyReport({
             >
               <div className="card-title">ISSUE MAINTENANCE</div>
               <table>
+                <colgroup>
+                  <col style={{ width: "22%" }} />
+                  <col style={{ width: "28%" }} />
+                  <col style={{ width: "50%" }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={{ width: "22%" }}>Equipment</th>
-                    <th style={{ width: "28%" }}>Issue</th>
-                    <th style={{ width: "50%" }}>Mitigasi / RTL</th>
+                    <th>Equipment</th>
+                    <th>Issue</th>
+                    <th>Mitigasi / RTL</th>
                   </tr>
                 </thead>
                 <tbody>

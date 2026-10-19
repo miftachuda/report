@@ -189,6 +189,7 @@ html, body {
 .card-summary table {
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
   width: 100%;
   height: 100%;
   border: none !important;
@@ -220,6 +221,21 @@ html, body {
   border-right: 1px solid var(--table-border);
   border-bottom: 1px solid var(--table-border);
   outline: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.card-summary th {
+  padding: clamp(1px, 0.2vh, 3px) clamp(1px, 0.18vw, 2.5px) !important;
+  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
+  line-height: 1.1 !important;
+  text-overflow: ellipsis;
+}
+
+.card-summary td {
+  padding: clamp(1px, 0.2vh, 2.5px) clamp(1px, 0.18vw, 2.5px) !important;
+  font-size: clamp(9px, 0.68vw, 11px) !important;
+  line-height: 1.15 !important;
 }
 
 .card-summary tr th:last-child,
@@ -235,6 +251,33 @@ html, body {
 .card-maintenance {
   flex: 1.5;
   min-height: 0;
+}
+
+.card-maintenance table {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+  height: 100%;
+  border: none !important;
+}
+
+.card-maintenance th {
+  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4px) !important;
+  font-size: clamp(9px, 0.68vw, 11px) !important;
+  line-height: 1.15 !important;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.card-maintenance td {
+  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4px) !important;
+  font-size: clamp(9px, 0.68vw, 11px) !important;
+  line-height: 1.2 !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .daily-report-body .card-title {
@@ -253,7 +296,9 @@ html, body {
   width: 100%;
   height: 100%;
   flex: 1;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
   border: none !important;
 }
 
@@ -261,20 +306,27 @@ html, body {
   background-color: var(--table-bg-th);
   color: #111;
   font-weight: 700;
-  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 5.5px);
+  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4.5px);
   border: 1px solid var(--table-border);
   text-align: center;
-  font-size: clamp(10.5px, 0.78vw, 12.5px);
-  line-height: 1.25;
+  font-size: clamp(9.5px, 0.72vw, 11.5px);
+  line-height: 1.15;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .daily-report-body td {
   background-color: var(--table-bg-td);
-  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px);
+  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4.5px);
   border: 1px solid var(--table-td-border);
   vertical-align: middle;
-  font-size: clamp(10.5px, 0.78vw, 12.5px);
-  line-height: 1.25;
+  font-size: clamp(9.5px, 0.72vw, 11.5px);
+  line-height: 1.15;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* Remove outer perimeter border on tables - keeping thin internal grid lines */
@@ -355,11 +407,11 @@ html, body {
 /* Circle dot on left side of % RPH and % STS */
 .percent-dot {
   display: inline-block;
-  width: clamp(7.5px, 0.58vw, 9.5px);
-  height: clamp(7.5px, 0.58vw, 9.5px);
+  width: clamp(6.5px, 0.5vw, 8px);
+  height: clamp(6.5px, 0.5vw, 8px);
   border-radius: 50%;
   flex-shrink: 0;
-  margin-right: 4px;
+  margin-right: 3px;
 }
 
 .percent-dot-green {
@@ -371,24 +423,30 @@ html, body {
 }
 
 .percent-cell-val {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   color: #0f172a !important;
   font-weight: 700;
-  font-size: clamp(10.5px, 0.78vw, 12.5px);
+  font-size: clamp(9.5px, 0.7vw, 11.5px);
+  line-height: 1;
 }
 
 /* Spec Status Badge on top of Analisa Sample */
 .spec-status-badge {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 2px;
+  gap: 3px;
+  margin-bottom: 1.5px;
   user-select: none;
+  line-height: 1;
 }
 
 .spec-status-dot {
   display: inline-block;
-  width: clamp(7.5px, 0.58vw, 9.5px);
-  height: clamp(7.5px, 0.58vw, 9.5px);
+  width: clamp(6px, 0.48vw, 7.5px);
+  height: clamp(6px, 0.48vw, 7.5px);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -403,7 +461,7 @@ html, body {
 
 .spec-status-text {
   font-weight: 700;
-  font-size: clamp(9.5px, 0.72vw, 11.5px);
+  font-size: clamp(8px, 0.6vw, 9.5px);
   line-height: 1;
 }
 
@@ -422,106 +480,144 @@ html, body {
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(10.5px, 0.76vw, 12.5px);
-  line-height: 1.25;
-  white-space: nowrap;
+  font-size: clamp(9px, 0.68vw, 11px);
+  line-height: 1.15;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sample-grid-single {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: clamp(6px, 0.6vw, 10px);
-  font-size: clamp(11px, 0.8vw, 13px);
-  line-height: 1.25;
+  gap: clamp(4px, 0.45vw, 8px);
+  font-size: clamp(9.5px, 0.72vw, 11.5px);
+  line-height: 1.15;
   text-align: left;
+  width: 100%;
+  max-width: 100%;
 }
 
 .sample-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, auto);
-  column-gap: clamp(8px, 0.75vw, 14px);
-  row-gap: 2px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(3px, 0.35vw, 7px);
+  row-gap: 1px;
   align-items: center;
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(10.5px, 0.76vw, 12.5px);
-  line-height: 1.25;
-  white-space: nowrap;
+  font-size: clamp(9px, 0.68vw, 11px);
+  line-height: 1.15;
+  width: 100%;
+  max-width: 100%;
 }
 
 .sample-grid-6 {
   display: grid;
-  grid-template-columns: repeat(6, auto);
-  column-gap: clamp(3px, 0.35vw, 7px);
-  row-gap: 2px;
-  align-items: center;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: clamp(1.5px, 0.18vw, 3.5px);
+  row-gap: 1px;
+  align-items: flex-start;
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(10px, 0.72vw, 12px);
-  line-height: 1.25;
+  font-size: clamp(8px, 0.6vw, 9.5px);
+  line-height: 1.1;
+  width: 100%;
+  max-width: 100%;
+}
+
+.sample-grid-6 .lims-param-cell {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  line-height: 1.05 !important;
+}
+
+.sample-grid-6 .lims-limit-range {
+  font-size: clamp(7px, 0.5vw, 8.5px) !important;
+  margin-left: 0 !important;
+  color: #64748b;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .sample-grid .font-bold {
   color: #0f172a;
-  font-size: clamp(10.5px, 0.76vw, 12.5px);
+  font-size: inherit;
   text-align: left;
 }
 
 .card-produksi td {
-  padding: clamp(2px, 0.32vh, 4px) clamp(3px, 0.35vw, 6px) !important;
-  font-size: clamp(10.5px, 0.76vw, 12.5px) !important;
-  line-height: 1.2 !important;
+  padding: clamp(1px, 0.22vh, 3px) clamp(2px, 0.25vw, 5px) !important;
+  font-size: clamp(9.5px, 0.7vw, 11.5px) !important;
+  line-height: 1.15 !important;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .card-produksi th {
-  padding: clamp(2.5px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px) !important;
-  font-size: clamp(10.5px, 0.76vw, 12.5px) !important;
-  line-height: 1.2 !important;
+  padding: clamp(2px, 0.25vh, 3.5px) clamp(2px, 0.25vw, 5px) !important;
+  font-size: clamp(9.5px, 0.7vw, 11.5px) !important;
+  line-height: 1.15 !important;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .card-produksi .onspec-cell {
   padding: 1px 2px !important;
-  font-size: clamp(9.5px, 0.7vw, 11px) !important;
+  font-size: clamp(8.5px, 0.62vw, 10px) !important;
 }
 
 /* ISSUE OPERATIONAL BOX */
 .operational-box {
-  padding: clamp(6px, 1.2vh, 12px) clamp(14px, 1.4vw, 24px);
+  padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1vw, 16px);
   background-color: var(--table-bg-td);
-  font-size: clamp(11.5px, 0.82vw, 13px);
-  line-height: 1.55;
+  font-size: clamp(10px, 0.74vw, 12px);
+  line-height: 1.35;
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .operational-box ol {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
 }
 
 .operational-box li {
-  margin-bottom: clamp(2px, 0.4vh, 5px);
+  margin-bottom: clamp(1px, 0.25vh, 3px);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 /* Inline editable inputs for FEU/MDU and other cells */
 .editable-input {
   background: transparent;
   border: 1px dashed transparent;
-  padding: 1px 3px;
+  padding: 1px 2px;
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
   color: inherit;
   text-align: center;
   width: 100%;
+  min-width: 0 !important;
+  max-width: 100% !important;
   border-radius: 3px;
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 .editable-input.text-left {
@@ -556,6 +652,17 @@ html, body {
 }
 
 /* LIMS sample value range highlighting */
+.lims-param-cell {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 1.5px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .lims-val-normal {
   color: #15803d;
   font-weight: 700;
@@ -569,10 +676,10 @@ html, body {
 }
 
 .lims-limit-range {
-  font-size: inherit;
+  font-size: 0.9em;
   color: #64748b;
   font-weight: 500;
-  margin-left: 2px;
+  margin-left: 1.5px;
 }
 
 /* Double-click hint on cards */
