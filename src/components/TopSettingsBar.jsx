@@ -150,7 +150,7 @@ export default function TopSettingsBar({
       // Check if 23:00 or later
       if (hours >= 23 && !hasTriggeredToday) {
         hasTriggeredToday = true
-        console.log('[Auto-Save] Triggering 23:00 auto-save to PocketBase...')
+        console.log('[Auto-Save] Triggering 23:00 auto-save to database...')
         setAutoSaveStatus('Saving...')
 
         if (onManualSave) {
@@ -221,7 +221,7 @@ export default function TopSettingsBar({
               }`}
             >
               <Database className="w-3 h-3" />
-              {pocketBaseConnected ? 'PocketBase Connected' : 'Local Fallback'}
+              {pocketBaseConnected ? 'Database Connected' : 'Local Fallback'}
             </span>
 
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
@@ -274,7 +274,7 @@ export default function TopSettingsBar({
             onClick={() => onManualSave(false)}
             disabled={isSaving}
             className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition cursor-pointer disabled:opacity-50"
-            title="Archive current report snapshot to PocketBase"
+            title="Archive current report snapshot to database"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save & Archive'}</span>
@@ -384,11 +384,11 @@ export default function TopSettingsBar({
               </div>
             </div>
 
-            {/* 2. PocketBase Backend Info */}
+            {/* 2. Database Backend Info */}
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
               <span className="text-slate-300 font-semibold mb-2 flex items-center gap-1.5">
                 <Database className="w-3.5 h-3.5 text-emerald-400" />
-                PocketBase Sync
+                Database Sync
               </span>
               <p className="text-[11px] text-slate-400 mb-2 leading-relaxed">
                 Connected to <code className="text-emerald-300">base.loc-2.com</code>. Edits in FEU/MDU and Issue
@@ -413,7 +413,7 @@ export default function TopSettingsBar({
                   <strong>1080p Export:</strong> Renders a high-res screenshot without the control bar.
                 </li>
                 <li>
-                  <strong>Auto-Save:</strong> Automatically snapshots full data at 23:00 to PocketBase archive.
+                  <strong>Auto-Save:</strong> Automatically snapshots full data at 23:00 to archive.
                 </li>
                 <li>
                   <strong>Mode Switch:</strong> Double-click Unit 023/024 in table to change mode (LMO/MMO/DAO).
