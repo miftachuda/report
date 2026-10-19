@@ -364,7 +364,7 @@ export default function DailyReport({
         >
           {evaluated.formattedValue}
         </span>
-        {unit && <span className="font-bold text-[9.5px] ml-0.5">{unit}</span>}
+        {unit && <span className="font-bold ml-0.5">{unit}</span>}
         {evaluated.limitLabel && (
           <span className="lims-limit-range" title="Specification Limits">
             {evaluated.limitLabel}
@@ -1558,7 +1558,7 @@ export default function DailyReport({
                             note: e.target.value,
                           })
                         }
-                        className="editable-input w-full h-full min-h-[50px] resize-none text-[10px]"
+                        className="editable-input w-full h-full min-h-[50px] resize-none text-[11.5px] font-medium leading-relaxed"
                       />
                     </td>
                   </tr>

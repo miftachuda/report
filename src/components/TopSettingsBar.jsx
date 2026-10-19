@@ -26,6 +26,7 @@ export default function TopSettingsBar({
   isRefreshing,
   pocketBaseConnected,
   lastSavedTime,
+  onToggleVisibility,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -278,6 +279,17 @@ export default function TopSettingsBar({
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save & Archive'}</span>
           </button>
+
+          {onToggleVisibility && (
+            <button
+              onClick={onToggleVisibility}
+              className="flex items-center gap-1 px-2 py-1 rounded bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 hover:border-slate-500 transition cursor-pointer text-xs ml-1"
+              title="Sembunyikan Menu Bar (Hide Top Bar)"
+            >
+              <ChevronUp className="w-3.5 h-3.5 text-slate-300" />
+              <span className="hidden xl:inline text-[11px] font-medium">Hide Bar</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import TopSettingsBar from "./components/TopSettingsBar.jsx";
 import DailyReport from "./DailyReport.jsx";
+import { ChevronDown } from "./components/Icons.jsx";
 import {
   getDailyReport,
   saveDailyReport,
@@ -516,21 +517,50 @@ export default function App() {
     return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
   };
 
+  // Top bar visibility state (stored in localStorage for persistence)
+  const [isTopBarVisible, setIsTopBarVisible] = useState(() => {
+    const saved = localStorage.getItem("report_top_bar_visible");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  const toggleTopBar = () => {
+    setIsTopBarVisible((prev) => {
+      const next = !prev;
+      localStorage.setItem("report_top_bar_visible", String(next));
+      return next;
+    });
+  };
+
   return (
-    <div className="min-h-screen w-screen flex flex-col overflow-hidden bg-[#eef5f9]">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#eef5f9] relative">
       {/* Top Collapsible Controls Bar */}
-      <TopSettingsBar
-        dateRange={dateRange}
-        onDateRangeChange={handleDateRangeChange}
-        phdPreset={phdPreset}
-        onPhdPresetChange={handlePhdPresetChange}
-        onRefreshData={handleRefresh}
-        onManualSave={handleManualSave}
-        isSaving={isSaving}
-        isRefreshing={isRefreshing}
-        pocketBaseConnected={pocketBaseConnected}
-        lastSavedTime={lastSavedTime}
-      />
+      {isTopBarVisible && (
+        <TopSettingsBar
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
+          phdPreset={phdPreset}
+          onPhdPresetChange={handlePhdPresetChange}
+          onRefreshData={handleRefresh}
+          onManualSave={handleManualSave}
+          isSaving={isSaving}
+          isRefreshing={isRefreshing}
+          pocketBaseConnected={pocketBaseConnected}
+          lastSavedTime={lastSavedTime}
+          onToggleVisibility={toggleTopBar}
+        />
+      )}
+
+      {/* Floating transparent button when top bar is hidden */}
+      {!isTopBarVisible && (
+        <button
+          onClick={toggleTopBar}
+          className="fixed top-2 right-4 z-50 flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/35 hover:bg-slate-900/85 backdrop-blur-md text-white/80 hover:text-white text-xs font-semibold shadow-md border border-white/20 transition-all duration-200 cursor-pointer opacity-40 hover:opacity-100 group select-none"
+          title="Tampilkan Menu Bar (Show Top Bar)"
+        >
+          <ChevronDown className="w-3.5 h-3.5 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+          <span className="text-[11px] font-medium">Show Bar</span>
+        </button>
+      )}
 
       {/* Main Operational Report Dashboard */}
       <div className="flex-1 min-h-0 overflow-hidden">

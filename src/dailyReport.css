@@ -18,13 +18,13 @@ html, body {
 
 .daily-report-body {
   background-color: #eef5f9;
-  height: 100vh;
-  max-height: 100vh;
-  width: 100vw;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
   box-sizing: border-box;
-  padding: clamp(6px, 1vh, 14px) clamp(8px, 1vw, 16px);
+  padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 16px);
   color: #222;
-  font-size: clamp(10px, 0.75vw, 12px);
+  font-size: clamp(11px, 0.82vw, 13px);
   line-height: 1.25;
   display: flex;
   flex-direction: column;
@@ -96,7 +96,7 @@ html, body {
 }
 
 .banner-title {
-  font-size: clamp(16px, 1.35vw, 22px);
+  font-size: clamp(17px, 1.45vw, 24px);
   font-weight: 800;
   color: #111;
   letter-spacing: 0.5px;
@@ -106,11 +106,11 @@ html, body {
 /* DATE BAR */
 .date-bar {
   background: #fff;
-  padding: clamp(4px, 0.6vh, 7px) clamp(8px, 0.8vw, 14px);
+  padding: clamp(4px, 0.55vh, 6.5px) clamp(8px, 0.8vw, 14px);
   border-bottom: 1.5px solid #e2e8f0;
-  font-size: clamp(10.5px, 0.78vw, 12px);
+  font-size: clamp(11.5px, 0.85vw, 13.5px);
   font-weight: 600;
-  margin-bottom: clamp(5px, 0.8vh, 9px);
+  margin-bottom: clamp(4px, 0.7vh, 8px);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -231,8 +231,8 @@ html, body {
   color: #fff;
   text-align: center;
   font-weight: 700;
-  font-size: clamp(10.5px, 0.78vw, 12.5px);
-  padding: clamp(3.5px, 0.55vh, 6.5px) 6px;
+  font-size: clamp(11.5px, 0.85vw, 13.5px);
+  padding: clamp(3px, 0.45vh, 5.5px) 6px;
   letter-spacing: 0.4px;
   flex-shrink: 0;
 }
@@ -250,19 +250,19 @@ html, body {
   background-color: var(--table-bg-th);
   color: #111;
   font-weight: 700;
-  padding: clamp(3px, 0.45vh, 6px) clamp(3px, 0.4vw, 6px);
+  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 5.5px);
   border: 1px solid var(--table-border);
   text-align: center;
-  font-size: clamp(9.5px, 0.7vw, 11.5px);
+  font-size: clamp(10.5px, 0.78vw, 12.5px);
   line-height: 1.25;
 }
 
 .daily-report-body td {
   background-color: var(--table-bg-td);
-  padding: clamp(2.5px, 0.45vh, 5.5px) clamp(4px, 0.45vw, 7px);
+  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px);
   border: 1px solid var(--table-td-border);
   vertical-align: middle;
-  font-size: clamp(9.5px, 0.7vw, 11.5px);
+  font-size: clamp(10.5px, 0.78vw, 12.5px);
   line-height: 1.25;
 }
 
@@ -338,14 +338,14 @@ html, body {
   color: #fff !important;
   font-weight: 700;
   text-align: center;
-  font-size: clamp(9.5px, 0.7vw, 11px) !important;
+  font-size: clamp(10.5px, 0.76vw, 12px) !important;
 }
 
 /* Circle dot on left side of % RPH and % STS */
 .percent-dot {
   display: inline-block;
-  width: clamp(6.5px, 0.52vw, 8px);
-  height: clamp(6.5px, 0.52vw, 8px);
+  width: clamp(7.5px, 0.58vw, 9.5px);
+  height: clamp(7.5px, 0.58vw, 9.5px);
   border-radius: 50%;
   flex-shrink: 0;
   margin-right: 4px;
@@ -362,6 +362,7 @@ html, body {
 .percent-cell-val {
   color: #0f172a !important;
   font-weight: 700;
+  font-size: clamp(10.5px, 0.78vw, 12.5px);
 }
 
 /* Spec Status Badge on top of Analisa Sample */
@@ -375,8 +376,8 @@ html, body {
 
 .spec-status-dot {
   display: inline-block;
-  width: clamp(6.5px, 0.52vw, 8px);
-  height: clamp(6.5px, 0.52vw, 8px);
+  width: clamp(7.5px, 0.58vw, 9.5px);
+  height: clamp(7.5px, 0.58vw, 9.5px);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -391,7 +392,7 @@ html, body {
 
 .spec-status-text {
   font-weight: 700;
-  font-size: clamp(8.5px, 0.65vw, 10.5px);
+  font-size: clamp(9.5px, 0.72vw, 11.5px);
   line-height: 1;
 }
 
@@ -410,7 +411,7 @@ html, body {
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(10px, 0.75vw, 12.5px);
+  font-size: clamp(10.5px, 0.76vw, 12.5px);
   line-height: 1.25;
   white-space: nowrap;
 }
@@ -420,7 +421,7 @@ html, body {
   align-items: center;
   justify-content: flex-start;
   gap: clamp(6px, 0.6vw, 10px);
-  font-size: clamp(10.5px, 0.75vw, 12.5px);
+  font-size: clamp(11px, 0.8vw, 13px);
   line-height: 1.25;
   text-align: left;
 }
@@ -428,13 +429,13 @@ html, body {
 .sample-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, auto);
-  column-gap: clamp(8px, 0.8vw, 14px);
+  column-gap: clamp(8px, 0.75vw, 14px);
   row-gap: 2px;
   align-items: center;
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(10px, 0.75vw, 12.5px);
+  font-size: clamp(10.5px, 0.76vw, 12.5px);
   line-height: 1.25;
   white-space: nowrap;
 }
@@ -442,46 +443,46 @@ html, body {
 .sample-grid-6 {
   display: grid;
   grid-template-columns: repeat(6, auto);
-  column-gap: clamp(4px, 0.45vw, 9px);
+  column-gap: clamp(3px, 0.35vw, 7px);
   row-gap: 2px;
   align-items: center;
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(9.5px, 0.7vw, 11.5px);
+  font-size: clamp(10px, 0.72vw, 12px);
   line-height: 1.25;
   white-space: nowrap;
 }
 
 .sample-grid .font-bold {
   color: #0f172a;
-  font-size: clamp(10px, 0.72vw, 12px);
+  font-size: clamp(10.5px, 0.76vw, 12.5px);
   text-align: left;
 }
 
 .card-produksi td {
-  padding: clamp(2px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px) !important;
-  font-size: clamp(9px, 0.68vw, 11px) !important;
+  padding: clamp(2px, 0.32vh, 4px) clamp(3px, 0.35vw, 6px) !important;
+  font-size: clamp(10.5px, 0.76vw, 12.5px) !important;
   line-height: 1.2 !important;
 }
 
 .card-produksi th {
   padding: clamp(2.5px, 0.35vh, 4.5px) clamp(3px, 0.35vw, 6px) !important;
-  font-size: clamp(9px, 0.68vw, 11px) !important;
+  font-size: clamp(10.5px, 0.76vw, 12.5px) !important;
   line-height: 1.2 !important;
 }
 
 .card-produksi .onspec-cell {
   padding: 1px 2px !important;
-  font-size: clamp(8.5px, 0.6vw, 10px) !important;
+  font-size: clamp(9.5px, 0.7vw, 11px) !important;
 }
 
 /* ISSUE OPERATIONAL BOX */
 .operational-box {
-  padding: clamp(8px, 1.4vh, 16px) clamp(16px, 1.6vw, 28px);
+  padding: clamp(6px, 1.2vh, 12px) clamp(14px, 1.4vw, 24px);
   background-color: var(--table-bg-td);
-  font-size: clamp(10.5px, 0.75vw, 12px);
-  line-height: 1.7;
+  font-size: clamp(11.5px, 0.82vw, 13px);
+  line-height: 1.55;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -547,18 +548,20 @@ html, body {
 .lims-val-normal {
   color: #15803d;
   font-weight: 700;
+  font-size: inherit;
 }
 
 .lims-val-alert {
   color: #dc2626;
   font-weight: 700;
+  font-size: inherit;
 }
 
 .lims-limit-range {
-  font-size: 8px;
+  font-size: inherit;
   color: #64748b;
   font-weight: 500;
-  margin-left: 3px;
+  margin-left: 2px;
 }
 
 /* Double-click hint on cards */
