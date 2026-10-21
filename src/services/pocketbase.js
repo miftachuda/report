@@ -33,16 +33,57 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 /**
+ * Helper to find existing records for a given date string across various date formats/types
+ */
+async function findExistingRecords(collectionName, dateStr) {
+  // 1. Exact string match or substring match
+  try {
+    const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
+    const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
+    if (res.items && res.items.length > 0) {
+      return res.items
+    }
+  } catch (err) {
+    console.warn(`[PocketBase] Filter query on ${collectionName} warning:`, err.message)
+  }
+
+  // 2. Date range filter (in case field is datetime in PocketBase)
+  try {
+    const filter = encodeURIComponent(`date >= "${dateStr} 00:00:00" && date <= "${dateStr} 23:59:59"`)
+    const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
+    if (res.items && res.items.length > 0) {
+      return res.items
+    }
+  } catch (err) {}
+
+  // 3. Fallback: query last 100 records and match date in JS
+  try {
+    const res = await apiRequest(`/api/collections/${collectionName}/records?perPage=100&sort=-created`)
+    if (res.items && res.items.length > 0) {
+      const matched = res.items.filter((item) => {
+        if (!item.date) return false
+        const d = String(item.date).trim()
+        return d === dateStr || d.startsWith(dateStr) || d.includes(dateStr)
+      })
+      if (matched.length > 0) {
+        return matched
+      }
+    }
+  } catch (err) {}
+
+  return []
+}
+
+/**
  * 1. daily_report Collection
  * Key: date (YYYY-MM-DD)
  * Fields: date, feu_mdu_data, issue_operational, issue_maintenance, unit_modes
  */
 export async function getDailyReport(dateStr) {
   try {
-    const filter = encodeURIComponent(`date="${dateStr}"`)
-    const res = await apiRequest(`/api/collections/daily_report/records?filter=${filter}`)
-    if (res.items && res.items.length > 0) {
-      return res.items[0]
+    const existing = await findExistingRecords('daily_report', dateStr)
+    if (existing && existing.length > 0) {
+      return existing[0]
     }
   } catch (err) {
     console.warn(`[PocketBase] getDailyReport for ${dateStr} fallback:`, err.message)
@@ -74,17 +115,15 @@ export async function saveDailyReport(dateStr, data) {
   localStorage.setItem('last_saved_daily_report', JSON.stringify(payload))
 
   try {
-    // Check if record exists
-    const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
-    const res = await apiRequest(`/api/collections/daily_report/records?filter=${filter}`)
+    const existingItems = await findExistingRecords('daily_report', dateStr)
 
-    if (res.items && res.items.length > 0) {
-      const existingId = res.items[0].id
+    if (existingItems && existingItems.length > 0) {
+      const existingId = existingItems[0].id
       // Clean up extra duplicate records if any exist
-      if (res.items.length > 1) {
-        for (let i = 1; i < res.items.length; i++) {
+      if (existingItems.length > 1) {
+        for (let i = 1; i < existingItems.length; i++) {
           try {
-            await apiRequest(`/api/collections/daily_report/records/${res.items[i].id}`, {
+            await apiRequest(`/api/collections/daily_report/records/${existingItems[i].id}`, {
               method: 'DELETE',
             })
           } catch {
@@ -178,17 +217,16 @@ export async function archiveDailyReport(dateStr, payloadData) {
   localStorage.setItem('last_saved_archive', JSON.stringify(archiveItem))
 
   try {
-    // Check if record exists for this date
-    const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
-    const res = await apiRequest(`/api/collections/report_daily_archive/records?filter=${filter}`)
+    // Check if record exists for this date using robust matching across string/datetime
+    const existingItems = await findExistingRecords('report_daily_archive', dateStr)
 
-    if (res.items && res.items.length > 0) {
-      const existingId = res.items[0].id
+    if (existingItems && existingItems.length > 0) {
+      const existingId = existingItems[0].id
       // Clean up extra duplicate records if any exist from previous saves
-      if (res.items.length > 1) {
-        for (let i = 1; i < res.items.length; i++) {
+      if (existingItems.length > 1) {
+        for (let i = 1; i < existingItems.length; i++) {
           try {
-            await apiRequest(`/api/collections/report_daily_archive/records/${res.items[i].id}`, {
+            await apiRequest(`/api/collections/report_daily_archive/records/${existingItems[i].id}`, {
               method: 'DELETE',
             })
           } catch {
@@ -197,13 +235,13 @@ export async function archiveDailyReport(dateStr, payloadData) {
         }
       }
 
-      // Replace / update existing record
+      // Replace / update existing record (PATCH)
       return await apiRequest(`/api/collections/report_daily_archive/records/${existingId}`, {
         method: 'PATCH',
         body: JSON.stringify(archiveItem),
       })
     } else {
-      // Create new record
+      // Create new record (POST)
       return await apiRequest(`/api/collections/report_daily_archive/records`, {
         method: 'POST',
         body: JSON.stringify(archiveItem),

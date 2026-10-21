@@ -113,6 +113,7 @@ export default function IssueEditModal({
                   <input
                     type="text"
                     value={item}
+                    onDoubleClick={(e) => e.target.select()}
                     onChange={(e) => {
                       const updated = [...data]
                       updated[idx] = e.target.value
@@ -155,6 +156,7 @@ export default function IssueEditModal({
                         <input
                           type="text"
                           value={row.equipment || ''}
+                          onDoubleClick={(e) => e.target.select()}
                           onChange={(e) => {
                             const updated = [...data]
                             updated[idx].equipment = e.target.value
@@ -169,6 +171,7 @@ export default function IssueEditModal({
                         <input
                           type="text"
                           value={row.issue || ''}
+                          onDoubleClick={(e) => e.target.select()}
                           onChange={(e) => {
                             const updated = [...data]
                             updated[idx].issue = e.target.value
@@ -183,6 +186,7 @@ export default function IssueEditModal({
                         <input
                           type="text"
                           value={row.mitigation || ''}
+                          onDoubleClick={(e) => e.target.select()}
                           onChange={(e) => {
                             const updated = [...data]
                             updated[idx].mitigation = e.target.value

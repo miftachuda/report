@@ -17,6 +17,90 @@ import { fetchPhdData } from "./services/phdApi.js";
 import { fetchLimsData } from "./services/limsApi.js";
 import { calculateDateRangeForPreset } from "./utils/calculations.js";
 
+/**
+ * Helper to build the list of active PHD tags based on current modes and tanks
+ */
+function getActivePhdTags(currentModes, currentTanks = []) {
+  const mode023 = currentModes?.unit023 || "MMO";
+  const mode024 = currentModes?.unit024 || "LMO";
+
+  const activeTags = [
+    "021FI_004.pv",
+    "021FY_004X.C1",
+    "022FI_001.pv",
+    "022FY_001X.C1",
+    "023FIC_004.pv",
+    "024FIC_001.pv",
+    "025FIC_004.pv",
+    "025FY_004X.PV",
+    "002LI_051.PV",
+    "023LI_005.PV",
+    // Produksi Unit 021 HVU II
+    "021FIC_058.PV",
+    "021FY_058X.C1",
+    "021FIC_057.PV",
+    "021FY_057X.C1",
+    "021FI_008.PV",
+    "021FY_008X.c1",
+    "021FI_002.PV",
+    "021FY_002X.c1",
+    // Produksi Unit 022 PDU II
+    "022FI_007.PV",
+    "022FY_007X.C1",
+    "022FI_013.PV",
+    "022FY_013X.c1",
+    // Produksi Unit 023 FEU II
+    "023FI_031.PV",
+    "023FI_703.PV",
+    "023FY_031BX.C1",
+    "023FY_031CX.C1",
+    "023FY_031DX.C1",
+    "023FI_028.pv",
+    "023FY_028BX.C1",
+    "023FY_028CX.C1",
+    "023FY_028DX.C1",
+    // Produksi Unit 024 MDU II
+    "024FI_023.PV",
+    "024FY_023BX.C1",
+    "024FY_023CX.C1",
+    "024FY_023DX.C1",
+    "024FI_031.PV",
+    "024FY_031X.c1",
+  ];
+
+  if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
+  else if (mode023 === "DAO") activeTags.push("023FY_004DX.C1");
+  else activeTags.push("023FY_004CX.C1");
+
+  if (mode024 === "MMO") activeTags.push("024FY_001CX.C1");
+  else if (mode024 === "DAO") activeTags.push("024FY_001DX.C1");
+  else activeTags.push("024FY_001BX.C1");
+
+  const targetTanks = [
+    "41T101",
+    "41T102",
+    "41T104",
+    "41T103",
+    "41T107",
+    "41T108",
+    "41T105",
+    "41T106",
+    "41T109",
+    "41T110",
+  ];
+
+  targetTanks.forEach((name) => {
+    const found = currentTanks.find((t) => t.tank_name === name);
+    if (found?.tag_level) {
+      activeTags.push(found.tag_level);
+    } else {
+      activeTags.push(`${name}_P_LEVEL.PV`);
+    }
+  });
+
+  return activeTags;
+}
+
 export default function App() {
   const getTodayDateStr = () => new Date().toISOString().slice(0, 10);
 
@@ -87,7 +171,8 @@ export default function App() {
 
   // State for Issue Operational (Section B)
   const [issueOperational, setIssueOperational] = useState(() => {
-    const saved = initialPayload?.issue_operational || initialDaily?.issue_operational;
+    const saved =
+      initialPayload?.issue_operational || initialDaily?.issue_operational;
     if (saved && Array.isArray(saved) && saved.length > 0) {
       return saved;
     }
@@ -100,7 +185,8 @@ export default function App() {
 
   // State for Issue Maintenance (Section B)
   const [issueMaintenance, setIssueMaintenance] = useState(() => {
-    const saved = initialPayload?.issue_maintenance || initialDaily?.issue_maintenance;
+    const saved =
+      initialPayload?.issue_maintenance || initialDaily?.issue_maintenance;
     if (saved && Array.isArray(saved) && saved.length > 0) {
       return saved;
     }
@@ -381,91 +467,17 @@ export default function App() {
       setIsRefreshing(false);
     }
     return { unitModes: resolvedModes, tanks: resolvedTanks };
-  }, [normalizeOperationalIssues, normalizeMaintenanceIssues, tanks, unitModes]);
+  }, [
+    normalizeOperationalIssues,
+    normalizeMaintenanceIssues,
+    tanks,
+    unitModes,
+  ]);
 
   // 2. Query PHD Tags based on active modes & tank tags
   const loadPhdTags = useCallback(
     async (currentRange, currentModes, currentTanks) => {
-      const mode023 = currentModes?.unit023 || "MMO";
-      const mode024 = currentModes?.unit024 || "LMO";
-
-      // Base operational tags (Kapasitas Feed)
-      const activeTags = [
-        "021FI_004.pv",
-        "021FY_004X.C1",
-        "022FI_001.pv",
-        "022FY_001X.C1",
-        "023FIC_004.pv",
-        "024FIC_001.pv",
-        "025FIC_004.pv",
-        "025FY_004X.PV",
-        "002LI_051.PV",
-        "023LI_005.PV",
-        // Produksi Unit 021 HVU II
-        "021FIC_058.PV",
-        "021FY_058X.C1",
-        "021FIC_057.PV",
-        "021FY_057X.C1",
-        "021FI_008.PV",
-        "021FY_008X.PV",
-        "021FI_002.PV",
-        "021FY_002X.PV",
-        // Produksi Unit 022 PDU II
-        "022FI_007.PV",
-        "022FY_007X.C1",
-        "022FI_013.PV",
-        "022FY_013X.c1",
-        // Produksi Unit 023 FEU II
-        "023FI_031.PV",
-        "023FI_703.PV",
-        "023FY_031BX.C1",
-        "023FY_031CX.C1",
-        "023FY_031DX.C1",
-        "023FI_028.pv",
-        "023FY_028BX.C1",
-        "023FY_028CX.C1",
-        "023FY_028DX.C1",
-        // Produksi Unit 024 MDU II
-        "024FI_023.PV",
-        "024FY_023BX.C1",
-        "024FY_023CX.C1",
-        "024FY_023DX.C1",
-        "024FI_031.PV",
-        "024FY_031X.PV",
-      ];
-
-      // Add SG tag for Unit 023 feed based on active mode
-      if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
-      else if (mode023 === "DAO") activeTags.push("023FY_004DX.C1");
-      else activeTags.push("023FY_004CX.C1");
-
-      // Add SG tag for Unit 024 feed based on active mode
-      if (mode024 === "MMO") activeTags.push("024FY_001CX.C1");
-      else if (mode024 === "DAO") activeTags.push("024FY_001DX.C1");
-      else activeTags.push("024FY_001BX.C1");
-
-      // Add tank level tags
-      const targetTanks = [
-        "41T101",
-        "41T102",
-        "41T104",
-        "41T103",
-        "41T107",
-        "41T108",
-        "41T105",
-        "41T106",
-        "41T109",
-        "41T110",
-      ];
-
-      targetTanks.forEach((name) => {
-        const found = currentTanks.find((t) => t.tank_name === name);
-        if (found?.tag_level) {
-          activeTags.push(found.tag_level);
-        } else {
-          activeTags.push(`${name}_P_LEVEL.PV`);
-        }
-      });
+      const activeTags = getActivePhdTags(currentModes, currentTanks);
 
       setIsRefreshing(true);
       try {
@@ -516,7 +528,11 @@ export default function App() {
     const init = async () => {
       const res = await loadInitialData();
       if (active) {
-        loadPhdTags(dateRange, res?.unitModes || unitModes, res?.tanks || tanks);
+        loadPhdTags(
+          dateRange,
+          res?.unitModes || unitModes,
+          res?.tanks || tanks,
+        );
       }
     };
     init();
@@ -583,8 +599,17 @@ export default function App() {
     loadPhdTags(dateRange, updated, tanks);
   };
 
-  // Synchronized full refresh
+  // Synchronized full refresh:
+  // 1. Immediately reset all values to 0 / empty
+  // 2. Fetch fresh API data (PHD and LIMS) and Database records in parallel
+  // 3. Fill state preferring API responses, falling back to last saved database data
   const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+
+    // Step 1: Immediately reset displayed values to 0 / empty
+    setPhdData({});
+    setLimsData({ samples: {}, shift: "Malam" });
+
     let currentRange = dateRange;
     if (phdPreset !== "custom") {
       const refreshed = calculateDateRangeForPreset(phdPreset);
@@ -593,9 +618,123 @@ export default function App() {
         setDateRange(refreshed);
       }
     }
-    const res = await loadInitialData();
-    await loadPhdTags(currentRange, res?.unitModes || unitModes, res?.tanks || tanks);
-  }, [dateRange, phdPreset, loadInitialData, loadPhdTags, unitModes, tanks]);
+
+    const today = getTodayDateStr();
+
+    try {
+      const activeTags = getActivePhdTags(unitModes, tanks);
+
+      // Fetch fresh API data (PHD + LIMS) and PocketBase in parallel
+      const [phdApiRes, limsApiRes, pbReportRes, latestArchiveRes, pbTanksRes, pbLimitsRes, healthRes] =
+        await Promise.allSettled([
+          fetchPhdData(activeTags, currentRange.start, currentRange.end),
+          fetchLimsData(),
+          getDailyReport(today),
+          getLatestArchiveReport(),
+          getTanks(),
+          getSampleLimits(),
+          checkPocketBaseHealth(),
+        ]);
+
+      if (healthRes.status === "fulfilled") {
+        setPocketBaseConnected(Boolean(healthRes.value));
+      }
+
+      const apiPhd = phdApiRes.status === "fulfilled" ? phdApiRes.value : {};
+      const apiLims = limsApiRes.status === "fulfilled" ? limsApiRes.value : null;
+      const reportData = pbReportRes.status === "fulfilled" ? pbReportRes.value : null;
+      const archiveData = latestArchiveRes.status === "fulfilled" ? latestArchiveRes.value : null;
+      const archivePayload = archiveData?.payload_data || archiveData;
+
+      if (pbTanksRes.status === "fulfilled" && pbTanksRes.value?.length > 0) {
+        setTanks(pbTanksRes.value);
+      }
+      if (pbLimitsRes.status === "fulfilled" && pbLimitsRes.value?.length > 0) {
+        setSampleLimits(pbLimitsRes.value);
+      }
+
+      // Step 2 & 3: Merge PHD tags - prefer API, fallback to DB snapshot
+      const dbPhdSnapshot = archivePayload?.phd_data_snapshot || {};
+      const mergedPhd = { ...dbPhdSnapshot, ...(apiPhd || {}) };
+      setPhdData(mergedPhd);
+
+      // Merge LIMS samples - prefer API, fallback to DB snapshot
+      const dbLimsSnapshot = archivePayload?.lims_snapshot?.samples || {};
+      const apiLimsSamples = apiLims?.samples || {};
+      const mergedLimsSamples = { ...dbLimsSnapshot, ...apiLimsSamples };
+      setLimsData({
+        samples: mergedLimsSamples,
+        shift: apiLims?.shift || archivePayload?.lims_snapshot?.shift || "Malam",
+      });
+
+      // Hydrate report fields (FEU MDU data, issues, unit modes, unit statuses)
+      const source = reportData || archivePayload;
+      if (source) {
+        if (source.feu_mdu_data) {
+          setFeuMduData((prev) => ({ ...prev, ...source.feu_mdu_data }));
+        }
+        if (source.issue_operational) {
+          setIssueOperational(normalizeOperationalIssues(source.issue_operational));
+        }
+        if (source.issue_maintenance) {
+          setIssueMaintenance(normalizeMaintenanceIssues(source.issue_maintenance));
+        }
+        if (source.unit_modes) {
+          setUnitModes(source.unit_modes);
+        }
+        if (source.unit_statuses || source.feu_mdu_data?.unit_statuses) {
+          setUnitStatuses((prev) => ({
+            ...prev,
+            ...(source.unit_statuses || source.feu_mdu_data?.unit_statuses),
+          }));
+        }
+        setLastSavedTime(
+          reportData?.updated ||
+            reportData?.created ||
+            archiveData?.created ||
+            archivePayload?.saved_at ||
+            new Date().toISOString()
+        );
+      }
+    } catch (err) {
+      console.error("Refresh error:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [
+    dateRange,
+    phdPreset,
+    unitModes,
+    tanks,
+    normalizeOperationalIssues,
+    normalizeMaintenanceIssues,
+  ]);
+
+  // LIMS parameter change handler (auto-updates state and caches locally)
+  const handleLimsParamChange = useCallback((sampleCode, paramName, newVal) => {
+    setLimsData((prev) => {
+      const prevSamples = prev?.samples || {};
+      const prevSample = prevSamples[sampleCode] || {};
+      const updatedSample = {
+        ...prevSample,
+        [paramName]: {
+          ...(prevSample[paramName] || {}),
+          value: newVal,
+        },
+      };
+      const nextLims = {
+        ...prev,
+        samples: {
+          ...prevSamples,
+          [sampleCode]: updatedSample,
+        },
+      };
+      try {
+        localStorage.setItem("cached_lims_data", JSON.stringify(nextLims));
+      } catch {}
+      return nextLims;
+    });
+  }, []);
 
   // Operational Unit Status change handler (Unit 021, Unit 022, Unit 023, Unit 024, HOS II)
   const handleUnitStatusChange = (unitKey, newStatus) => {
@@ -743,6 +882,7 @@ export default function App() {
           tanks={tanks}
           sampleLimits={sampleLimits}
           limsData={limsData}
+          onLimsParamChange={handleLimsParamChange}
         />
       </div>
     </div>

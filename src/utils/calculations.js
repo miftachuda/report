@@ -100,13 +100,6 @@ export function calculateProductGroupTons(tankNames, tanksDb = [], phdTags = {})
  * @returns {{ isOutOfRange: boolean, limitLabel: string, formattedValue: string }}
  */
 export function evaluateSampleLimit(rawValue, limitRecord) {
-  if (rawValue === null || rawValue === undefined || rawValue === '') {
-    return { isOutOfRange: false, limitLabel: '', formattedValue: '-' }
-  }
-
-  const valStr = String(rawValue).trim()
-  const numVal = parseFloat(valStr)
-
   let low = null
   let high = null
 
@@ -134,6 +127,13 @@ export function evaluateSampleLimit(rawValue, limitRecord) {
   } else if (limitRecord?.high_limit) {
     limitLabel = `(${limitRecord.high_limit})`
   }
+
+  if (rawValue === null || rawValue === undefined || rawValue === '') {
+    return { isOutOfRange: false, limitLabel, formattedValue: '' }
+  }
+
+  const valStr = String(rawValue).trim()
+  const numVal = parseFloat(valStr)
 
   // Range evaluation
   let isOutOfRange = false
