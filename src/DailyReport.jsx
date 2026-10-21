@@ -59,40 +59,42 @@ export default function DailyReport({
   const hvuSg = getPhdTag("021FY_004X.C1");
   const calculatedHvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 0;
   const hvuActual =
-    feuMduData?.hvu_actual !== undefined && feuMduData?.hvu_actual !== ""
+    feuMduData?.hvu_actual !== undefined
       ? feuMduData.hvu_actual
       : calculatedHvuActual;
   const hvuDesign =
-    feuMduData?.hvu_design !== undefined && feuMduData?.hvu_design !== ""
+    feuMduData?.hvu_design !== undefined
       ? feuMduData.hvu_design
       : 3883;
+  const hvuRphPercent = feuMduData?.hvu_rph ?? "-";
+  const calculatedHvuTargetRph = calculateTargetTD(hvuRphPercent, Number(hvuDesign));
   const hvuTargetRph =
-    feuMduData?.hvu_target_rph !== undefined && feuMduData?.hvu_target_rph !== ""
+    feuMduData?.hvu_target_rph !== undefined && feuMduData?.hvu_target_rph !== "-"
       ? feuMduData.hvu_target_rph
-      : 2524;
+      : (calculatedHvuTargetRph ?? "-");
+
+  const hvuStsPercent = feuMduData?.hvu_sts ?? "-";
+  const calculatedHvuTargetSts = calculateTargetTD(hvuStsPercent, Number(hvuDesign));
   const hvuTargetSts =
-    feuMduData?.hvu_target_sts !== undefined && feuMduData?.hvu_target_sts !== ""
+    feuMduData?.hvu_target_sts !== undefined && feuMduData?.hvu_target_sts !== "-"
       ? feuMduData.hvu_target_sts
-      : 2524;
+      : (calculatedHvuTargetSts ?? "-");
   const calculatedHvuPercentDesign =
     calculateAchievedPercent(hvuActual, hvuDesign) ?? "0";
   const hvuPercentDesign =
-    feuMduData?.hvu_percent_design !== undefined &&
-    feuMduData?.hvu_percent_design !== ""
+    feuMduData?.hvu_percent_design !== undefined
       ? feuMduData.hvu_percent_design
       : calculatedHvuPercentDesign;
   const calculatedHvuPercentRph =
-    calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "0";
+    calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "-";
   const hvuPercentRph =
-    feuMduData?.hvu_percent_rph !== undefined &&
-    feuMduData?.hvu_percent_rph !== ""
+    feuMduData?.hvu_percent_rph !== undefined
       ? feuMduData.hvu_percent_rph
       : calculatedHvuPercentRph;
   const calculatedHvuPercentSts =
-    calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "0";
+    calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "-";
   const hvuPercentSts =
-    feuMduData?.hvu_percent_sts !== undefined &&
-    feuMduData?.hvu_percent_sts !== ""
+    feuMduData?.hvu_percent_sts !== undefined
       ? feuMduData.hvu_percent_sts
       : calculatedHvuPercentSts;
 
@@ -101,208 +103,197 @@ export default function DailyReport({
   const pduSg = getPhdTag("022FY_001X.C1");
   const calculatedPduActual = calculateActualTD(pduFlow, pduSg) ?? 0;
   const pduActual =
-    feuMduData?.pdu_actual !== undefined && feuMduData?.pdu_actual !== ""
+    feuMduData?.pdu_actual !== undefined
       ? feuMduData.pdu_actual
       : calculatedPduActual;
   const pduDesign =
-    feuMduData?.pdu_design !== undefined && feuMduData?.pdu_design !== ""
+    feuMduData?.pdu_design !== undefined
       ? feuMduData.pdu_design
       : 784;
+  const pduRphPercent = feuMduData?.pdu_rph ?? "-";
+  const calculatedPduTargetRph = calculateTargetTD(pduRphPercent, Number(pduDesign));
   const pduTargetRph =
-    feuMduData?.pdu_target_rph !== undefined && feuMduData?.pdu_target_rph !== ""
+    feuMduData?.pdu_target_rph !== undefined && feuMduData?.pdu_target_rph !== "-"
       ? feuMduData.pdu_target_rph
-      : 627;
+      : (calculatedPduTargetRph ?? "-");
+
+  const pduStsPercent = feuMduData?.pdu_sts ?? "-";
+  const calculatedPduTargetSts = calculateTargetTD(pduStsPercent, Number(pduDesign));
   const pduTargetSts =
-    feuMduData?.pdu_target_sts !== undefined && feuMduData?.pdu_target_sts !== ""
+    feuMduData?.pdu_target_sts !== undefined && feuMduData?.pdu_target_sts !== "-"
       ? feuMduData.pdu_target_sts
-      : 549;
+      : (calculatedPduTargetSts ?? "-");
   const calculatedPduPercentDesign =
     calculateAchievedPercent(pduActual, pduDesign) ?? "0";
   const pduPercentDesign =
-    feuMduData?.pdu_percent_design !== undefined &&
-    feuMduData?.pdu_percent_design !== ""
+    feuMduData?.pdu_percent_design !== undefined
       ? feuMduData.pdu_percent_design
       : calculatedPduPercentDesign;
   const calculatedPduPercentRph =
-    calculateAchievedPercent(pduActual, pduTargetRph) ?? "0";
+    calculateAchievedPercent(pduActual, pduTargetRph) ?? "-";
   const pduPercentRph =
-    feuMduData?.pdu_percent_rph !== undefined &&
-    feuMduData?.pdu_percent_rph !== ""
+    feuMduData?.pdu_percent_rph !== undefined
       ? feuMduData.pdu_percent_rph
       : calculatedPduPercentRph;
   const calculatedPduPercentSts =
-    calculateAchievedPercent(pduActual, pduTargetSts) ?? "0";
+    calculateAchievedPercent(pduActual, pduTargetSts) ?? "-";
   const pduPercentSts =
-    feuMduData?.pdu_percent_sts !== undefined &&
-    feuMduData?.pdu_percent_sts !== ""
+    feuMduData?.pdu_percent_sts !== undefined
       ? feuMduData.pdu_percent_sts
       : calculatedPduPercentSts;
 
   // Unit 023 FEU II (Active Mode: LMO / MMO / DAO)
   const feuMode = unitModes?.unit023 || "MMO";
   let defaultFeuDesign = 2270;
-  let feuStsPercent = feuMduData?.feu_mmo_sts ?? 65;
+  let feuStsPercent = feuMduData?.feu_mmo_sts ?? "-";
   let feuTagFlow = "023FIC_004.pv";
   let feuTagSg = "023FY_004CX.C1";
 
   if (feuMode === "LMO") {
     defaultFeuDesign = Number(feuMduData?.feu_lmo_design ?? 2180);
-    feuStsPercent = Number(feuMduData?.feu_lmo_sts ?? 70);
+    feuStsPercent = feuMduData?.feu_lmo_sts ?? "-";
     feuTagSg = "023FY_004BX.C1";
   } else if (feuMode === "DAO") {
     defaultFeuDesign = Number(feuMduData?.feu_dao_design ?? 1786);
-    feuStsPercent = Number(feuMduData?.feu_dao_sts ?? 70);
+    feuStsPercent = feuMduData?.feu_dao_sts ?? "-";
     feuTagSg = "023FY_004DX.C1";
   } else {
     defaultFeuDesign = Number(feuMduData?.feu_mmo_design ?? 2270);
-    feuStsPercent = Number(feuMduData?.feu_mmo_sts ?? 65);
+    feuStsPercent = feuMduData?.feu_mmo_sts ?? "-";
     feuTagSg = "023FY_004CX.C1";
   }
 
-  const feuDesign =
-    feuMduData?.feu_design_override !== undefined &&
-    feuMduData?.feu_design_override !== ""
-      ? feuMduData.feu_design_override
-      : defaultFeuDesign;
-  const feuRphPercent = Number(feuMduData?.feu_rph ?? 65);
+  // Design T/D strictly dynamically adjusts according to active feed mode
+  const feuDesign = defaultFeuDesign;
+  const feuRphPercent = feuMduData?.feu_rph ?? "-";
+  // Target RPH & STS strictly dynamically adjust according to active feed mode
   const calculatedFeuTargetRph =
-    calculateTargetTD(feuRphPercent, Number(feuDesign)) ?? 0;
-  const feuTargetRph =
-    feuMduData?.feu_target_rph !== undefined && feuMduData?.feu_target_rph !== ""
-      ? feuMduData.feu_target_rph
-      : calculatedFeuTargetRph;
+    calculateTargetTD(feuRphPercent, Number(feuDesign));
+  const feuTargetRph = calculatedFeuTargetRph ?? "-";
   const calculatedFeuTargetSts =
-    calculateTargetTD(feuStsPercent, Number(feuDesign)) ?? 0;
-  const feuTargetSts =
-    feuMduData?.feu_target_sts !== undefined && feuMduData?.feu_target_sts !== ""
-      ? feuMduData.feu_target_sts
-      : calculatedFeuTargetSts;
+    calculateTargetTD(feuStsPercent, Number(feuDesign));
+  const feuTargetSts = calculatedFeuTargetSts ?? "-";
   const feuFlow = getPhdTag(feuTagFlow) ?? getPhdTag("023FI_004.pv");
   const feuSg = getPhdTag(feuTagSg);
   const calculatedFeuActual = calculateActualTD(feuFlow, feuSg) ?? 0;
   const feuActual =
-    feuMduData?.feu_actual !== undefined && feuMduData?.feu_actual !== ""
+    feuMduData?.feu_actual !== undefined
       ? feuMduData.feu_actual
       : calculatedFeuActual;
   const calculatedFeuPercentDesign =
     calculateAchievedPercent(feuActual, feuDesign) ?? "0";
   const feuPercentDesign =
-    feuMduData?.feu_percent_design !== undefined &&
-    feuMduData?.feu_percent_design !== ""
+    feuMduData?.feu_percent_design !== undefined
       ? feuMduData.feu_percent_design
       : calculatedFeuPercentDesign;
   const calculatedFeuPercentRph =
-    calculateAchievedPercent(feuActual, feuTargetRph) ?? "0";
+    calculateAchievedPercent(feuActual, feuTargetRph) ?? "-";
   const feuPercentRph =
-    feuMduData?.feu_percent_rph !== undefined &&
-    feuMduData?.feu_percent_rph !== ""
+    feuMduData?.feu_percent_rph !== undefined
       ? feuMduData.feu_percent_rph
       : calculatedFeuPercentRph;
   const calculatedFeuPercentSts =
-    calculateAchievedPercent(feuActual, feuTargetSts) ?? "0";
+    calculateAchievedPercent(feuActual, feuTargetSts) ?? "-";
   const feuPercentSts =
-    feuMduData?.feu_percent_sts !== undefined &&
-    feuMduData?.feu_percent_sts !== ""
+    feuMduData?.feu_percent_sts !== undefined
       ? feuMduData.feu_percent_sts
       : calculatedFeuPercentSts;
 
   // Unit 024 MDU II (Active Mode: LMO / MMO / DAO)
   const mduMode = unitModes?.unit024 || "LMO";
   let defaultMduDesign = 841;
-  let mduStsPercent = feuMduData?.mdu_lmo_sts ?? 65;
+  let mduStsPercent = feuMduData?.mdu_lmo_sts ?? "-";
   let mduTagSg = "024FY_001BX.C1";
 
   if (mduMode === "MMO") {
     defaultMduDesign = Number(feuMduData?.mdu_mmo_design ?? 777);
-    mduStsPercent = Number(feuMduData?.mdu_mmo_sts ?? 65);
+    mduStsPercent = feuMduData?.mdu_mmo_sts ?? "-";
     mduTagSg = "024FY_001CX.C1";
   } else if (mduMode === "DAO") {
     defaultMduDesign = Number(feuMduData?.mdu_dao_design ?? 501);
-    mduStsPercent = Number(feuMduData?.mdu_dao_sts ?? 0);
+    mduStsPercent = feuMduData?.mdu_dao_sts ?? "-";
     mduTagSg = "024FY_001DX.C1";
   } else {
     defaultMduDesign = Number(feuMduData?.mdu_lmo_design ?? 841);
-    mduStsPercent = Number(feuMduData?.mdu_lmo_sts ?? 65);
+    mduStsPercent = feuMduData?.mdu_lmo_sts ?? "-";
     mduTagSg = "024FY_001BX.C1";
   }
 
-  const mduDesign =
-    feuMduData?.mdu_design_override !== undefined &&
-    feuMduData?.mdu_design_override !== ""
-      ? feuMduData.mdu_design_override
-      : defaultMduDesign;
-  const mduRphPercent = Number(feuMduData?.mdu_rph ?? 65);
+  // Design T/D strictly dynamically adjusts according to active feed mode
+  const mduDesign = defaultMduDesign;
+  const mduRphPercent = feuMduData?.mdu_rph ?? "-";
+  // Target RPH & STS strictly dynamically adjust according to active feed mode
   const calculatedMduTargetRph =
-    calculateTargetTD(mduRphPercent, Number(mduDesign)) ?? 0;
-  const mduTargetRph =
-    feuMduData?.mdu_target_rph !== undefined && feuMduData?.mdu_target_rph !== ""
-      ? feuMduData.mdu_target_rph
-      : calculatedMduTargetRph;
+    calculateTargetTD(mduRphPercent, Number(mduDesign));
+  const mduTargetRph = calculatedMduTargetRph ?? "-";
   const calculatedMduTargetSts =
-    calculateTargetTD(mduStsPercent, Number(mduDesign)) ?? 0;
-  const mduTargetSts =
-    feuMduData?.mdu_target_sts !== undefined && feuMduData?.mdu_target_sts !== ""
-      ? feuMduData.mdu_target_sts
-      : calculatedMduTargetSts;
+    calculateTargetTD(mduStsPercent, Number(mduDesign));
+  const mduTargetSts = calculatedMduTargetSts ?? "-";
   const mduFlow = getPhdTag("024FIC_001.pv") ?? getPhdTag("024FI_001.pv");
   const mduSg = getPhdTag(mduTagSg) ?? 0.85;
   const calculatedMduActual =
     calculateActualTD(mduFlow, mduSg) ??
     (mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 0);
   const mduActual =
-    feuMduData?.mdu_actual !== undefined && feuMduData?.mdu_actual !== ""
+    feuMduData?.mdu_actual !== undefined
       ? feuMduData.mdu_actual
       : calculatedMduActual;
   const calculatedMduPercentDesign =
     calculateAchievedPercent(mduActual, mduDesign) ?? "0";
   const mduPercentDesign =
-    feuMduData?.mdu_percent_design !== undefined &&
-    feuMduData?.mdu_percent_design !== ""
+    feuMduData?.mdu_percent_design !== undefined
       ? feuMduData.mdu_percent_design
       : calculatedMduPercentDesign;
   const calculatedMduPercentRph =
-    calculateAchievedPercent(mduActual, mduTargetRph) ?? "0";
+    calculateAchievedPercent(mduActual, mduTargetRph) ?? "-";
   const mduPercentRph =
-    feuMduData?.mdu_percent_rph !== undefined &&
-    feuMduData?.mdu_percent_rph !== ""
+    feuMduData?.mdu_percent_rph !== undefined
       ? feuMduData.mdu_percent_rph
       : calculatedMduPercentRph;
   const calculatedMduPercentSts =
-    calculateAchievedPercent(mduActual, mduTargetSts) ?? "0";
+    calculateAchievedPercent(mduActual, mduTargetSts) ?? "-";
   const mduPercentSts =
-    feuMduData?.mdu_percent_sts !== undefined &&
-    feuMduData?.mdu_percent_sts !== ""
+    feuMduData?.mdu_percent_sts !== undefined
       ? feuMduData.mdu_percent_sts
       : calculatedMduPercentSts;
 
   // Render % RPH and % STS cell with circle dot on left (green >= 100, red < 100) and editable input
+  // Render % RPH and % STS cell with circle dot on left (green >= 100, yellow < 100) and editable input
   const renderPercentCell = (val, rowSpan = 1, onValueChange) => {
+    const isHyphen = val === "-" || val === null || val === undefined || val === "";
     const num = Number(val);
-    const hasVal = val !== null && val !== undefined && val !== "";
-    const isGreen = hasVal && !isNaN(num) && num >= 100;
+    const hasVal = !isHyphen && !isNaN(num);
+    const isGreen = hasVal && num >= 100;
     const dotClass = hasVal
       ? isGreen
         ? "percent-dot percent-dot-green"
-        : "percent-dot percent-dot-red"
-      : "percent-dot";
+        : "percent-dot percent-dot-yellow"
+      : "";
 
     return (
       <td rowSpan={rowSpan} className="text-center p-0">
-        <span className="percent-cell-val font-bold inline-flex items-center justify-center">
-          {hasVal && <span className={dotClass}></span>}
+        <div className="flex items-center justify-center w-full h-full px-0.5">
+          {hasVal && (
+            <span
+              className={dotClass}
+              title={isGreen ? ">= 100% (Green / On Target)" : "< 100% (Yellow / Under Target)"}
+            ></span>
+          )}
           {onValueChange ? (
             <input
               type="text"
-              value={val ?? ""}
+              value={val ?? "-"}
               onDoubleClick={(e) => e.target.select()}
               onChange={(e) => onValueChange(e.target.value)}
-              className="editable-input text-center font-bold text-slate-900 p-0"
-              style={{ width: "3.8ch" }}
+              className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
             />
           ) : (
-            <span>{hasVal ? val : "-"}</span>
+            <span className="font-bold text-slate-800">{isHyphen ? "-" : val}</span>
           )}
-        </span>
+          {!isHyphen && (
+            <span className="percent-sign font-bold text-slate-800 shrink-0 ml-0.5">%</span>
+          )}
+        </div>
       </td>
     );
   };
@@ -322,7 +313,7 @@ export default function DailyReport({
   const hosSg = getPhdTag("021FY_058X.C1");
   const calculatedHosActual = calculateActualTD(hosFlow, hosSg) ?? 0;
   const hosActual =
-    feuMduData?.hos_actual !== undefined && feuMduData?.hos_actual !== ""
+    feuMduData?.hos_actual !== undefined
       ? feuMduData.hos_actual
       : calculatedHosActual;
 
@@ -330,7 +321,7 @@ export default function DailyReport({
   const calculatedLevel023C104 =
     rawLevel023 !== null ? rawLevel023.toFixed(1) : "0";
   const level023C104 =
-    feuMduData?.level_023c104 !== undefined && feuMduData?.level_023c104 !== ""
+    feuMduData?.level_023c104 !== undefined
       ? feuMduData.level_023c104
       : calculatedLevel023C104;
 
@@ -338,7 +329,7 @@ export default function DailyReport({
   const calculatedLevelCpi =
     rawLevelCpi !== null ? rawLevelCpi.toFixed(1) : "0";
   const levelCpi =
-    feuMduData?.level_cpi !== undefined && feuMduData?.level_cpi !== ""
+    feuMduData?.level_cpi !== undefined
       ? feuMduData.level_cpi
       : calculatedLevelCpi;
 
@@ -355,15 +346,15 @@ export default function DailyReport({
     calculateProductGroupTons(tanksHvi650, tanks, phdData) || 0;
 
   const calculatedStockHvi95 =
-    feuMduData?.stock_hvi_95 !== undefined && feuMduData?.stock_hvi_95 !== ""
+    feuMduData?.stock_hvi_95 !== undefined
       ? feuMduData.stock_hvi_95
       : defaultStockHvi95;
   const calculatedStockHvi160S =
-    feuMduData?.stock_hvi_160s !== undefined && feuMduData?.stock_hvi_160s !== ""
+    feuMduData?.stock_hvi_160s !== undefined
       ? feuMduData.stock_hvi_160s
       : defaultStockHvi160S;
   const calculatedStockHvi650 =
-    feuMduData?.stock_hvi_650 !== undefined && feuMduData?.stock_hvi_650 !== ""
+    feuMduData?.stock_hvi_650 !== undefined
       ? feuMduData.stock_hvi_650
       : defaultStockHvi650;
 
@@ -393,7 +384,7 @@ export default function DailyReport({
   const spoSg = getPhdTag("021FY_058X.C1");
   const calculatedSpoActual = calculateActualTD(spoFlow, spoSg) ?? 0;
   const spoActual =
-    feuMduData?.spo_actual !== undefined && feuMduData?.spo_actual !== ""
+    feuMduData?.spo_actual !== undefined
       ? feuMduData.spo_actual
       : calculatedSpoActual;
 
@@ -401,8 +392,7 @@ export default function DailyReport({
   const lmoDistSg = getPhdTag("021FY_057X.C1");
   const calculatedLmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 0;
   const lmoDistActual =
-    feuMduData?.lmo_dist_actual !== undefined &&
-    feuMduData?.lmo_dist_actual !== ""
+    feuMduData?.lmo_dist_actual !== undefined
       ? feuMduData.lmo_dist_actual
       : calculatedLmoDistActual;
 
@@ -410,8 +400,7 @@ export default function DailyReport({
   const mmoDistSg = getPhdTag("021FY_008X.c1");
   const calculatedMmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 0;
   const mmoDistActual =
-    feuMduData?.mmo_dist_actual !== undefined &&
-    feuMduData?.mmo_dist_actual !== ""
+    feuMduData?.mmo_dist_actual !== undefined
       ? feuMduData.mmo_dist_actual
       : calculatedMmoDistActual;
 
@@ -420,8 +409,7 @@ export default function DailyReport({
   const calculatedShortResidueActual =
     calculateActualTD(shortResidueFlow, shortResidueSg) ?? 0;
   const shortResidueActual =
-    feuMduData?.short_residue_actual !== undefined &&
-    feuMduData?.short_residue_actual !== ""
+    feuMduData?.short_residue_actual !== undefined
       ? feuMduData.short_residue_actual
       : calculatedShortResidueActual;
 
@@ -430,7 +418,7 @@ export default function DailyReport({
   const daoSg = getPhdTag("022FY_007X.C1");
   const calculatedDaoActual = calculateActualTD(daoFlow, daoSg) ?? 0;
   const daoActual =
-    feuMduData?.dao_actual !== undefined && feuMduData?.dao_actual !== ""
+    feuMduData?.dao_actual !== undefined
       ? feuMduData.dao_actual
       : calculatedDaoActual;
 
@@ -438,8 +426,7 @@ export default function DailyReport({
   const asphaltSg = getPhdTag("022FY_013X.C1");
   const calculatedAsphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 0;
   const asphaltActual =
-    feuMduData?.asphalt_actual !== undefined &&
-    feuMduData?.asphalt_actual !== ""
+    feuMduData?.asphalt_actual !== undefined
       ? feuMduData.asphalt_actual
       : calculatedAsphaltActual;
 
@@ -456,7 +443,7 @@ export default function DailyReport({
       : null;
   const calculatedRaffActual = calculateActualTD(totalRaffFlow, raffSg) ?? 0;
   const raffActual =
-    feuMduData?.raff_actual !== undefined && feuMduData?.raff_actual !== ""
+    feuMduData?.raff_actual !== undefined
       ? feuMduData.raff_actual
       : calculatedRaffActual;
 
@@ -467,8 +454,7 @@ export default function DailyReport({
   const extractSg = getPhdTag(extractSgTag);
   const calculatedExtractActual = calculateActualTD(extractFlow, extractSg) ?? 0;
   const extractActual =
-    feuMduData?.extract_actual !== undefined &&
-    feuMduData?.extract_actual !== ""
+    feuMduData?.extract_actual !== undefined
       ? feuMduData.extract_actual
       : calculatedExtractActual;
 
@@ -477,10 +463,12 @@ export default function DailyReport({
   let dorSgTag = "024FY_023BX.C1";
   if (mduMode === "MMO") dorSgTag = "024FY_023CX.C1";
   else if (mduMode === "DAO") dorSgTag = "024FY_023DX.C1";
-  const dorSg = getPhdTag(dorSgTag);
+  const dorSg = getPhdTag(dorSgTag) ?? 0.88;
   const calculatedDorActual = calculateActualTD(dorFlow, dorSg) ?? 0;
   const dorActual =
-    feuMduData?.dor_actual !== undefined && feuMduData?.dor_actual !== ""
+    feuMduData?.dor_actual !== undefined &&
+    feuMduData?.dor_actual !== null &&
+    feuMduData?.dor_actual !== ""
       ? feuMduData.dor_actual
       : calculatedDorActual;
 
@@ -513,23 +501,17 @@ export default function DailyReport({
 
   // Tank Farm LOC III Flow Product (editable, defaults 0, 0, 256)
   const flowHvi95Loc3 =
-    feuMduData?.flow_hvi_95_loc3 !== undefined &&
-    feuMduData?.flow_hvi_95_loc3 !== null &&
-    feuMduData?.flow_hvi_95_loc3 !== ""
+    feuMduData?.flow_hvi_95_loc3 !== undefined
       ? feuMduData.flow_hvi_95_loc3
       : 0;
 
   const flowHvi160sLoc3 =
-    feuMduData?.flow_hvi_160s_loc3 !== undefined &&
-    feuMduData?.flow_hvi_160s_loc3 !== null &&
-    feuMduData?.flow_hvi_160s_loc3 !== ""
+    feuMduData?.flow_hvi_160s_loc3 !== undefined
       ? feuMduData.flow_hvi_160s_loc3
       : 0;
 
   const flowHvi650Loc3 =
-    feuMduData?.flow_hvi_650_loc3 !== undefined &&
-    feuMduData?.flow_hvi_650_loc3 !== null &&
-    feuMduData?.flow_hvi_650_loc3 !== ""
+    feuMduData?.flow_hvi_650_loc3 !== undefined
       ? feuMduData.flow_hvi_650_loc3
       : 0;
 
@@ -539,8 +521,7 @@ export default function DailyReport({
     Math.round(((Number(mduActual) || 0) - (Number(dorActual) || 0)) * 10) / 10,
   );
   const slackWaxActual =
-    feuMduData?.slack_wax_actual !== undefined &&
-    feuMduData?.slack_wax_actual !== ""
+    feuMduData?.slack_wax_actual !== undefined
       ? feuMduData.slack_wax_actual
       : calculatedSlackWaxActual;
 
@@ -558,6 +539,10 @@ export default function DailyReport({
       sample?.[paramName]?.value !== undefined
         ? sample[paramName].value
         : fallbackVal;
+
+    if (typeof rawVal === "string" && /clear\s*(&|and)?\s*bright/i.test(rawVal.trim())) {
+      rawVal = "C&B";
+    }
 
     // Find limit record in sampleLimits from PocketBase matching the mode sample code
     const limitRecord =
@@ -613,10 +598,13 @@ export default function DailyReport({
       limsData?.samples?.[sampleCode] || limsData?.samples?.[baseCode];
 
     for (const item of paramList) {
-      const rawVal =
+      let rawVal =
         sample?.[item.paramName]?.value !== undefined
           ? sample[item.paramName].value
           : item.fallbackVal;
+      if (typeof rawVal === "string" && /clear\s*(&|and)?\s*bright/i.test(rawVal.trim())) {
+        rawVal = "C&B";
+      }
       const limitRecord =
         sampleLimits.find(
           (lim) =>
@@ -634,24 +622,21 @@ export default function DailyReport({
     return true;
   };
 
-  // Helper to render On Spec / Off Spec circle dot and badge text on top of sample analysis
+  // Helper to render On Spec / Off Spec circle dot beside sample analysis
   const renderSpecStatus = (isOnSpec) => {
     return (
-      <div className="spec-status-badge">
-        <span
-          className={`spec-status-dot ${
-            isOnSpec ? "dot-onspec" : "dot-offspec"
-          }`}
-        ></span>
-        <span
-          className={`spec-status-text ${
-            isOnSpec ? "text-onspec" : "text-offspec"
-          }`}
-        >
-          {isOnSpec ? "(ON SPEC)" : "(OFF SPEC)"}
-        </span>
-      </div>
+      <span
+        className={`spec-status-dot ${
+          isOnSpec ? "dot-onspec" : "dot-offspec"
+        }`}
+        title={isOnSpec ? "ON SPEC" : "OFF SPEC"}
+      ></span>
     );
+  };
+
+  // Helper to render parameter label (keeps black text color as requested)
+  const renderParamLabel = (sampleCode, paramName, labelText) => {
+    return <span className="font-bold text-slate-800">{labelText}</span>;
   };
 
   return (
@@ -754,7 +739,7 @@ export default function DailyReport({
                             hvu_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -768,7 +753,7 @@ export default function DailyReport({
                             hvu_actual: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-900 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -782,7 +767,7 @@ export default function DailyReport({
                             hvu_target_rph: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -796,7 +781,7 @@ export default function DailyReport({
                             hvu_target_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -810,7 +795,7 @@ export default function DailyReport({
                             hvu_percent_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(hvuPercentRph, 1, (val) =>
@@ -857,7 +842,7 @@ export default function DailyReport({
                             pdu_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -871,7 +856,7 @@ export default function DailyReport({
                             pdu_actual: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-900 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -885,7 +870,7 @@ export default function DailyReport({
                             pdu_target_rph: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -899,7 +884,7 @@ export default function DailyReport({
                             pdu_target_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
@@ -913,7 +898,7 @@ export default function DailyReport({
                             pdu_percent_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(pduPercentRph, 1, (val) =>
@@ -967,18 +952,19 @@ export default function DailyReport({
                         type="text"
                         value={feuDesign}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const activeDesignKey = `feu_${feuMode.toLowerCase()}_design`;
                           onFeuMduChange({
                             ...feuMduData,
-                            feu_design_override: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                            [activeDesignKey]: e.target.value,
+                          });
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td
                       rowSpan={2}
-                      className="text-center font-semibold text-slate-900 p-0"
+                      className="text-center font-bold text-slate-800 p-0"
                     >
                       <input
                         type="text"
@@ -990,7 +976,7 @@ export default function DailyReport({
                             feu_actual: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-900 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={2} className="text-center p-0">
@@ -998,13 +984,27 @@ export default function DailyReport({
                         type="text"
                         value={feuTargetRph}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
-                          onFeuMduChange({
-                            ...feuMduData,
-                            feu_target_rph: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "" || val === "-") {
+                            onFeuMduChange({
+                              ...feuMduData,
+                              feu_rph: val,
+                            });
+                          } else {
+                            const num = Number(val);
+                            const d = Number(feuDesign);
+                            const pct =
+                              !isNaN(num) && d > 0
+                                ? String(Math.round((num / d) * 100))
+                                : val;
+                            onFeuMduChange({
+                              ...feuMduData,
+                              feu_rph: pct,
+                            });
+                          }
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={2} className="text-center p-0">
@@ -1012,18 +1012,33 @@ export default function DailyReport({
                         type="text"
                         value={feuTargetSts}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
-                          onFeuMduChange({
-                            ...feuMduData,
-                            feu_target_sts: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const activeStsKey = `feu_${feuMode.toLowerCase()}_sts`;
+                          if (val === "" || val === "-") {
+                            onFeuMduChange({
+                              ...feuMduData,
+                              [activeStsKey]: val,
+                            });
+                          } else {
+                            const num = Number(val);
+                            const d = Number(feuDesign);
+                            const pct =
+                              !isNaN(num) && d > 0
+                                ? String(Math.round((num / d) * 100))
+                                : val;
+                            onFeuMduChange({
+                              ...feuMduData,
+                              [activeStsKey]: pct,
+                            });
+                          }
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td
                       rowSpan={2}
-                      className="text-center font-semibold text-slate-800 p-0"
+                      className="text-center font-bold text-slate-800 p-0"
                     >
                       <input
                         type="text"
@@ -1035,7 +1050,7 @@ export default function DailyReport({
                             feu_percent_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(feuPercentRph, 2, (val) =>
@@ -1112,18 +1127,19 @@ export default function DailyReport({
                         type="text"
                         value={mduDesign}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const activeDesignKey = `mdu_${mduMode.toLowerCase()}_design`;
                           onFeuMduChange({
                             ...feuMduData,
-                            mdu_design_override: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                            [activeDesignKey]: e.target.value,
+                          });
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td
                       rowSpan={2}
-                      className="text-center font-semibold text-slate-900 p-0"
+                      className="text-center font-bold text-slate-800 p-0"
                     >
                       <input
                         type="text"
@@ -1135,7 +1151,7 @@ export default function DailyReport({
                             mdu_actual: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-900 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={2} className="text-center p-0">
@@ -1143,13 +1159,27 @@ export default function DailyReport({
                         type="text"
                         value={mduTargetRph}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
-                          onFeuMduChange({
-                            ...feuMduData,
-                            mdu_target_rph: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "" || val === "-") {
+                            onFeuMduChange({
+                              ...feuMduData,
+                              mdu_rph: val,
+                            });
+                          } else {
+                            const num = Number(val);
+                            const d = Number(mduDesign);
+                            const pct =
+                              !isNaN(num) && d > 0
+                                ? String(Math.round((num / d) * 100))
+                                : val;
+                            onFeuMduChange({
+                              ...feuMduData,
+                              mdu_rph: pct,
+                            });
+                          }
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={2} className="text-center p-0">
@@ -1157,18 +1187,33 @@ export default function DailyReport({
                         type="text"
                         value={mduTargetSts}
                         onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
-                          onFeuMduChange({
-                            ...feuMduData,
-                            mdu_target_sts: e.target.value,
-                          })
-                        }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const activeStsKey = `mdu_${mduMode.toLowerCase()}_sts`;
+                          if (val === "" || val === "-") {
+                            onFeuMduChange({
+                              ...feuMduData,
+                              [activeStsKey]: val,
+                            });
+                          } else {
+                            const num = Number(val);
+                            const d = Number(mduDesign);
+                            const pct =
+                              !isNaN(num) && d > 0
+                                ? String(Math.round((num / d) * 100))
+                                : val;
+                            onFeuMduChange({
+                              ...feuMduData,
+                              [activeStsKey]: pct,
+                            });
+                          }
+                        }}
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td
                       rowSpan={2}
-                      className="text-center font-semibold text-slate-800 p-0"
+                      className="text-center font-bold text-slate-800 p-0"
                     >
                       <input
                         type="text"
@@ -1180,7 +1225,7 @@ export default function DailyReport({
                             mdu_percent_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-800 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(mduPercentRph, 2, (val) =>
@@ -1251,7 +1296,7 @@ export default function DailyReport({
                       <input
                         type="text"
                         list="pompa-hos-list"
-                        value={feuMduData?.pompa_hos ?? "025P101AT"}
+                        value={feuMduData?.pompa_hos ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1263,7 +1308,7 @@ export default function DailyReport({
                         title="Klik untuk mengubah Pompa HOS"
                       />
                     </td>
-                    <td className="text-center font-semibold p-0">
+                    <td className="text-center font-bold text-slate-800 p-0">
                       <input
                         type="text"
                         value={hosActual}
@@ -1274,14 +1319,14 @@ export default function DailyReport({
                             hos_actual: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-semibold text-slate-900 p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center p-0">
                       <input
                         type="text"
                         list="burner-fg-fo-list"
-                        value={feuMduData?.burner_fg_fo ?? "12 Gas / 4 Oil"}
+                        value={feuMduData?.burner_fg_fo ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1387,7 +1432,7 @@ export default function DailyReport({
                       <input
                         type="text"
                         list="visual-perairan-list"
-                        value={feuMduData?.visual_perairan ?? "CLEAR"}
+                        value={feuMduData?.visual_perairan ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1396,11 +1441,13 @@ export default function DailyReport({
                           })
                         }
                         className={`editable-input text-center font-bold uppercase p-0 ${
-                          String(feuMduData?.visual_perairan ?? "CLEAR")
+                          String(feuMduData?.visual_perairan ?? "-")
                             .toUpperCase()
                             .includes("CLEAR")
                             ? "text-green"
-                            : "text-red"
+                            : String(feuMduData?.visual_perairan ?? "-").trim() === "-"
+                              ? "text-slate-800"
+                              : "text-red"
                         }`}
                         title="Klik untuk mengubah Visual Perairan"
                       />
@@ -1513,7 +1560,7 @@ export default function DailyReport({
                       <input
                         type="text"
                         list="pompa-cpi-status-list"
-                        value={feuMduData?.status_pompa_cpi_a ?? "Perbaikan"}
+                        value={feuMduData?.status_pompa_cpi_a ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1522,23 +1569,23 @@ export default function DailyReport({
                           })
                         }
                         className={`editable-input text-center font-bold ${
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                          String(feuMduData?.status_pompa_cpi_a ?? "-")
                             .toUpperCase()
                             .includes("AUTO") ||
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                          String(feuMduData?.status_pompa_cpi_a ?? "-")
                             .toUpperCase()
                             .includes("NORMAL") ||
-                          String(feuMduData?.status_pompa_cpi_a ?? "Perbaikan")
+                          String(feuMduData?.status_pompa_cpi_a ?? "-")
                             .toUpperCase()
                             .includes("OPERASI")
                             ? "text-green"
                             : String(
-                                  feuMduData?.status_pompa_cpi_a ?? "Perbaikan",
+                                  feuMduData?.status_pompa_cpi_a ?? "-",
                                 )
                                   .toUpperCase()
                                   .includes("PERBAIKAN") ||
                                 String(
-                                  feuMduData?.status_pompa_cpi_a ?? "Perbaikan",
+                                  feuMduData?.status_pompa_cpi_a ?? "-",
                                 )
                                   .toUpperCase()
                                   .includes("RUSAK")
@@ -1552,7 +1599,7 @@ export default function DailyReport({
                       <input
                         type="text"
                         list="pompa-cpi-status-list"
-                        value={feuMduData?.status_pompa_cpi_b ?? "AUTO"}
+                        value={feuMduData?.status_pompa_cpi_b ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1561,20 +1608,20 @@ export default function DailyReport({
                           })
                         }
                         className={`editable-input text-center font-bold ${
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                          String(feuMduData?.status_pompa_cpi_b ?? "-")
                             .toUpperCase()
                             .includes("AUTO") ||
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                          String(feuMduData?.status_pompa_cpi_b ?? "-")
                             .toUpperCase()
                             .includes("NORMAL") ||
-                          String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                          String(feuMduData?.status_pompa_cpi_b ?? "-")
                             .toUpperCase()
                             .includes("OPERASI")
                             ? "text-green"
-                            : String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                            : String(feuMduData?.status_pompa_cpi_b ?? "-")
                                   .toUpperCase()
                                   .includes("PERBAIKAN") ||
-                                String(feuMduData?.status_pompa_cpi_b ?? "AUTO")
+                                String(feuMduData?.status_pompa_cpi_b ?? "-")
                                   .toUpperCase()
                                   .includes("RUSAK")
                               ? "text-red"
@@ -1668,10 +1715,10 @@ export default function DailyReport({
               <div className="card-title">PRODUKSI</div>
               <table>
                 <colgroup>
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "17%" }} />
                   <col style={{ width: "16%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "54%" }} />
+                  <col style={{ width: "52%" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -1691,7 +1738,7 @@ export default function DailyReport({
                       <div>SPO DIST</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_spo_dist ?? "LOC I"}
+                        value={feuMduData?.dest_spo_dist ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1703,8 +1750,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki SPO DIST"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={spoActual}
@@ -1715,24 +1762,22 @@ export default function DailyReport({
                               spo_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(spoActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec("02103", [
-                          { paramName: "Visco 60°C", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-single">
-                        <span className="font-bold">Visco</span>
-                        {renderLimsParam("02103", "Visco 60°C", "0", "cSt")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec("02103", [
+                            { paramName: "Visco 60°C", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-single">
+                          {renderParamLabel("02103", "Visco 60°C", "Visco")}
+                          {renderLimsParam("02103", "Visco 60°C", "0", "cSt")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1741,7 +1786,7 @@ export default function DailyReport({
                       <div>LMO DIST</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_lmo_dist ?? "041T-116"}
+                        value={feuMduData?.dest_lmo_dist ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1753,8 +1798,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki LMO DIST"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={lmoDistActual}
@@ -1765,24 +1810,22 @@ export default function DailyReport({
                               lmo_dist_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(lmoDistActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec("02104", [
-                          { paramName: "Visco 60°C", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-single">
-                        <span className="font-bold">Visco</span>
-                        {renderLimsParam("02104", "Visco 60°C", "0", "cSt")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec("02104", [
+                            { paramName: "Visco 60°C", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-single">
+                          {renderParamLabel("02104", "Visco 60°C", "Visco")}
+                          {renderLimsParam("02104", "Visco 60°C", "0", "cSt")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1791,7 +1834,7 @@ export default function DailyReport({
                       <div>MMO DIST</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_mmo_dist ?? "041T-117"}
+                        value={feuMduData?.dest_mmo_dist ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1803,8 +1846,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki MMO DIST"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={mmoDistActual}
@@ -1815,24 +1858,22 @@ export default function DailyReport({
                               mmo_dist_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(mmoDistActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec("02105", [
-                          { paramName: "Visco 60°C", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-single">
-                        <span className="font-bold">Visco</span>
-                        {renderLimsParam("02105", "Visco 60°C", "0", "cSt")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec("02105", [
+                            { paramName: "Visco 60°C", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-single">
+                          {renderParamLabel("02105", "Visco 60°C", "Visco")}
+                          {renderLimsParam("02105", "Visco 60°C", "0", "cSt")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1841,7 +1882,7 @@ export default function DailyReport({
                       <div>SHORT RESIDUE</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_short_residue ?? "041T-121/310"}
+                        value={feuMduData?.dest_short_residue ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1853,8 +1894,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki SHORT RESIDUE"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={shortResidueActual}
@@ -1865,24 +1906,22 @@ export default function DailyReport({
                               short_residue_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(shortResidueActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec("02107", [
-                          { paramName: "Visco 100°C", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-single">
-                        <span className="font-bold">Visco</span>
-                        {renderLimsParam("02107", "Visco 100°C", "0", "cSt")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec("02107", [
+                            { paramName: "Visco 100°C", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-single">
+                          {renderParamLabel("02107", "Visco 100°C", "Visco")}
+                          {renderLimsParam("02107", "Visco 100°C", "0", "cSt")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1896,7 +1935,7 @@ export default function DailyReport({
                       <div>DAO</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_dao ?? "041T-115"}
+                        value={feuMduData?.dest_dao ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1908,8 +1947,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki DAO"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={daoActual}
@@ -1920,30 +1959,28 @@ export default function DailyReport({
                               dao_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(daoActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec("02203", [
-                          { paramName: "Visco 100°C", fallbackVal: "0" },
-                          { paramName: "FP PMCC", fallbackVal: "0" },
-                          { paramName: "Color", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-3">
-                        <span className="font-bold">Visco</span>
-                        <span className="font-bold">FP</span>
-                        <span className="font-bold">COL</span>
-                        {renderLimsParam("02203", "Visco 100°C", "0")}
-                        {renderLimsParam("02203", "FP PMCC", "0")}
-                        {renderLimsParam("02203", "Color", "0")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec("02203", [
+                            { paramName: "Visco 100°C", fallbackVal: "0" },
+                            { paramName: "FP PMCC", fallbackVal: "0" },
+                            { paramName: "Color", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-3">
+                          {renderParamLabel("02203", "Visco 100°C", "Visco")}
+                          {renderParamLabel("02203", "FP PMCC", "FP")}
+                          {renderParamLabel("02203", "Color", "COL")}
+                          {renderLimsParam("02203", "Visco 100°C", "0")}
+                          {renderLimsParam("02203", "FP PMCC", "0")}
+                          {renderLimsParam("02203", "Color", "0")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1952,7 +1989,7 @@ export default function DailyReport({
                       <div>ASPHALT</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_asphalt ?? "42T-10"}
+                        value={feuMduData?.dest_asphalt ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -1964,8 +2001,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki ASPHALT"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={asphaltActual}
@@ -1976,13 +2013,9 @@ export default function DailyReport({
                               asphalt_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(asphaltActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td></td>
@@ -1997,7 +2030,7 @@ export default function DailyReport({
                       <div>RAFFINATE</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_raffinate ?? "41T-315"}
+                        value={feuMduData?.dest_raffinate ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2009,8 +2042,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki RAFFINATE"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={raffActual}
@@ -2021,30 +2054,28 @@ export default function DailyReport({
                               raff_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(raffActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec(sampleCode023, [
-                          { paramName: "Visco 100°C", fallbackVal: "0" },
-                          { paramName: "FP PMCC", fallbackVal: "0" },
-                          { paramName: "RI 70°C", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-3">
-                        <span className="font-bold">Visco</span>
-                        <span className="font-bold">FP</span>
-                        <span className="font-bold">RI</span>
-                        {renderLimsParam(sampleCode023, "Visco 100°C", "0")}
-                        {renderLimsParam(sampleCode023, "FP PMCC", "0")}
-                        {renderLimsParam(sampleCode023, "RI 70°C", "0")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec(sampleCode023, [
+                            { paramName: "Visco 100°C", fallbackVal: "0" },
+                            { paramName: "FP PMCC", fallbackVal: "0" },
+                            { paramName: "RI 70°C", fallbackVal: "0" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-3">
+                          {renderParamLabel(sampleCode023, "Visco 100°C", "Visco")}
+                          {renderParamLabel(sampleCode023, "FP PMCC", "FP")}
+                          {renderParamLabel(sampleCode023, "RI 70°C", "RI")}
+                          {renderLimsParam(sampleCode023, "Visco 100°C", "0")}
+                          {renderLimsParam(sampleCode023, "FP PMCC", "0")}
+                          {renderLimsParam(sampleCode023, "RI 70°C", "0")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -2053,7 +2084,7 @@ export default function DailyReport({
                       <div>EXTRACT</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_extract ?? "IFO"}
+                        value={feuMduData?.dest_extract ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2065,8 +2096,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki EXTRACT"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={extractActual}
@@ -2077,13 +2108,9 @@ export default function DailyReport({
                               extract_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(extractActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td></td>
@@ -2098,7 +2125,7 @@ export default function DailyReport({
                       <div>DOR</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_dor ?? "41T-102"}
+                        value={feuMduData?.dest_dor ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2110,8 +2137,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki DOR"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={dorActual}
@@ -2122,39 +2149,37 @@ export default function DailyReport({
                               dor_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(dorActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td>
-                      {renderSpecStatus(
-                        isSampleOnSpec(sampleCode024, [
-                          { paramName: "Visco 100°C", fallbackVal: "0" },
-                          { paramName: "FP PMCC", fallbackVal: "0" },
-                          { paramName: "Color", fallbackVal: "0" },
-                          { paramName: "VI", fallbackVal: "0" },
-                          { paramName: "PP", fallbackVal: "0" },
-                          { paramName: "App", fallbackVal: "0" },
-                        ]),
-                      )}
-                      <div className="sample-grid sample-grid-6">
-                        <span className="font-bold">Visco</span>
-                        <span className="font-bold">FP</span>
-                        <span className="font-bold">COL</span>
-                        <span className="font-bold">VI</span>
-                        <span className="font-bold">PP</span>
-                        <span className="font-bold">App</span>
-                        {renderLimsParam(sampleCode024, "Visco 100°C", "0")}
-                        {renderLimsParam(sampleCode024, "FP PMCC", "0")}
-                        {renderLimsParam(sampleCode024, "Color", "0")}
-                        {renderLimsParam(sampleCode024, "VI", "0")}
-                        {renderLimsParam(sampleCode024, "PP", "0")}
-                        {renderLimsParam(sampleCode024, "App", "0")}
+                      <div className="sample-cell-wrapper">
+                        {renderSpecStatus(
+                          isSampleOnSpec(sampleCode024, [
+                            { paramName: "Visco 100°C", fallbackVal: "0" },
+                            { paramName: "FP PMCC", fallbackVal: "0" },
+                            { paramName: "Color", fallbackVal: "0" },
+                            { paramName: "VI", fallbackVal: "0" },
+                            { paramName: "PP", fallbackVal: "0" },
+                            { paramName: "App", fallbackVal: "C&B" },
+                          ]),
+                        )}
+                        <div className="sample-grid sample-grid-6">
+                          {renderParamLabel(sampleCode024, "Visco 100°C", "Visco")}
+                          {renderParamLabel(sampleCode024, "FP PMCC", "FP")}
+                          {renderParamLabel(sampleCode024, "Color", "COL")}
+                          {renderParamLabel(sampleCode024, "VI", "VI")}
+                          {renderParamLabel(sampleCode024, "PP", "PP")}
+                          {renderParamLabel(sampleCode024, "App", "App")}
+                          {renderLimsParam(sampleCode024, "Visco 100°C", "0")}
+                          {renderLimsParam(sampleCode024, "FP PMCC", "0")}
+                          {renderLimsParam(sampleCode024, "Color", "0")}
+                          {renderLimsParam(sampleCode024, "VI", "0")}
+                          {renderLimsParam(sampleCode024, "PP", "0")}
+                          {renderLimsParam(sampleCode024, "App", "C&B")}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -2163,7 +2188,7 @@ export default function DailyReport({
                       <div>SLACK WAX</div>
                       <input
                         type="text"
-                        value={feuMduData?.dest_slack_wax ?? "RFCC"}
+                        value={feuMduData?.dest_slack_wax ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2175,8 +2200,8 @@ export default function DailyReport({
                         title="Klik untuk mengubah tujuan/tangki SLACK WAX"
                       />
                     </td>
-                    <td className="text-center font-semibold text-slate-900 p-0">
-                      <div className="inline-flex items-center justify-center">
+                    <td className="text-center font-bold text-slate-800 p-0">
+                      <div className="flex items-center justify-center w-full h-full px-1">
                         <input
                           type="text"
                           value={slackWaxActual}
@@ -2187,14 +2212,10 @@ export default function DailyReport({
                               slack_wax_actual: e.target.value,
                             })
                           }
-                          className="editable-input text-center font-semibold text-slate-900 p-0"
-                          style={{
-                            width: `${Math.max(2, String(slackWaxActual ?? "").length + 0.5)}ch`,
-                            minWidth: "24px",
-                          }}
+                          className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
                           title="Aktual Slack Wax (Unit 024 Aktual - DOR Aktual)"
                         />
-                        <span className="text-[10px] ml-0.5 font-bold">T/D</span>
+                        <span className="text-[10px] ml-1 font-bold text-slate-600 shrink-0">T/D</span>
                       </div>
                     </td>
                     <td></td>
@@ -2280,13 +2301,13 @@ export default function DailyReport({
                             feu_lmo_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.feu_lmo_sts ?? 70}
+                        value={feuMduData?.feu_lmo_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2294,13 +2315,13 @@ export default function DailyReport({
                             feu_lmo_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={3} className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.feu_rph ?? 65}
+                        value={feuMduData?.feu_rph ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2308,7 +2329,7 @@ export default function DailyReport({
                             feu_rph: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
@@ -2322,13 +2343,13 @@ export default function DailyReport({
                             mdu_lmo_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.mdu_lmo_sts ?? 65}
+                        value={feuMduData?.mdu_lmo_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2336,13 +2357,13 @@ export default function DailyReport({
                             mdu_lmo_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={3} className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.mdu_rph ?? 65}
+                        value={feuMduData?.mdu_rph ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2350,7 +2371,7 @@ export default function DailyReport({
                             mdu_rph: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td rowSpan={3} className="p-1">
@@ -2380,13 +2401,13 @@ export default function DailyReport({
                             feu_mmo_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.feu_mmo_sts ?? 65}
+                        value={feuMduData?.feu_mmo_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2394,7 +2415,7 @@ export default function DailyReport({
                             feu_mmo_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
@@ -2408,13 +2429,13 @@ export default function DailyReport({
                             mdu_mmo_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.mdu_mmo_sts ?? 65}
+                        value={feuMduData?.mdu_mmo_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2422,7 +2443,7 @@ export default function DailyReport({
                             mdu_mmo_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                   </tr>
@@ -2439,13 +2460,13 @@ export default function DailyReport({
                             feu_dao_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.feu_dao_sts ?? 70}
+                        value={feuMduData?.feu_dao_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2453,7 +2474,7 @@ export default function DailyReport({
                             feu_dao_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
@@ -2467,13 +2488,13 @@ export default function DailyReport({
                             mdu_dao_design: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
-                        value={feuMduData?.mdu_dao_sts ?? 0}
+                        value={feuMduData?.mdu_dao_sts ?? "-"}
                         onDoubleClick={(e) => e.target.select()}
                         onChange={(e) =>
                           onFeuMduChange({
@@ -2481,7 +2502,7 @@ export default function DailyReport({
                             mdu_dao_sts: e.target.value,
                           })
                         }
-                        className="editable-input text-center font-bold p-0"
+                        className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                   </tr>

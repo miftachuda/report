@@ -5,8 +5,8 @@
  * Formula: Flow * SG * 24
  */
 export function calculateActualTD(flow, sg) {
-  if (flow === null || flow === undefined || isNaN(Number(flow))) return null
-  if (sg === null || sg === undefined || isNaN(Number(sg))) return null
+  if (flow === null || flow === undefined || flow === '' || isNaN(Number(flow))) return 0
+  if (sg === null || sg === undefined || sg === '' || isNaN(Number(sg))) return 0
   const f = Number(flow)
   const s = Number(sg)
   if (f <= 0 || s <= 0) return 0
@@ -17,7 +17,24 @@ export function calculateActualTD(flow, sg) {
  * Calculate Target (T/D) from percentage and design
  */
 export function calculateTargetTD(percentage, design) {
-  if (!percentage || !design || isNaN(Number(percentage)) || isNaN(Number(design))) return null
+  if (
+    percentage === '-' ||
+    percentage === '' ||
+    percentage === null ||
+    percentage === undefined ||
+    isNaN(Number(percentage))
+  ) {
+    return '-'
+  }
+  if (
+    design === '-' ||
+    design === '' ||
+    design === null ||
+    design === undefined ||
+    isNaN(Number(design))
+  ) {
+    return '-'
+  }
   return Math.round((Number(percentage) / 100) * Number(design))
 }
 
@@ -25,8 +42,25 @@ export function calculateTargetTD(percentage, design) {
  * Calculate achieved percentage: (Actual / Target) * 100
  */
 export function calculateAchievedPercent(actual, target) {
-  if (actual === null || actual === undefined || isNaN(Number(actual))) return null
-  if (!target || isNaN(Number(target)) || Number(target) <= 0) return null
+  if (
+    actual === '-' ||
+    actual === null ||
+    actual === undefined ||
+    actual === '' ||
+    isNaN(Number(actual))
+  ) {
+    return '-'
+  }
+  if (
+    target === '-' ||
+    target === null ||
+    target === undefined ||
+    target === '' ||
+    isNaN(Number(target)) ||
+    Number(target) <= 0
+  ) {
+    return '-'
+  }
   return ((Number(actual) / Number(target)) * 100).toFixed(1)
 }
 
@@ -128,11 +162,18 @@ export function evaluateSampleLimit(rawValue, limitRecord) {
     limitLabel = `(${limitRecord.high_limit})`
   }
 
+  if (limitLabel && /clear\s*(&|and)?\s*bright/i.test(limitLabel)) {
+    limitLabel = limitLabel.replace(/clear\s*(&|and)?\s*bright/gi, 'C&B')
+  }
+
   if (rawValue === null || rawValue === undefined || rawValue === '') {
     return { isOutOfRange: false, limitLabel, formattedValue: '' }
   }
 
-  const valStr = String(rawValue).trim()
+  let valStr = String(rawValue).trim()
+  if (/clear\s*(&|and)?\s*bright/i.test(valStr)) {
+    valStr = 'C&B'
+  }
   const numVal = parseFloat(valStr)
 
   // Range evaluation

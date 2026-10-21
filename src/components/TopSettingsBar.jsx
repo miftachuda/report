@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import html2canvas from 'html2canvas-pro'
-import { formatPhdApiDate } from '../services/phdApi.js'
+import { calculateTargetTD } from '../utils/calculations.js'
 import {
   Settings,
   ChevronUp,
   ChevronDown,
   Camera,
   Save,
-  Clock,
   RefreshCw,
   Database,
   Calendar,
@@ -27,10 +26,12 @@ export default function TopSettingsBar({
   pocketBaseConnected,
   lastSavedTime,
   onToggleVisibility,
+  feuMduData = {},
+  onFeuMduChange,
+  unitModes = { unit023: 'MMO', unit024: 'LMO' },
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
-  const [autoSaveStatus, setAutoSaveStatus] = useState('Pending (23:00)')
   const [toastMessage, setToastMessage] = useState(null)
 
   const showToast = (msg, type = 'info') => {
@@ -38,18 +39,138 @@ export default function TopSettingsBar({
     setTimeout(() => setToastMessage(null), 4000)
   }
 
-  // 1. Export to 1920x1080 Image
+  // Active operational modes
+  const feuMode = unitModes?.unit023 || 'MMO'
+  const mduMode = unitModes?.unit024 || 'LMO'
+
+  // Designs
+  const hvuDesign = Number(feuMduData?.hvu_design ?? 3883)
+  const pduDesign = Number(feuMduData?.pdu_design ?? 784)
+  const activeFeuDesign =
+    feuMode === 'LMO'
+      ? Number(feuMduData?.feu_lmo_design ?? 2180)
+      : feuMode === 'DAO'
+        ? Number(feuMduData?.feu_dao_design ?? 1786)
+        : Number(feuMduData?.feu_mmo_design ?? 2270)
+
+  const activeMduDesign =
+    mduMode === 'MMO'
+      ? Number(feuMduData?.mdu_mmo_design ?? 777)
+      : mduMode === 'DAO'
+        ? Number(feuMduData?.mdu_dao_design ?? 501)
+        : Number(feuMduData?.mdu_lmo_design ?? 841)
+
+  // Target values preview
+  const hvuTargetRph = calculateTargetTD(feuMduData?.hvu_rph, hvuDesign)
+  const hvuTargetSts = calculateTargetTD(feuMduData?.hvu_sts, hvuDesign)
+  const pduTargetRph = calculateTargetTD(feuMduData?.pdu_rph, pduDesign)
+  const pduTargetSts = calculateTargetTD(feuMduData?.pdu_sts, pduDesign)
+
+  const activeFeuSts =
+    feuMode === 'LMO'
+      ? feuMduData?.feu_lmo_sts
+      : feuMode === 'DAO'
+        ? feuMduData?.feu_dao_sts
+        : feuMduData?.feu_mmo_sts
+  const feuTargetRph = calculateTargetTD(feuMduData?.feu_rph, activeFeuDesign)
+  const feuTargetSts = calculateTargetTD(activeFeuSts, activeFeuDesign)
+
+  const activeMduSts =
+    mduMode === 'MMO'
+      ? feuMduData?.mdu_mmo_sts
+      : mduMode === 'DAO'
+        ? feuMduData?.mdu_dao_sts
+        : feuMduData?.mdu_lmo_sts
+  const mduTargetRph = calculateTargetTD(feuMduData?.mdu_rph, activeMduDesign)
+  const mduTargetSts = calculateTargetTD(activeMduSts, activeMduDesign)
+
+  // Change handlers linking to feuMduData state
+  const handleHvuRph = (val) => {
+    const target = calculateTargetTD(val, hvuDesign)
+    onFeuMduChange?.({
+      ...feuMduData,
+      hvu_rph: val,
+      hvu_target_rph: target !== '-' ? target : val,
+    })
+  }
+
+  const handleHvuSts = (val) => {
+    const target = calculateTargetTD(val, hvuDesign)
+    onFeuMduChange?.({
+      ...feuMduData,
+      hvu_sts: val,
+      hvu_target_sts: target !== '-' ? target : val,
+    })
+  }
+
+  const handlePduRph = (val) => {
+    const target = calculateTargetTD(val, pduDesign)
+    onFeuMduChange?.({
+      ...feuMduData,
+      pdu_rph: val,
+      pdu_target_rph: target !== '-' ? target : val,
+    })
+  }
+
+  const handlePduSts = (val) => {
+    const target = calculateTargetTD(val, pduDesign)
+    onFeuMduChange?.({
+      ...feuMduData,
+      pdu_sts: val,
+      pdu_target_sts: target !== '-' ? target : val,
+    })
+  }
+
+  const handleFeuRph = (val) => {
+    onFeuMduChange?.({
+      ...feuMduData,
+      feu_rph: val,
+    })
+  }
+
+  const handleFeuSts = (grade, val) => {
+    const fieldName = `feu_${grade.toLowerCase()}_sts`
+    onFeuMduChange?.({
+      ...feuMduData,
+      [fieldName]: val,
+    })
+  }
+
+  const handleMduRph = (val) => {
+    onFeuMduChange?.({
+      ...feuMduData,
+      mdu_rph: val,
+    })
+  }
+
+  const handleMduSts = (grade, val) => {
+    const fieldName = `mdu_${grade.toLowerCase()}_sts`
+    onFeuMduChange?.({
+      ...feuMduData,
+      [fieldName]: val,
+    })
+  }
+
+  const handleSaveClick = async () => {
+    try {
+      await onManualSave?.()
+      showToast('Data report berhasil disimpan ke database!', 'success')
+    } catch (err) {
+      showToast(`Gagal menyimpan: ${err.message}`, 'error')
+    }
+  }
+
+  // Export 1920x1080 Image
   const handleExportImage = async () => {
     const reportElement = document.getElementById('report-dashboard-capture')
     if (!reportElement) {
-      showToast('Report element not found for export.', 'error')
+      showToast('Element laporan tidak ditemukan untuk export.', 'error')
       return
     }
 
     try {
       setIsExporting(true)
 
-      // Format date for filename: report - [Day Name], [DD-MM-YYYY]
       const now = new Date()
       const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
       const dayName = days[now.getDay()]
@@ -58,7 +179,6 @@ export default function TopSettingsBar({
       const yyyy = now.getFullYear()
       const filename = `report - ${dayName}, ${dd}-${mm}-${yyyy}.png`
 
-      // Capture with 1920x1080 canvas
       const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
@@ -67,8 +187,12 @@ export default function TopSettingsBar({
         windowWidth: 1920,
         windowHeight: 1080,
         onclone: (clonedDoc) => {
-          // Replace all <input> elements with styled <div> elements
-          // This fixes the html2canvas bug where datalist inputs or colSpan inputs shift text to the right
+          const captureEl = clonedDoc.getElementById('report-dashboard-capture')
+          if (captureEl) {
+            captureEl.classList.add('export-mode')
+          }
+
+          // Replace input elements with clean divs for pixel-perfect screenshot rendering
           const inputs = clonedDoc.querySelectorAll('input')
           inputs.forEach((input) => {
             const div = clonedDoc.createElement('div')
@@ -78,11 +202,10 @@ export default function TopSettingsBar({
               div.style.cssText = input.style.cssText
             }
             const isLeft = input.classList.contains('text-left')
-            const isRight = input.classList.contains('text-right')
             div.style.display = 'flex'
             div.style.alignItems = 'center'
-            div.style.justifyContent = isLeft ? 'flex-start' : isRight ? 'flex-end' : 'center'
-            div.style.textAlign = isLeft ? 'left' : isRight ? 'right' : 'center'
+            div.style.justifyContent = isLeft ? 'flex-start' : 'center'
+            div.style.textAlign = isLeft ? 'left' : 'center'
             div.style.width = '100%'
             div.style.height = '100%'
             div.style.margin = '0'
@@ -96,7 +219,7 @@ export default function TopSettingsBar({
             }
           })
 
-          // Also convert textareas to clean divs
+          // Replace textareas with clean divs
           const textareas = clonedDoc.querySelectorAll('textarea')
           textareas.forEach((textarea) => {
             const div = clonedDoc.createElement('div')
@@ -123,58 +246,14 @@ export default function TopSettingsBar({
       link.href = canvas.toDataURL('image/png')
       link.click()
 
-      showToast(`Exported ${filename} successfully!`, 'success')
+      showToast(`Berhasil mengekspor gambar ${filename}!`, 'success')
     } catch (err) {
       console.error('Export image error:', err)
-      showToast(`Export failed: ${err.message}`, 'error')
+      showToast(`Gagal export: ${err.message}`, 'error')
     } finally {
       setIsExporting(false)
     }
   }
-
-  // 2. Auto-Save Scheduler at 23:00
-  useEffect(() => {
-    let hasTriggeredToday = false
-
-    const checkAutoSave = () => {
-      const now = new Date()
-      const hours = now.getHours()
-      const minutes = now.getMinutes()
-      const todayKey = `autosaved_${now.toISOString().slice(0, 10)}`
-
-      if (localStorage.getItem(todayKey)) {
-        setAutoSaveStatus('Completed today')
-        return
-      }
-
-      // Check if 23:00 or later
-      if (hours >= 23 && !hasTriggeredToday) {
-        hasTriggeredToday = true
-        console.log('[Auto-Save] Triggering 23:00 auto-save to database...')
-        setAutoSaveStatus('Saving...')
-
-        if (onManualSave) {
-          onManualSave(true)
-            .then(() => {
-              localStorage.setItem(todayKey, 'true')
-              setAutoSaveStatus('Completed at 23:00')
-              showToast('Auto-save at 23:00 completed successfully!', 'success')
-            })
-            .catch((err) => {
-              setAutoSaveStatus('Auto-save error')
-              console.error('[Auto-Save] Failed:', err)
-            })
-        }
-      } else {
-        setAutoSaveStatus(`Scheduled for 23:00 (${23 - hours}h remaining)`)
-      }
-    }
-
-    const interval = setInterval(checkAutoSave, 60000) // check every minute
-    checkAutoSave()
-
-    return () => clearInterval(interval)
-  }, [onManualSave])
 
   return (
     <div className="w-full bg-slate-900 text-slate-100 border-b border-slate-700 shadow-md text-xs select-none">
@@ -183,7 +262,7 @@ export default function TopSettingsBar({
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 font-semibold text-slate-200 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition cursor-pointer text-xs"
+            className="flex items-center gap-1.5 font-semibold text-slate-200 hover:text-white px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700/80 transition cursor-pointer text-xs"
           >
             <Settings className="w-3.5 h-3.5 text-amber-400" />
             <span>Settings</span>
@@ -211,24 +290,17 @@ export default function TopSettingsBar({
             </select>
           </div>
 
-          {/* Quick status badges */}
-          <div className="hidden sm:flex items-center gap-2 text-[11px]">
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${
-                pocketBaseConnected
-                  ? 'bg-emerald-950/60 text-emerald-400 border-emerald-700'
-                  : 'bg-amber-950/60 text-amber-400 border-amber-700'
-              }`}
-            >
-              <Database className="w-3 h-3" />
-              {pocketBaseConnected ? 'Database Connected' : 'Local Fallback'}
-            </span>
-
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-              <Clock className="w-3 h-3 text-cyan-400" />
-              {autoSaveStatus}
-            </span>
-          </div>
+          {/* Quick database connection badge */}
+          <span
+            className={`hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${
+              pocketBaseConnected
+                ? 'bg-emerald-950/60 text-emerald-400 border-emerald-700'
+                : 'bg-amber-950/60 text-amber-400 border-amber-700'
+            }`}
+          >
+            <Database className="w-3 h-3" />
+            {pocketBaseConnected ? 'Database Connected' : 'Offline / Local'}
+          </span>
         </div>
 
         {/* Global Quick Action Buttons */}
@@ -254,30 +326,30 @@ export default function TopSettingsBar({
             onClick={onRefreshData}
             disabled={isRefreshing}
             className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition cursor-pointer disabled:opacity-50"
-            title="Refresh PHD DCS and LIMS data"
+            title="Refresh data dari PHD DCS, LIMS, dan database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
 
           <button
-            onClick={handleExportImage}
-            disabled={isExporting}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition cursor-pointer disabled:opacity-50"
-            title="Export full 1920x1080 image for daily reporting"
+            onClick={handleSaveClick}
+            disabled={isSaving}
+            className="flex items-center gap-1 px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition cursor-pointer disabled:opacity-50 shadow-xs"
+            title="Simpan perubahan laporan ke database PocketBase"
           >
-            <Camera className="w-3.5 h-3.5" />
-            <span>{isExporting ? 'Capturing...' : 'Export 1080p Image'}</span>
+            <Save className="w-3.5 h-3.5" />
+            <span>{isSaving ? 'Saving...' : 'Save'}</span>
           </button>
 
           <button
-            onClick={() => onManualSave(false)}
-            disabled={isSaving}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition cursor-pointer disabled:opacity-50"
-            title="Archive current report snapshot to database"
+            onClick={handleExportImage}
+            disabled={isExporting}
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold transition cursor-pointer disabled:opacity-50 shadow-xs"
+            title="Download tangkapan layar laporan dalam format gambar 1080p"
           >
-            <Save className="w-3.5 h-3.5" />
-            <span>{isSaving ? 'Saving...' : 'Save & Archive'}</span>
+            <Camera className="w-3.5 h-3.5" />
+            <span>{isExporting ? 'Exporting...' : 'Export'}</span>
           </button>
 
           {onToggleVisibility && (
@@ -295,130 +367,378 @@ export default function TopSettingsBar({
 
       {/* Expandable Settings Drawer */}
       {isOpen && (
-        <div className="border-t border-slate-800 bg-slate-950/90 p-3 max-w-[1850px] mx-auto animate-in fade-in duration-150">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. PHD Date Range Picker with Dropdown & Direct Datetime Supply */}
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                  PHD Query Range
-                </label>
-                <select
-                  value={phdPreset || 'now'}
-                  onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs text-indigo-300 font-semibold focus:outline-hidden cursor-pointer"
-                >
-                  <option value="now" className="bg-slate-900 text-white">Now</option>
-                  <option value="last_10m" className="bg-slate-900 text-white">Last 10 min</option>
-                  <option value="last_1h" className="bg-slate-900 text-white">Last 1 hour</option>
-                  <option value="last_3h" className="bg-slate-900 text-white">Last 3 hour</option>
-                  <option value="last_8h" className="bg-slate-900 text-white">Last 8 hour</option>
-                  <option value="last_24h" className="bg-slate-900 text-white">Last 24 hour</option>
-                  <option value="this_day" className="bg-slate-900 text-white">This Day (00:00 - now)</option>
-                  <option value="custom" className="bg-slate-900 text-white">Custom Range...</option>
-                </select>
-              </div>
-
-              {/* Exact Dates Supplied for API */}
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">Start Time (API)</span>
-                  <input
-                    type="datetime-local"
-                    value={dateRange.start}
-                    onChange={(e) => {
-                      if (onPhdPresetChange) onPhdPresetChange('custom')
-                      onDateRangeChange({ ...dateRange, start: e.target.value })
-                    }}
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">End Time (API)</span>
-                  <input
-                    type="datetime-local"
-                    value={dateRange.end}
-                    onChange={(e) => {
-                      if (onPhdPresetChange) onPhdPresetChange('custom')
-                      onDateRangeChange({ ...dateRange, end: e.target.value })
-                    }}
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Exact Dates Supplied for API */}
-              <div className="bg-slate-950/80 rounded border border-slate-800 p-2 mb-2 text-[10.5px]">
-                <span className="text-slate-400 block mb-0.5 font-medium">Format Disupply ke API:</span>
-                <div className="flex flex-col gap-0.5 font-mono text-cyan-300 text-[10px]">
-                  <div>Start: {formatPhdApiDate(dateRange.start)}</div>
-                  <div>End: &nbsp;{formatPhdApiDate(dateRange.end)}</div>
-                </div>
-              </div>
-
-              {/* Quick Preset Buttons */}
-              <div className="flex gap-1.5 flex-wrap">
-                {[
-                  { id: 'now', label: 'Now' },
-                  { id: 'last_10m', label: 'Last 10m' },
-                  { id: 'last_1h', label: '1h' },
-                  { id: 'last_3h', label: '3h' },
-                  { id: 'last_8h', label: '8h' },
-                  { id: 'last_24h', label: '24h' },
-                  { id: 'this_day', label: 'This Day' },
-                ].map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => onPhdPresetChange && onPhdPresetChange(p.id)}
-                    className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
-                      phdPreset === p.id
-                        ? 'bg-indigo-600 text-white font-bold'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                    }`}
+        <div className="border-t border-slate-800 bg-slate-950/95 p-3.5 max-w-[1850px] mx-auto animate-in fade-in duration-150">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5">
+            {/* 1. Left Column: PHD Query & Database Info (4 cols) */}
+            <div className="xl:col-span-4 flex flex-col gap-3">
+              {/* PHD Range Picker */}
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                    PHD Query Range
+                  </label>
+                  <select
+                    value={phdPreset || 'now'}
+                    onChange={(e) => onPhdPresetChange && onPhdPresetChange(e.target.value)}
+                    className="bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-xs text-indigo-300 font-semibold focus:outline-hidden cursor-pointer"
                   >
-                    {p.label}
-                  </button>
-                ))}
+                    <option value="now" className="bg-slate-900 text-white">Now</option>
+                    <option value="last_10m" className="bg-slate-900 text-white">Last 10 min</option>
+                    <option value="last_1h" className="bg-slate-900 text-white">Last 1 hour</option>
+                    <option value="last_3h" className="bg-slate-900 text-white">Last 3 hour</option>
+                    <option value="last_8h" className="bg-slate-900 text-white">Last 8 hour</option>
+                    <option value="last_24h" className="bg-slate-900 text-white">Last 24 hour</option>
+                    <option value="this_day" className="bg-slate-900 text-white">This Day (00:00 - now)</option>
+                    <option value="custom" className="bg-slate-900 text-white">Custom Range...</option>
+                  </select>
+                </div>
+
+                {/* Exact Dates Supplied for API */}
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block mb-0.5">Start Time</span>
+                    <input
+                      type="datetime-local"
+                      value={dateRange.start}
+                      onChange={(e) => {
+                        if (onPhdPresetChange) onPhdPresetChange('custom')
+                        onDateRangeChange({ ...dateRange, start: e.target.value })
+                      }}
+                      className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block mb-0.5">End Time</span>
+                    <input
+                      type="datetime-local"
+                      value={dateRange.end}
+                      onChange={(e) => {
+                        if (onPhdPresetChange) onPhdPresetChange('custom')
+                        onDateRangeChange({ ...dateRange, end: e.target.value })
+                      }}
+                      className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-hidden focus:border-indigo-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Preset Buttons */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    { id: 'now', label: 'Now' },
+                    { id: 'last_10m', label: 'Last 10m' },
+                    { id: 'last_1h', label: '1h' },
+                    { id: 'last_3h', label: '3h' },
+                    { id: 'last_8h', label: '8h' },
+                    { id: 'last_24h', label: '24h' },
+                    { id: 'this_day', label: 'This Day' },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => onPhdPresetChange && onPhdPresetChange(p.id)}
+                      className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
+                        phdPreset === p.id
+                          ? 'bg-indigo-600 text-white font-bold'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Database Status Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-emerald-400" />
+                    Database Sync
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    base.loc-2.com
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                  <span>Last Saved:</span>
+                  <span className="font-mono text-slate-200">
+                    {lastSavedTime ? new Date(lastSavedTime).toLocaleTimeString('id-ID') : '-'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* 2. Database Backend Info */}
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
-              <span className="text-slate-300 font-semibold mb-2 flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-emerald-400" />
-                Database Sync
-              </span>
-              <p className="text-[11px] text-slate-400 mb-2 leading-relaxed">
-                Connected to <code className="text-emerald-300">base.loc-2.com</code>. Edits in FEU/MDU and Issue
-                sections auto-sync to <code className="text-amber-300">daily_report</code>.
-              </p>
-              <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800 pt-1.5">
-                <span>Last Saved:</span>
-                <span className="font-mono text-slate-200">
-                  {lastSavedTime ? new Date(lastSavedTime).toLocaleTimeString() : 'Not saved yet'}
-                </span>
-              </div>
-            </div>
+            {/* 2. Right Column: RPH & STS Target Settings for 021, 022, 023, 024 (8 cols) */}
+            <div className="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-lg p-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                    <span className="text-xs font-bold text-slate-200 tracking-wide uppercase">
+                      Target RPH &amp; STS Configuration
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-indigo-300 bg-indigo-950/70 border border-indigo-800/80 px-2 py-0.5 rounded font-mono">
+                    Auto-Sync
+                  </span>
+                </div>
 
-            {/* 3. Export & Archive Guidelines */}
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-[11px] text-slate-400">
-              <span className="text-slate-300 font-semibold mb-2 flex items-center gap-1.5">
-                <Camera className="w-3.5 h-3.5 text-amber-400" />
-                Export &amp; Archive Info
-              </span>
-              <ul className="list-disc pl-4 space-y-1">
-                <li>
-                  <strong>1080p Export:</strong> Renders a high-res screenshot without the control bar.
-                </li>
-                <li>
-                  <strong>Auto-Save:</strong> Automatically snapshots full data at 23:00 to archive.
-                </li>
-                <li>
-                  <strong>Mode Switch:</strong> Double-click Unit 023/024 in table to change mode (LMO/MMO/DAO).
-                </li>
-              </ul>
+                {/* 4 Units Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  {/* UNIT 021 HVU II */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-[11.5px] text-cyan-300">UNIT 021 HVU II</span>
+                        <span className="text-[10px] text-slate-400 font-mono">Des: {hvuDesign}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                            <span className="text-slate-400 font-medium">% RPH:</span>
+                            <span className="font-mono text-cyan-400 font-semibold text-[10px]">
+                              {hvuTargetRph !== '-' ? `${hvuTargetRph} T/D` : '-'}
+                            </span>
+                          </div>
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              value={feuMduData?.hvu_rph ?? '-'}
+                              onDoubleClick={(e) => e.target.select()}
+                              onChange={(e) => handleHvuRph(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                              placeholder="-"
+                            />
+                            <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                            <span className="text-slate-400 font-medium">% STS:</span>
+                            <span className="font-mono text-cyan-400 font-semibold text-[10px]">
+                              {hvuTargetSts !== '-' ? `${hvuTargetSts} T/D` : '-'}
+                            </span>
+                          </div>
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              value={feuMduData?.hvu_sts ?? '-'}
+                              onDoubleClick={(e) => e.target.select()}
+                              onChange={(e) => handleHvuSts(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                              placeholder="-"
+                            />
+                            <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* UNIT 022 PDU II */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-[11.5px] text-cyan-300">UNIT 022 PDU II</span>
+                        <span className="text-[10px] text-slate-400 font-mono">Des: {pduDesign}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                            <span className="text-slate-400 font-medium">% RPH:</span>
+                            <span className="font-mono text-cyan-400 font-semibold text-[10px]">
+                              {pduTargetRph !== '-' ? `${pduTargetRph} T/D` : '-'}
+                            </span>
+                          </div>
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              value={feuMduData?.pdu_rph ?? '-'}
+                              onDoubleClick={(e) => e.target.select()}
+                              onChange={(e) => handlePduRph(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                              placeholder="-"
+                            />
+                            <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                            <span className="text-slate-400 font-medium">% STS:</span>
+                            <span className="font-mono text-cyan-400 font-semibold text-[10px]">
+                              {pduTargetSts !== '-' ? `${pduTargetSts} T/D` : '-'}
+                            </span>
+                          </div>
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              value={feuMduData?.pdu_sts ?? '-'}
+                              onDoubleClick={(e) => e.target.select()}
+                              onChange={(e) => handlePduSts(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                              placeholder="-"
+                            />
+                            <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* UNIT 023 FEU II */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-[11.5px] text-amber-300">UNIT 023 FEU II</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-400 font-mono">Des: {activeFeuDesign}</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950/70 text-amber-300 border border-amber-800 font-bold">
+                            {feuMode}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* RPH (%) */}
+                      <div className="mb-2">
+                        <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                          <span className="text-slate-400 font-medium">% RPH:</span>
+                          <span className="font-mono text-amber-300 font-semibold text-[10px]">
+                            {feuTargetRph !== '-' ? `${feuTargetRph} T/D` : '-'}
+                          </span>
+                        </div>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={feuMduData?.feu_rph ?? '-'}
+                            onDoubleClick={(e) => e.target.select()}
+                            onChange={(e) => handleFeuRph(e.target.value)}
+                            className="w-full bg-slate-800 border border-slate-700 focus:border-amber-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                            placeholder="-"
+                          />
+                          <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                        </div>
+                      </div>
+
+                      {/* STS (%) by Grades */}
+                      <div>
+                        <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                          <span className="text-slate-400 font-medium">% STS:</span>
+                          <span className="font-mono text-amber-300 font-semibold text-[10px]">
+                            {feuTargetSts !== '-' ? `${feuTargetSts} T/D` : '-'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1">
+                          {[
+                            { grade: 'LMO', val: feuMduData?.feu_lmo_sts ?? '-' },
+                            { grade: 'MMO', val: feuMduData?.feu_mmo_sts ?? '-' },
+                            { grade: 'DAO', val: feuMduData?.feu_dao_sts ?? '-' },
+                          ].map((item) => (
+                            <div
+                              key={item.grade}
+                              className={`rounded p-1 bg-slate-900 border ${
+                                item.grade === feuMode
+                                  ? 'border-amber-500/80 bg-amber-950/30'
+                                  : 'border-slate-800'
+                              }`}
+                            >
+                              <span className="block text-[9.5px] text-center text-slate-400 font-semibold mb-0.5">
+                                {item.grade}
+                              </span>
+                              <input
+                                type="text"
+                                value={item.val}
+                                onDoubleClick={(e) => e.target.select()}
+                                onChange={(e) => handleFeuSts(item.grade, e.target.value)}
+                                className="w-full bg-slate-800 border-none rounded text-center font-mono font-bold text-[11px] text-slate-100 p-0.5 focus:outline-hidden"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* UNIT 024 MDU II */}
+                  <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-[11.5px] text-emerald-300">UNIT 024 MDU II</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-400 font-mono">Des: {activeMduDesign}</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800 font-bold">
+                            {mduMode}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* RPH (%) */}
+                      <div className="mb-2">
+                        <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                          <span className="text-slate-400 font-medium">% RPH:</span>
+                          <span className="font-mono text-emerald-300 font-semibold text-[10px]">
+                            {mduTargetRph !== '-' ? `${mduTargetRph} T/D` : '-'}
+                          </span>
+                        </div>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={feuMduData?.mdu_rph ?? '-'}
+                            onDoubleClick={(e) => e.target.select()}
+                            onChange={(e) => handleMduRph(e.target.value)}
+                            className="w-full bg-slate-800 border border-slate-700 focus:border-emerald-400 rounded px-2 py-1 text-slate-100 font-mono font-bold text-center text-xs focus:outline-hidden"
+                            placeholder="-"
+                          />
+                          <span className="absolute right-2 text-slate-400 text-[10px] font-bold">%</span>
+                        </div>
+                      </div>
+
+                      {/* STS (%) by Grades */}
+                      <div>
+                        <div className="flex justify-between items-center text-[10.5px] mb-0.5">
+                          <span className="text-slate-400 font-medium">% STS:</span>
+                          <span className="font-mono text-emerald-300 font-semibold text-[10px]">
+                            {mduTargetSts !== '-' ? `${mduTargetSts} T/D` : '-'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1">
+                          {[
+                            { grade: 'LMO', val: feuMduData?.mdu_lmo_sts ?? '-' },
+                            { grade: 'MMO', val: feuMduData?.mdu_mmo_sts ?? '-' },
+                            { grade: 'DAO', val: feuMduData?.mdu_dao_sts ?? '-' },
+                          ].map((item) => (
+                            <div
+                              key={item.grade}
+                              className={`rounded p-1 bg-slate-900 border ${
+                                item.grade === mduMode
+                                  ? 'border-emerald-500/80 bg-emerald-950/30'
+                                  : 'border-slate-800'
+                              }`}
+                            >
+                              <span className="block text-[9.5px] text-center text-slate-400 font-semibold mb-0.5">
+                                {item.grade}
+                              </span>
+                              <input
+                                type="text"
+                                value={item.val}
+                                onDoubleClick={(e) => e.target.select()}
+                                onChange={(e) => handleMduSts(item.grade, e.target.value)}
+                                className="w-full bg-slate-800 border-none rounded text-center font-mono font-bold text-[11px] text-slate-100 p-0.5 focus:outline-hidden"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-800/80 mt-2 flex items-center justify-end">
+                <span className="text-slate-400 font-mono">Formula Target: ( % / 100 ) × Design T/D</span>
+              </div>
             </div>
           </div>
         </div>

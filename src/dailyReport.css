@@ -171,14 +171,14 @@ html, body {
 }
 
 .card-produksi {
-  flex: 6.8;
+  flex: 5.9;
   min-height: 0;
   overflow: hidden;
 }
 
 .card-summary {
-  flex: 2.0;
-  min-height: 0;
+  flex: 1.7;
+  min-height: 120px;
   border-radius: 16px !important;
   overflow: hidden;
   border: none !important;
@@ -226,16 +226,22 @@ html, body {
 }
 
 .card-summary th {
-  padding: clamp(1px, 0.2vh, 3px) clamp(1px, 0.18vw, 2.5px) !important;
-  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
-  line-height: 1.1 !important;
+  padding: clamp(0.5px, 0.12vh, 1.5px) clamp(1px, 0.15vw, 2px) !important;
+  font-size: clamp(8px, 0.6vw, 9.5px) !important;
+  line-height: 1.05 !important;
   text-overflow: ellipsis;
 }
 
 .card-summary td {
-  padding: clamp(1px, 0.2vh, 2.5px) clamp(1px, 0.18vw, 2.5px) !important;
-  font-size: clamp(9px, 0.68vw, 11px) !important;
-  line-height: 1.15 !important;
+  padding: clamp(0.5px, 0.12vh, 1.5px) clamp(1px, 0.15vw, 2px) !important;
+  font-size: clamp(8px, 0.6vw, 9.5px) !important;
+  line-height: 1.05 !important;
+}
+
+.card-summary .editable-input {
+  font-size: clamp(8px, 0.6vw, 9.5px) !important;
+  line-height: 1.05 !important;
+  padding: 0 !important;
 }
 
 .card-summary tr th:last-child,
@@ -249,8 +255,11 @@ html, body {
 }
 
 .card-maintenance {
-  flex: 1.5;
+  flex: 2.4;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .card-maintenance table {
@@ -258,25 +267,26 @@ html, body {
   border-spacing: 0;
   table-layout: fixed;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
   border: none !important;
 }
 
 .card-maintenance th {
-  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4px) !important;
-  font-size: clamp(9px, 0.68vw, 11px) !important;
+  padding: clamp(1px, 0.2vh, 3px) clamp(2px, 0.2vw, 4px) !important;
+  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
   line-height: 1.15 !important;
-  overflow: hidden;
   box-sizing: border-box;
 }
 
 .card-maintenance td {
-  padding: clamp(1.5px, 0.22vh, 3.5px) clamp(2px, 0.25vw, 4px) !important;
-  font-size: clamp(9px, 0.68vw, 11px) !important;
-  line-height: 1.2 !important;
+  padding: clamp(1.5px, 0.25vh, 3.5px) clamp(2px, 0.2vw, 4px) !important;
+  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
+  line-height: 1.25 !important;
   word-break: break-word;
   overflow-wrap: break-word;
-  overflow: hidden;
+  vertical-align: middle;
   box-sizing: border-box;
 }
 
@@ -362,12 +372,14 @@ html, body {
 .daily-report-body .font-bold {
   font-weight: 700;
 }
-.daily-report-body .text-green {
-  color: #16a34a;
+.daily-report-body .text-green,
+.sample-grid .text-green {
+  color: #16a34a !important;
   font-weight: 700;
 }
-.daily-report-body .text-red {
-  color: #dc2626;
+.daily-report-body .text-red,
+.sample-grid .text-red {
+  color: #dc2626 !important;
   font-weight: 700;
 }
 .daily-report-body .text-yellow {
@@ -416,14 +428,20 @@ html, body {
 
 .percent-dot-green {
   background-color: #16a34a;
+  border: 1px solid #15803d;
+  box-sizing: border-box;
 }
 
 .percent-dot-yellow {
   background-color: #eab308;
+  border: 1px solid #ca8a04;
+  box-sizing: border-box;
 }
 
 .percent-dot-red {
   background-color: #dc2626;
+  border: 1px solid #b91c1c;
+  box-sizing: border-box;
 }
 
 .percent-cell-val {
@@ -437,20 +455,20 @@ html, body {
   line-height: 1;
 }
 
-/* Spec Status Badge on top of Analisa Sample */
-.spec-status-badge {
+/* Spec Status Bullet placed beside sample analysis values */
+.sample-cell-wrapper {
   display: flex;
   align-items: center;
-  gap: 3px;
-  margin-bottom: 1.5px;
-  user-select: none;
-  line-height: 1;
+  gap: clamp(3px, 0.35vw, 6px);
+  width: 100%;
+  min-width: 0;
+  height: 100%;
 }
 
 .spec-status-dot {
   display: inline-block;
-  width: clamp(6px, 0.48vw, 7.5px);
-  height: clamp(6px, 0.48vw, 7.5px);
+  width: clamp(6.5px, 0.5vw, 8px);
+  height: clamp(6.5px, 0.5vw, 8px);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -461,20 +479,6 @@ html, body {
 
 .spec-status-dot.dot-offspec {
   background-color: #dc2626;
-}
-
-.spec-status-text {
-  font-weight: 700;
-  font-size: clamp(8px, 0.6vw, 9.5px);
-  line-height: 1;
-}
-
-.spec-status-text.text-onspec {
-  color: #15803d;
-}
-
-.spec-status-text.text-offspec {
-  color: #dc2626;
 }
 
 /* SAMPLE GRID INSIDE PRODUKSI */
@@ -522,14 +526,14 @@ html, body {
 .sample-grid-6 {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  column-gap: clamp(1.5px, 0.18vw, 3.5px);
-  row-gap: 1px;
+  column-gap: clamp(1.5px, 0.18vw, 3px);
+  row-gap: 0px;
   align-items: flex-start;
   justify-content: start;
   justify-items: start;
   text-align: left;
-  font-size: clamp(8px, 0.6vw, 9.5px);
-  line-height: 1.1;
+  font-size: clamp(7.5px, 0.58vw, 9px);
+  line-height: 1.05;
   width: 100%;
   max-width: 100%;
 }
@@ -546,8 +550,8 @@ html, body {
 }
 
 .sample-grid-6 .lims-limit-range {
-  font-size: clamp(7px, 0.5vw, 8.5px) !important;
-  margin-left: 0 !important;
+  font-size: inherit !important;
+  margin-left: 1px !important;
   color: #64748b;
   white-space: nowrap;
   overflow: hidden;
@@ -562,17 +566,17 @@ html, body {
 }
 
 .card-produksi td {
-  padding: clamp(1px, 0.22vh, 3px) clamp(2px, 0.25vw, 5px) !important;
-  font-size: clamp(9.5px, 0.7vw, 11.5px) !important;
-  line-height: 1.15 !important;
+  padding: clamp(0.5px, 0.12vh, 1.5px) clamp(1.5px, 0.2vw, 4px) !important;
+  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
+  line-height: 1.1 !important;
   overflow: hidden;
   min-width: 0;
 }
 
 .card-produksi th {
-  padding: clamp(2px, 0.25vh, 3.5px) clamp(2px, 0.25vw, 5px) !important;
-  font-size: clamp(9.5px, 0.7vw, 11.5px) !important;
-  line-height: 1.15 !important;
+  padding: clamp(1px, 0.16vh, 2px) clamp(2px, 0.2vw, 4px) !important;
+  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
+  line-height: 1.1 !important;
   overflow: hidden;
   min-width: 0;
 }
@@ -580,6 +584,31 @@ html, body {
 .card-produksi .onspec-cell {
   padding: 1px 2px !important;
   font-size: clamp(8.5px, 0.62vw, 10px) !important;
+}
+
+/* Export Mode: crisp and legible typography when exported to PNG */
+.export-mode table th {
+  font-size: 11px !important;
+}
+
+.export-mode table td {
+  font-size: 11px !important;
+}
+
+.export-mode .sample-grid {
+  font-size: 10.5px !important;
+}
+
+.export-mode .sample-grid-6 {
+  font-size: 9.5px !important;
+}
+
+.export-mode .lims-param-input {
+  font-size: 11px !important;
+}
+
+.export-mode .editable-input {
+  font-size: 11px !important;
 }
 
 /* ISSUE OPERATIONAL BOX */
@@ -706,7 +735,7 @@ html, body {
 }
 
 .lims-limit-range {
-  font-size: 0.9em;
+  font-size: inherit;
   color: #64748b;
   font-weight: 500;
   margin-left: 1.5px;

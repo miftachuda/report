@@ -25,7 +25,16 @@ async function apiRequest(endpoint, options = {}) {
       throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`)
     }
 
-    return await response.json()
+    if (response.status === 204) {
+      return { success: true }
+    }
+
+    const text = await response.text()
+    if (!text || !text.trim()) {
+      return { success: true }
+    }
+
+    return JSON.parse(text)
   } catch (err) {
     clearTimeout(id)
     throw err
@@ -33,10 +42,93 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 /**
+ * Recursively sanitize objects/arrays for database save.
+ * Requirement: Never save 0 as null or undefined.
+ */
+export function sanitizeForSave(val) {
+  if (val === null || val === undefined) {
+    return 0
+  }
+  if (Array.isArray(val)) {
+    return val.map((item) => sanitizeForSave(item))
+  }
+  if (typeof val === 'object') {
+    const clean = {}
+    for (const [k, v] of Object.entries(val)) {
+      if (v === null || v === undefined) {
+        clean[k] = 0
+      } else if (typeof v === 'object') {
+        clean[k] = sanitizeForSave(v)
+      } else {
+        clean[k] = v
+      }
+    }
+    return clean
+  }
+  return val
+}
+
+/**
+ * Safely parse JSON strings from PocketBase daily_report text fields
+ */
+export function parsePbDailyReport(record) {
+  if (!record) return record
+  const res = { ...record }
+  const jsonFields = ['feu_mdu_data', 'issue_maintenance', 'issue_operational', 'unit_modes']
+  for (const f of jsonFields) {
+    if (typeof res[f] === 'string') {
+      const trimmed = res[f].trim()
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          res[f] = JSON.parse(trimmed)
+        } catch {}
+      }
+    }
+  }
+  return res
+}
+
+/**
  * Helper to find existing records for a given date string across various date formats/types
  */
 async function findExistingRecords(collectionName, dateStr) {
-  // 1. Exact string match or substring match
+  if (collectionName === 'report_daily_archive') {
+    // 1. In report_daily_archive, date is nested inside payload_data JSON
+    try {
+      const filter = encodeURIComponent(`payload_data.date = "${dateStr}"`)
+      const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
+      if (res.items && res.items.length > 0) {
+        return res.items
+      }
+    } catch (err) {}
+
+    // 2. Created date range
+    try {
+      const filter = encodeURIComponent(`created >= "${dateStr} 00:00:00" && created <= "${dateStr} 23:59:59"`)
+      const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
+      if (res.items && res.items.length > 0) {
+        return res.items
+      }
+    } catch (err) {}
+
+    // 3. Fallback: inspect recent records
+    try {
+      const res = await apiRequest(`/api/collections/${collectionName}/records?perPage=100&sort=-created`)
+      if (res.items && res.items.length > 0) {
+        const matched = res.items.filter((item) => {
+          const d = item.date || item.payload_data?.date || (item.created ? item.created.slice(0, 10) : '')
+          return d === dateStr || String(d).startsWith(dateStr)
+        })
+        if (matched.length > 0) {
+          return matched
+        }
+      }
+    } catch (err) {}
+
+    return []
+  }
+
+  // 1. Exact string match on date field (daily_report)
   try {
     const filter = encodeURIComponent(`date="${dateStr}" || date~"${dateStr}"`)
     const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
@@ -47,9 +139,9 @@ async function findExistingRecords(collectionName, dateStr) {
     console.warn(`[PocketBase] Filter query on ${collectionName} warning:`, err.message)
   }
 
-  // 2. Date range filter (in case field is datetime in PocketBase)
+  // 2. Date range filter
   try {
-    const filter = encodeURIComponent(`date >= "${dateStr} 00:00:00" && date <= "${dateStr} 23:59:59"`)
+    const filter = encodeURIComponent(`created >= "${dateStr} 00:00:00" && created <= "${dateStr} 23:59:59"`)
     const res = await apiRequest(`/api/collections/${collectionName}/records?filter=${filter}&perPage=50`)
     if (res.items && res.items.length > 0) {
       return res.items
@@ -61,8 +153,7 @@ async function findExistingRecords(collectionName, dateStr) {
     const res = await apiRequest(`/api/collections/${collectionName}/records?perPage=100&sort=-created`)
     if (res.items && res.items.length > 0) {
       const matched = res.items.filter((item) => {
-        if (!item.date) return false
-        const d = String(item.date).trim()
+        const d = String(item.date || item.created?.slice(0, 10) || '').trim()
         return d === dateStr || d.startsWith(dateStr) || d.includes(dateStr)
       })
       if (matched.length > 0) {
@@ -83,36 +174,39 @@ export async function getDailyReport(dateStr) {
   try {
     const existing = await findExistingRecords('daily_report', dateStr)
     if (existing && existing.length > 0) {
-      return existing[0]
+      return parsePbDailyReport(existing[0])
     }
   } catch (err) {
-    console.warn(`[PocketBase] getDailyReport for ${dateStr} fallback:`, err.message)
-  }
-
-  // Fallback to local storage if remote collection is empty or fails
-  const local = localStorage.getItem(`daily_report_${dateStr}`)
-  if (local) {
-    try {
-      return JSON.parse(local)
-    } catch {
-      // ignore
-    }
+    console.warn(`[PocketBase] getDailyReport for ${dateStr} warning:`, err.message)
   }
   return null
 }
 
 export async function saveDailyReport(dateStr, data) {
-  // Always cache locally first
+  // Sanitize numeric nulls so 0 is never stored as null
+  const sanitizedFeuMdu = sanitizeForSave(data.feu_mdu_data || {})
+
+  // Stringify objects for PocketBase text fields
   const payload = {
     date: dateStr,
-    feu_mdu_data: data.feu_mdu_data,
+    feu_mdu_data: typeof sanitizedFeuMdu === 'object' ? JSON.stringify(sanitizedFeuMdu) : (sanitizedFeuMdu ?? ''),
+    issue_operational: typeof data.issue_operational === 'object' ? JSON.stringify(data.issue_operational) : (data.issue_operational ?? ''),
+    issue_maintenance: typeof data.issue_maintenance === 'object' ? JSON.stringify(data.issue_maintenance) : (data.issue_maintenance ?? ''),
+    unit_modes: typeof data.unit_modes === 'object' ? JSON.stringify(data.unit_modes) : (data.unit_modes ?? ''),
+    updated_at: new Date().toISOString(),
+  }
+
+  // Always cache parsed version locally for immediate instant-load
+  const localCache = {
+    date: dateStr,
+    feu_mdu_data: sanitizedFeuMdu,
     issue_operational: data.issue_operational,
     issue_maintenance: data.issue_maintenance,
     unit_modes: data.unit_modes,
-    updated_at: new Date().toISOString(),
+    updated_at: payload.updated_at,
   }
-  localStorage.setItem(`daily_report_${dateStr}`, JSON.stringify(payload))
-  localStorage.setItem('last_saved_daily_report', JSON.stringify(payload))
+  localStorage.setItem(`daily_report_${dateStr}`, JSON.stringify(localCache))
+  localStorage.setItem('last_saved_daily_report', JSON.stringify(localCache))
 
   try {
     const existingItems = await findExistingRecords('daily_report', dateStr)
@@ -148,19 +242,18 @@ export async function saveDailyReport(dateStr, data) {
 }
 
 /**
- * Fetch the latest saved daily_report record
+ * Fetch the latest saved daily_report record directly from PocketBase database
  */
 export async function getLatestDailyReport() {
   try {
-    const res = await apiRequest(`/api/collections/daily_report/records?sort=-date,-created&perPage=1`)
+    const res = await apiRequest(`/api/collections/daily_report/records?sort=-created&perPage=1`)
     if (res.items && res.items.length > 0) {
-      localStorage.setItem('last_saved_daily_report', JSON.stringify(res.items[0]))
-      return res.items[0]
+      return parsePbDailyReport(res.items[0])
     }
   } catch (err) {
     console.warn('[PocketBase] getLatestDailyReport remote error:', err.message)
   }
-  return getLastSavedLocalReport()
+  return null
 }
 
 /**
@@ -207,9 +300,13 @@ export async function getSampleLimits() {
  * Checks for existing record on the same date and replaces (PATCH) it instead of creating duplicates
  */
 export async function archiveDailyReport(dateStr, payloadData) {
+  // Sanitize numeric nulls so 0 is never stored as null
+  const sanitizedPayload = sanitizeForSave(payloadData)
+  sanitizedPayload.date = dateStr
+
   const archiveItem = {
     date: dateStr,
-    payload_data: payloadData,
+    payload_data: sanitizedPayload,
   }
 
   // Backup locally
@@ -219,6 +316,11 @@ export async function archiveDailyReport(dateStr, payloadData) {
   try {
     // Check if record exists for this date using robust matching across string/datetime
     const existingItems = await findExistingRecords('report_daily_archive', dateStr)
+
+    // PocketBase report_daily_archive collection payload body
+    const pbBody = {
+      payload_data: sanitizedPayload,
+    }
 
     if (existingItems && existingItems.length > 0) {
       const existingId = existingItems[0].id
@@ -238,13 +340,13 @@ export async function archiveDailyReport(dateStr, payloadData) {
       // Replace / update existing record (PATCH)
       return await apiRequest(`/api/collections/report_daily_archive/records/${existingId}`, {
         method: 'PATCH',
-        body: JSON.stringify(archiveItem),
+        body: JSON.stringify(pbBody),
       })
     } else {
       // Create new record (POST)
       return await apiRequest(`/api/collections/report_daily_archive/records`, {
         method: 'POST',
-        body: JSON.stringify(archiveItem),
+        body: JSON.stringify(pbBody),
       })
     }
   } catch (err) {
@@ -312,11 +414,11 @@ export function getLastSavedLocalReport() {
 }
 
 /**
- * Fetch latest archive report from database with localStorage fallback
+ * Fetch latest archive report directly from database
  */
 export async function getLatestArchiveReport() {
   try {
-    const res = await apiRequest('/api/collections/report_daily_archive/records?sort=-date,-created&perPage=1')
+    const res = await apiRequest('/api/collections/report_daily_archive/records?sort=-created&perPage=1')
     if (res.items && res.items.length > 0) {
       const record = res.items[0]
       if (record && typeof record.payload_data === 'string') {
@@ -324,17 +426,12 @@ export async function getLatestArchiveReport() {
           record.payload_data = JSON.parse(record.payload_data)
         } catch {}
       }
-      try {
-        localStorage.setItem('last_saved_archive', JSON.stringify(record))
-      } catch {}
       return record
     }
   } catch (err) {
     console.warn('[Database] getLatestArchiveReport remote error:', err.message)
   }
-
-  // Fallback to local storage
-  return getLastSavedLocalArchive()
+  return null
 }
 
 /**
