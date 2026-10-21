@@ -538,7 +538,9 @@ export default function DailyReport({
     let rawVal =
       sample?.[paramName]?.value !== undefined
         ? sample[paramName].value
-        : fallbackVal;
+        : (paramName === "App" && sample?.["Appearance"]?.value !== undefined)
+          ? sample["Appearance"].value
+          : fallbackVal;
 
     if (typeof rawVal === "string" && /clear\s*(&|and)?\s*bright/i.test(rawVal.trim())) {
       rawVal = "C&B";
@@ -547,10 +549,14 @@ export default function DailyReport({
     // Find limit record in sampleLimits from PocketBase matching the mode sample code
     const limitRecord =
       sampleLimits.find(
-        (lim) => lim.sample_code === sampleCode && lim.param_name === paramName,
+        (lim) =>
+          lim.sample_code === sampleCode &&
+          (lim.param_name === paramName || (paramName === "App" && lim.param_name === "Appearance")),
       ) ||
       sampleLimits.find(
-        (lim) => lim.sample_code === baseCode && lim.param_name === paramName,
+        (lim) =>
+          lim.sample_code === baseCode &&
+          (lim.param_name === paramName || (paramName === "App" && lim.param_name === "Appearance")),
       );
 
     const evaluated = evaluateSampleLimit(rawVal, limitRecord);
@@ -560,6 +566,13 @@ export default function DailyReport({
       : evaluated.formattedValue !== ""
         ? "text-green"
         : "text-slate-800";
+
+    const isApp = paramName === "App" || paramName === "Appearance";
+    const valStr = evaluated.formattedValue || "";
+    const charWidth = isApp
+      ? Math.max(5.5, valStr.length + 2.5)
+      : Math.max(2, valStr.length + 0.5);
+    const minWidth = isApp ? "38px" : "16px";
 
     return (
       <span className="lims-param-cell inline-flex items-baseline justify-start gap-0.5 text-left">
@@ -572,8 +585,8 @@ export default function DailyReport({
           }}
           className={`lims-param-input ${valColorClass} font-bold`}
           style={{
-            width: `${Math.max(2, (evaluated.formattedValue || "").length + 0.5)}ch`,
-            minWidth: "16px",
+            width: `${charWidth}ch`,
+            minWidth: minWidth,
           }}
           title={
             evaluated.isOutOfRange
@@ -601,18 +614,22 @@ export default function DailyReport({
       let rawVal =
         sample?.[item.paramName]?.value !== undefined
           ? sample[item.paramName].value
-          : item.fallbackVal;
+          : (item.paramName === "App" && sample?.["Appearance"]?.value !== undefined)
+            ? sample["Appearance"].value
+            : item.fallbackVal;
       if (typeof rawVal === "string" && /clear\s*(&|and)?\s*bright/i.test(rawVal.trim())) {
         rawVal = "C&B";
       }
       const limitRecord =
         sampleLimits.find(
           (lim) =>
-            lim.sample_code === sampleCode && lim.param_name === item.paramName,
+            lim.sample_code === sampleCode &&
+            (lim.param_name === item.paramName || (item.paramName === "App" && lim.param_name === "Appearance")),
         ) ||
         sampleLimits.find(
           (lim) =>
-            lim.sample_code === baseCode && lim.param_name === item.paramName,
+            lim.sample_code === baseCode &&
+            (lim.param_name === item.paramName || (item.paramName === "App" && lim.param_name === "Appearance")),
         );
       const evaluated = evaluateSampleLimit(rawVal, limitRecord);
       if (evaluated.isOutOfRange) {
