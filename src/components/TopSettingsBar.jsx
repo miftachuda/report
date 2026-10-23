@@ -238,6 +238,35 @@ export default function TopSettingsBar({
               textarea.parentNode.replaceChild(div, textarea)
             }
           })
+
+          // Ensure all images (especially LOC logo) render cleanly in export without CSS filter or async loading issues
+          const origImages = reportElement.querySelectorAll('img')
+          const clonedImages = clonedDoc.querySelectorAll('img')
+          clonedImages.forEach((clonedImg, idx) => {
+            const origImg = origImages[idx]
+            clonedImg.style.filter = 'none'
+            clonedImg.style.webkitFilter = 'none'
+            if (origImg) {
+              if (origImg.offsetWidth > 0) {
+                clonedImg.style.width = `${origImg.offsetWidth}px`
+              }
+              if (origImg.offsetHeight > 0) {
+                clonedImg.style.height = `${origImg.offsetHeight}px`
+              }
+              try {
+                if (origImg.complete && origImg.naturalWidth > 0) {
+                  const c = clonedDoc.createElement('canvas')
+                  c.width = origImg.naturalWidth
+                  c.height = origImg.naturalHeight
+                  const ctx = c.getContext('2d')
+                  ctx.drawImage(origImg, 0, 0)
+                  clonedImg.src = c.toDataURL('image/png')
+                }
+              } catch (e) {
+                console.warn('Canvas conversion for image failed:', e)
+              }
+            }
+          })
         },
       })
 

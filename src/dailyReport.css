@@ -5,6 +5,7 @@
   --table-bg-th: #d9e7f4;
   --table-bg-td: #fdf2d0;
   --table-td-border: #dcd3b8;
+  --issue-card-height: clamp(135px, 16.5vh, 170px);
 }
 
 html, body {
@@ -94,7 +95,7 @@ html, body {
   margin-right: clamp(10px, 0.9vw, 18px);
   pointer-events: none;
   user-select: none;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+  display: block;
 }
 
 .logo-img {
@@ -163,23 +164,32 @@ html, body {
 }
 
 .card-feed {
-  flex: 7;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .card-operasional {
-  flex: 2.8;
+  flex: 0 0 var(--issue-card-height) !important;
+  height: var(--issue-card-height) !important;
+  min-height: var(--issue-card-height) !important;
+  max-height: var(--issue-card-height) !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .card-produksi {
-  flex: 5.9;
+  flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
 }
 
 .card-summary {
-  flex: 1.7;
-  min-height: 120px;
-  border-radius: 16px !important;
+  flex: 0 0 clamp(92px, 10.5vh, 105px) !important;
+  height: clamp(92px, 10.5vh, 105px) !important;
+  min-height: 92px !important;
+  border-radius: 14px !important;
   overflow: hidden;
   border: none !important;
   outline: none !important;
@@ -197,20 +207,20 @@ html, body {
 }
 
 .card-summary thead tr:first-child th:first-child {
-  border-top-left-radius: 16px;
+  border-top-left-radius: 14px;
 }
 
 .card-summary thead tr:first-child th:last-child {
-  border-top-right-radius: 16px;
+  border-top-right-radius: 14px;
 }
 
 .card-summary tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 16px;
+  border-bottom-left-radius: 14px;
 }
 
 .card-summary tbody tr:first-child td:last-child,
 .card-summary tbody tr:first-child td:last-child textarea {
-  border-bottom-right-radius: 16px;
+  border-bottom-right-radius: 14px;
 }
 
 /* Thin internal grid lines only - prevent double grid and remove outer perimeter border */
@@ -226,21 +236,21 @@ html, body {
 }
 
 .card-summary th {
-  padding: clamp(0.5px, 0.12vh, 1.5px) clamp(1px, 0.15vw, 2px) !important;
-  font-size: clamp(8px, 0.6vw, 9.5px) !important;
-  line-height: 1.05 !important;
+  padding: 1px clamp(1px, 0.15vw, 2px) !important;
+  font-size: clamp(7.5px, 0.55vw, 8.8px) !important;
+  line-height: 1.02 !important;
   text-overflow: ellipsis;
 }
 
 .card-summary td {
-  padding: clamp(0.5px, 0.12vh, 1.5px) clamp(1px, 0.15vw, 2px) !important;
-  font-size: clamp(8px, 0.6vw, 9.5px) !important;
-  line-height: 1.05 !important;
+  padding: 1px clamp(1px, 0.15vw, 2px) !important;
+  font-size: clamp(7.5px, 0.55vw, 8.8px) !important;
+  line-height: 1.02 !important;
 }
 
 .card-summary .editable-input {
-  font-size: clamp(8px, 0.6vw, 9.5px) !important;
-  line-height: 1.05 !important;
+  font-size: clamp(7.5px, 0.55vw, 8.8px) !important;
+  line-height: 1.02 !important;
   padding: 0 !important;
 }
 
@@ -255,8 +265,10 @@ html, body {
 }
 
 .card-maintenance {
-  flex: 2.4;
-  min-height: 0;
+  flex: 0 0 var(--issue-card-height) !important;
+  height: var(--issue-card-height) !important;
+  min-height: var(--issue-card-height) !important;
+  max-height: var(--issue-card-height) !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -274,16 +286,16 @@ html, body {
 }
 
 .card-maintenance th {
-  padding: clamp(1px, 0.2vh, 3px) clamp(2px, 0.2vw, 4px) !important;
-  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
-  line-height: 1.15 !important;
+  padding: 1px clamp(2px, 0.2vw, 4px) !important;
+  font-size: clamp(8px, 0.6vw, 9.5px) !important;
+  line-height: 1.1 !important;
   box-sizing: border-box;
 }
 
 .card-maintenance td {
-  padding: clamp(1.5px, 0.25vh, 3.5px) clamp(2px, 0.2vw, 4px) !important;
-  font-size: clamp(8.5px, 0.65vw, 10.5px) !important;
-  line-height: 1.25 !important;
+  padding: clamp(1px, 0.15vh, 2px) clamp(2px, 0.2vw, 4px) !important;
+  font-size: clamp(8px, 0.6vw, 9.5px) !important;
+  line-height: 1.15 !important;
   word-break: break-word;
   overflow-wrap: break-word;
   vertical-align: middle;
@@ -594,6 +606,19 @@ html, body {
 }
 
 /* Export Mode: crisp and legible typography when exported to PNG */
+.export-mode .logo-loc {
+  filter: none !important;
+  display: block !important;
+  height: 28px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+.export-mode .logo-img {
+  filter: none !important;
+  display: block !important;
+}
+
 .export-mode table th {
   font-size: 11px !important;
 }

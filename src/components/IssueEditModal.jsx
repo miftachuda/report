@@ -61,27 +61,31 @@ export default function IssueEditModal({
 
   const handleSave = () => {
     if (type === 'operational') {
-      const normalized = data.map((item) => {
-        if (typeof item === 'string') return item
-        if (typeof item === 'object' && item !== null) {
-          return item.equipment
-            ? `${item.equipment} : ${item.issue || ''}${item.mitigation ? ' (' + item.mitigation + ')' : ''}`
-            : item.issue || JSON.stringify(item)
-        }
-        return String(item ?? '')
-      })
+      const normalized = data
+        .map((item) => {
+          if (typeof item === 'string') return item.trim()
+          if (typeof item === 'object' && item !== null) {
+            return item.equipment
+              ? `${item.equipment} : ${item.issue || ''}${item.mitigation ? ' (' + item.mitigation + ')' : ''}`
+              : item.issue || JSON.stringify(item)
+          }
+          return String(item ?? '').trim()
+        })
+        .filter((item) => Boolean(item) && item !== '')
       onSave(normalized)
     } else {
-      const normalized = data.map((item) => {
-        if (typeof item === 'object' && item !== null) {
-          return {
-            equipment: item.equipment || '',
-            issue: item.issue || '',
-            mitigation: item.mitigation || '',
+      const normalized = data
+        .map((item) => {
+          if (typeof item === 'object' && item !== null) {
+            return {
+              equipment: (item.equipment || '').trim(),
+              issue: (item.issue || '').trim(),
+              mitigation: (item.mitigation || '').trim(),
+            }
           }
-        }
-        return { equipment: '', issue: String(item ?? ''), mitigation: '' }
-      })
+          return { equipment: '', issue: String(item ?? '').trim(), mitigation: '' }
+        })
+        .filter((item) => item.equipment || item.issue || item.mitigation)
       onSave(normalized)
     }
     onClose()

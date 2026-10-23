@@ -170,26 +170,11 @@ export default function App() {
   // State for FEU MDU Table & Operational Statuses (Section A & Kapasitas Feed)
   const [feuMduData, setFeuMduData] = useState(defaultFeuMdu);
 
-  // State for Issue Operational (Section B)
-  const [issueOperational, setIssueOperational] = useState([
-    "Unit FEU II 023 : Ketahanan stock furfural",
-    "024K-101 : Temperature discharge panas & ASC hunting",
-    "021F-102 : Flow fuel gas max 197 M3/h",
-  ]);
+  // State for Issue Operational (Section B) - initialized empty, populated from server
+  const [issueOperational, setIssueOperational] = useState([]);
 
-  // State for Issue Maintenance (Section B)
-  const [issueMaintenance, setIssueMaintenance] = useState([
-    {
-      equipment: "024P-107A",
-      issue: "Motor vibrasi",
-      mitigation: "Perbaikan motor di WS bls ( WO No. 8302570004 )",
-    },
-    {
-      equipment: "002P-101A",
-      issue: "Casing bocor",
-      mitigation: "Perbaikan pompa di WS bls",
-    },
-  ]);
+  // State for Issue Maintenance (Section B) - initialized empty, populated from server
+  const [issueMaintenance, setIssueMaintenance] = useState([]);
 
   // State for Switchable Modes: Unit 023 & Unit 024 (Section C)
   const [unitModes, setUnitModes] = useState({
@@ -234,6 +219,25 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState(null);
+
+  // Reference to hold current state for asynchronous callbacks & auto-save
+  const stateRef = useRef({
+    feuMduData,
+    unitStatuses,
+    unitModes,
+    issueOperational,
+    issueMaintenance,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      feuMduData,
+      unitStatuses,
+      unitModes,
+      issueOperational,
+      issueMaintenance,
+    };
+  }, [feuMduData, unitStatuses, unitModes, issueOperational, issueMaintenance]);
 
   // Safe normalizers for issues
   const normalizeOperationalIssues = useCallback((issues) => {
@@ -321,16 +325,54 @@ export default function App() {
     setFeuMduData(newData);
   };
 
-  // Section B: Issue Operational change handler
-  const handleIssueOperationalChange = (newData) => {
+  // Section B: Issue Operational change handler - updates state and auto-saves to database
+  const handleIssueOperationalChange = async (newData) => {
     const normalized = normalizeOperationalIssues(newData);
     setIssueOperational(normalized);
+    const today = getTodayDateStr();
+    try {
+      await saveDailyReport(today, {
+        feu_mdu_data: {
+          ...stateRef.current.feuMduData,
+          unit_statuses: stateRef.current.unitStatuses,
+        },
+        issue_operational: normalized,
+        issue_maintenance: stateRef.current.issueMaintenance,
+        unit_modes: {
+          ...stateRef.current.unitModes,
+          statuses: stateRef.current.unitStatuses,
+        },
+      });
+      setLastSavedTime(new Date().toISOString());
+      setPocketBaseConnected(true);
+    } catch (err) {
+      console.error("Auto-save issue operational error:", err);
+    }
   };
 
-  // Section B: Issue Maintenance change handler
-  const handleIssueMaintenanceChange = (newData) => {
+  // Section B: Issue Maintenance change handler - updates state and auto-saves to database
+  const handleIssueMaintenanceChange = async (newData) => {
     const normalized = normalizeMaintenanceIssues(newData);
     setIssueMaintenance(normalized);
+    const today = getTodayDateStr();
+    try {
+      await saveDailyReport(today, {
+        feu_mdu_data: {
+          ...stateRef.current.feuMduData,
+          unit_statuses: stateRef.current.unitStatuses,
+        },
+        issue_operational: stateRef.current.issueOperational,
+        issue_maintenance: normalized,
+        unit_modes: {
+          ...stateRef.current.unitModes,
+          statuses: stateRef.current.unitStatuses,
+        },
+      });
+      setLastSavedTime(new Date().toISOString());
+      setPocketBaseConnected(true);
+    } catch (err) {
+      console.error("Auto-save issue maintenance error:", err);
+    }
   };
 
   // Section C: Switchable Unit Mode change handler (previews PHD tags for selected mode)
@@ -348,10 +390,12 @@ export default function App() {
     setIsRefreshing(true);
 
     // Step 1: Immediately reset displayed values to 0 / empty / "-"
-    // Operational statuses and destination tanks immediately show "-" before data arrives
+    // Operational statuses, issues, and destination tanks immediately show empty / "-" before data arrives
     setPhdData({});
     setLimsData({ samples: {}, shift: "Malam" });
     setFeuMduData(defaultFeuMdu);
+    setIssueOperational([]);
+    setIssueMaintenance([]);
 
     let currentRange = dateRange;
     if (phdPreset !== "custom") {
@@ -530,16 +574,35 @@ export default function App() {
       };
       setFeuMduData(cleanServerFeuMdu);
 
-      // Revert/update issues from server
+      // Revert/update issues from server - empty if not present or empty on server
       const savedOperational =
-        source?.issue_operational || archivePayload?.issue_operational;
-      if (savedOperational) {
+        source?.issue_operational !== undefined && source?.issue_operational !== null
+          ? source.issue_operational
+          : archivePayload?.issue_operational;
+      if (
+        savedOperational &&
+        (Array.isArray(savedOperational)
+          ? savedOperational.length > 0
+          : String(savedOperational).trim() !== "" && String(savedOperational).trim() !== "[]")
+      ) {
         setIssueOperational(normalizeOperationalIssues(savedOperational));
+      } else {
+        setIssueOperational([]);
       }
+
       const savedMaintenance =
-        source?.issue_maintenance || archivePayload?.issue_maintenance;
-      if (savedMaintenance) {
+        source?.issue_maintenance !== undefined && source?.issue_maintenance !== null
+          ? source.issue_maintenance
+          : archivePayload?.issue_maintenance;
+      if (
+        savedMaintenance &&
+        (Array.isArray(savedMaintenance)
+          ? savedMaintenance.length > 0
+          : String(savedMaintenance).trim() !== "" && String(savedMaintenance).trim() !== "[]")
+      ) {
         setIssueMaintenance(normalizeMaintenanceIssues(savedMaintenance));
+      } else {
+        setIssueMaintenance([]);
       }
 
       // Query PHD Tags based on resolved serverModes and serverTanks
@@ -628,14 +691,14 @@ export default function App() {
       // Sync daily_report
       const currentReportState = {
         feu_mdu_data: {
-          ...feuMduData,
-          unit_statuses: unitStatuses,
+          ...stateRef.current.feuMduData,
+          unit_statuses: stateRef.current.unitStatuses,
         },
-        issue_operational: issueOperational,
-        issue_maintenance: issueMaintenance,
+        issue_operational: stateRef.current.issueOperational,
+        issue_maintenance: stateRef.current.issueMaintenance,
         unit_modes: {
-          ...unitModes,
-          statuses: unitStatuses,
+          ...stateRef.current.unitModes,
+          statuses: stateRef.current.unitStatuses,
         },
       };
       await saveDailyReport(today, currentReportState);

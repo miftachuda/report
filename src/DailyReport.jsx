@@ -666,15 +666,22 @@ export default function DailyReport({
               src={danantaraLogo}
               alt="Danantara Indonesia"
               className="logo-img"
+              crossOrigin="anonymous"
             />
           </div>
           <div className="banner-title">DAILY REPORT LOC II</div>
           <div className="logo-right">
-            <img src={locLogo} alt="LOC II" className="logo-loc" />
+            <img
+              src={locLogo}
+              alt="LOC II"
+              className="logo-loc"
+              crossOrigin="anonymous"
+            />
             <img
               src={pertaminaLogo}
               alt="Pertamina Patra Niaga"
               className="logo-img"
+              crossOrigin="anonymous"
             />
           </div>
         </div>
