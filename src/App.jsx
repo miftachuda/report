@@ -25,71 +25,45 @@ function getActivePhdTags(currentModes, currentTanks = []) {
   const activeTags = [
     "021FI_004.pv",
     "021FY_004X.C1",
-    "021FY_004X.c1",
     "022FI_001.pv",
     "022FY_001X.C1",
-    "022FY_001X.c1",
     "023FIC_004.pv",
-    "023FI_004.pv",
     "024FIC_001.pv",
-    "024FI_001.pv",
     "025FIC_004.pv",
-    "025FI_004.pv",
     "025FY_004X.PV",
-    "025FY_004X.pv",
     "002LI_051.PV",
-    "002LI_051.pv",
     "023LI_005.PV",
-    "023LI_005.pv",
     // Produksi Unit 021 HVU II
     "021FIC_058.PV",
-    "021FIC_058.pv",
     "021FY_058X.C1",
-    "021FY_058X.c1",
     "021FIC_057.PV",
-    "021FIC_057.pv",
     "021FY_057X.C1",
-    "021FY_057X.c1",
     "021FI_008.PV",
-    "021FI_008.pv",
-    "021FY_008X.C1",
     "021FY_008X.c1",
     "021FI_002.PV",
-    "021FI_002.pv",
-    "021FY_002X.C1",
     "021FY_002X.c1",
     // Produksi Unit 022 PDU II
     "022FI_007.PV",
-    "022FI_007.pv",
     "022FY_007X.C1",
-    "022FY_007X.c1",
     "022FI_013.PV",
-    "022FI_013.pv",
-    "022FY_013X.C1",
     "022FY_013X.c1",
     // Produksi Unit 023 FEU II
     "023FI_031.PV",
-    "023FI_031.pv",
     "023FI_703.PV",
-    "023FI_703.pv",
     "023FY_031BX.C1",
     "023FY_031CX.C1",
     "023FY_031DX.C1",
     "023FI_028.pv",
-    "023FI_028.PV",
     "023FY_028BX.C1",
     "023FY_028CX.C1",
     "023FY_028DX.C1",
     // Produksi Unit 024 MDU II
     "024FI_023.PV",
-    "024FI_023.pv",
     "024FY_023BX.C1",
     "024FY_023CX.C1",
     "024FY_023DX.C1",
     "024FI_031.PV",
-    "024FI_031.pv",
     "024FY_031X.c1",
-    "024FY_031X.C1",
   ];
 
   if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
@@ -114,7 +88,7 @@ function getActivePhdTags(currentModes, currentTanks = []) {
   ];
 
   targetTanks.forEach((name) => {
-    const found = currentTanks.find((t) => t.tank_name === name);
+    const found = currentTanks.find((t) => (t.tank_name || "").replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === name);
     if (found?.tag_level) {
       activeTags.push(found.tag_level);
     } else {
@@ -122,7 +96,7 @@ function getActivePhdTags(currentModes, currentTanks = []) {
     }
   });
 
-  return activeTags;
+  return Array.from(new Set(activeTags));
 }
 
 // Initial FEU MDU Table values on first load (before refresh) & baseline reset
@@ -458,44 +432,54 @@ export default function App() {
     setActiveReportDate(today);
 
     try {
-      // Fetch PB daily report, latest daily report, latest archive, tanks, limits, health and LIMS in parallel
+      // Build active tags for PHD query immediately using current modes & tanks
+      const activeTags = getActivePhdTags(unitModes, tanks);
+
+      // Fetch PHD, LIMS, and PocketBase configuration in PARALLEL
+      // Notice: Only query PocketBase for non-PHD, non-LIMS data (daily_report, tanks, limits)
+      // We NEVER fetch or use report_daily_archive snapshots during refresh!
       const [
         pbReportRes,
         latestPbReportRes,
-        latestArchiveRes,
         pbTanksRes,
         pbLimitsRes,
         healthRes,
         limsApiRes,
+        phdApiRes,
       ] = await Promise.allSettled([
         getDailyReport(today),
         getLatestDailyReport(),
-        getLatestArchiveReport(),
         getTanks(),
         getSampleLimits(),
         checkPocketBaseHealth(),
         fetchLimsData(),
+        fetchPhdData(activeTags, currentRange.start, currentRange.end),
       ]);
 
       if (healthRes.status === "fulfilled") {
         setPocketBaseConnected(Boolean(healthRes.value));
       }
 
+      // Update tanks & sample limits if fetched
+      let serverTanks = tanks;
+      if (pbTanksRes.status === "fulfilled" && pbTanksRes.value?.length > 0) {
+        serverTanks = pbTanksRes.value;
+        setTanks(pbTanksRes.value);
+      }
+      if (pbLimitsRes.status === "fulfilled" && pbLimitsRes.value?.length > 0) {
+        setSampleLimits(pbLimitsRes.value);
+      }
+
+      // 1. Resolve PocketBase report source ONLY for non-PHD, non-LIMS data
       const reportData =
         pbReportRes.status === "fulfilled" ? pbReportRes.value : null;
       const latestReportData =
         latestPbReportRes.status === "fulfilled"
           ? latestPbReportRes.value
           : null;
-      const archiveData =
-        latestArchiveRes.status === "fulfilled"
-          ? latestArchiveRes.value
-          : null;
-      const archivePayload = archiveData?.payload_data || archiveData;
+      const source = reportData || latestReportData || null;
 
-      const source = reportData || latestReportData || archivePayload || null;
-
-      // Extract saved FEU MDU data from either daily_report, latestDailyReport, or archivePayload
+      // Extract saved FEU MDU data from PocketBase
       let savedFeuMdu = {};
       if (reportData?.feu_mdu_data) {
         savedFeuMdu =
@@ -507,16 +491,37 @@ export default function App() {
           typeof latestReportData.feu_mdu_data === "string"
             ? JSON.parse(latestReportData.feu_mdu_data)
             : latestReportData.feu_mdu_data;
-      } else if (archivePayload?.feu_mdu_data) {
-        savedFeuMdu =
-          typeof archivePayload.feu_mdu_data === "string"
-            ? JSON.parse(archivePayload.feu_mdu_data)
-            : archivePayload.feu_mdu_data;
       }
       savedFeuMdu =
         savedFeuMdu && typeof savedFeuMdu === "object" ? savedFeuMdu : {};
 
-      // Direct operational values if present on record
+      // Operational unit modes (Unit 023 & Unit 024)
+      const savedModes =
+        source?.unit_modes && typeof source.unit_modes === "object"
+          ? source.unit_modes
+          : null;
+      const serverModes = savedModes
+        ? {
+            unit023: savedModes.unit023 || "MMO",
+            unit024: savedModes.unit024 || "LMO",
+          }
+        : unitModes;
+      setUnitModes(serverModes);
+
+      // Operational unit statuses (Unit 021, 022, 023, 024, HOS)
+      const serverStatuses =
+        savedModes?.statuses ||
+        source?.unit_statuses ||
+        savedFeuMdu?.unit_statuses || {
+          unit021: "Normal Operasi",
+          unit022: "Normal Operasi",
+          unit023: "Normal Operasi",
+          unit024: "Normal Operasi",
+          hos: "Normal Operasi",
+        };
+      setUnitStatuses(serverStatuses);
+
+      // Top-level operational values from source record
       const topLevelOps = {};
       if (
         source?.pompa_hos !== undefined &&
@@ -554,146 +559,71 @@ export default function App() {
         topLevelOps.visual_perairan = source.visual_perairan;
       }
 
-      const serverTanks =
-        pbTanksRes.status === "fulfilled" && pbTanksRes.value?.length > 0
-          ? pbTanksRes.value
-          : tanks;
-      if (pbTanksRes.status === "fulfilled" && pbTanksRes.value?.length > 0) {
-        setTanks(pbTanksRes.value);
-      }
-      if (pbLimitsRes.status === "fulfilled" && pbLimitsRes.value?.length > 0) {
-        setSampleLimits(pbLimitsRes.value);
-      }
-
-      // Revert/update operation mode directly from server (discarding local changes)
-      const savedModes =
-        source?.unit_modes && typeof source.unit_modes === "object"
-          ? source.unit_modes
-          : null;
-
-      const serverModes = savedModes
-        ? {
-            unit023: savedModes.unit023 || "MMO",
-            unit024: savedModes.unit024 || "LMO",
-          }
-        : { unit023: "MMO", unit024: "LMO" };
-      setUnitModes(serverModes);
-
-      // Revert/update unit statuses directly from server
-      const serverStatuses =
-        savedModes?.statuses ||
-        source?.unit_statuses ||
-        savedFeuMdu?.unit_statuses || {
-          unit021: "Normal Operasi",
-          unit022: "Normal Operasi",
-          unit023: "Normal Operasi",
-          unit024: "Normal Operasi",
-          hos: "Normal Operasi",
-        };
-      setUnitStatuses(serverStatuses);
-
-      // Revert/update FEU MDU data from server (discarding any manual edits)
-      // Requirements:
-      // 1. Pompa Hos, burner FG/FO, status pompa CPI, visual perairan, produk dest, sts, rph
-      //    update directly from last saved record in PocketBase.
-      // 2. Data T/D dan data lain yang bersumber dari PHD: ketika refresh data PRIORITAS diambil
-      //    dari PHD bukan dari PocketBase.
-      //    Semua field T/D actuals, levels, stocks, LOC II flows, dan achieved percentages
-      //    dilepaskan dari savedFeuMdu agar tidak menimpa perhitungan PHD segar.
-      //    Nilai dari database disimpan ke pbFallbacks HANYA sebagai cadangan jika tag PHD null/gagal.
-      const {
-        // T/D Feed actuals & achieved percentages
-        hvu_actual,
-        pdu_actual,
-        feu_actual,
-        mdu_actual,
-        hos_actual,
-        hvu_percent_design,
-        hvu_percent_rph,
-        hvu_percent_sts,
-        pdu_percent_design,
-        pdu_percent_rph,
-        pdu_percent_sts,
-        feu_percent_design,
-        feu_percent_rph,
-        feu_percent_sts,
-        mdu_percent_design,
-        mdu_percent_rph,
-        mdu_percent_sts,
-        // Levels
-        level_023c104,
-        level_cpi,
-        // Produksi actuals (T/D)
-        spo_actual,
-        lmo_dist_actual,
-        mmo_dist_actual,
-        short_residue_actual,
-        dao_actual,
-        asphalt_actual,
-        raff_actual,
-        extract_actual,
-        dor_actual,
-        slack_wax_actual,
-        // Tank farm stocks & LOC II flows
-        stock_hvi_95,
-        stock_hvi_160s,
-        stock_hvi_650,
-        flow_hvi_95_loc2,
-        flow_hvi_160s_loc2,
-        flow_hvi_650_loc2,
-        // Design / Target overrides
-        feu_design_override,
-        mdu_design_override,
-        feu_target_rph,
-        feu_target_sts,
-        mdu_target_rph,
-        mdu_target_sts,
-        _userOverrides,
-        _pbFallbacks,
-        ...restSavedFeuMdu
-      } = savedFeuMdu;
-
-      const pbFallbacks = {
-        hvu_actual,
-        pdu_actual,
-        feu_actual,
-        mdu_actual,
-        hos_actual,
-        spo_actual,
-        lmo_dist_actual,
-        mmo_dist_actual,
-        short_residue_actual,
-        dao_actual,
-        asphalt_actual,
-        raff_actual,
-        extract_actual,
-        dor_actual,
-        slack_wax_actual,
-        level_023c104,
-        level_cpi,
-        stock_hvi_95,
-        stock_hvi_160s,
-        stock_hvi_650,
-        flow_hvi_95_loc2,
-        flow_hvi_160s_loc2,
-        flow_hvi_650_loc2,
-      };
-
+      // Build clean FEU MDU data: ONLY operational & manual fields from PocketBase
+      // NO actual values, NO level values, NO stock values, NO achieved % from PocketBase!
       const cleanServerFeuMdu = {
         ...defaultFeuMdu,
-        ...restSavedFeuMdu,
-        ...topLevelOps,
+        // Statuses
+        pompa_hos: topLevelOps.pompa_hos || savedFeuMdu.pompa_hos || "-",
+        burner_fg_fo: topLevelOps.burner_fg_fo || savedFeuMdu.burner_fg_fo || "-",
+        status_pompa_cpi_a: topLevelOps.status_pompa_cpi_a || savedFeuMdu.status_pompa_cpi_a || "-",
+        status_pompa_cpi_b: topLevelOps.status_pompa_cpi_b || savedFeuMdu.status_pompa_cpi_b || "-",
+        visual_perairan: topLevelOps.visual_perairan || savedFeuMdu.visual_perairan || "-",
+        // Destination tanks (Penampung Produk)
+        dest_spo_dist: savedFeuMdu.dest_spo_dist ?? "-",
+        dest_lmo_dist: savedFeuMdu.dest_lmo_dist ?? "-",
+        dest_mmo_dist: savedFeuMdu.dest_mmo_dist ?? "-",
+        dest_short_residue: savedFeuMdu.dest_short_residue ?? "-",
+        dest_dao: savedFeuMdu.dest_dao ?? "-",
+        dest_asphalt: savedFeuMdu.dest_asphalt ?? "-",
+        dest_raffinate: savedFeuMdu.dest_raffinate ?? "-",
+        dest_extract: savedFeuMdu.dest_extract ?? "-",
+        dest_dor: savedFeuMdu.dest_dor ?? "-",
+        dest_slack_wax: savedFeuMdu.dest_slack_wax ?? "-",
+        // Target percentages (% RPH & % STS)
+        hvu_rph: savedFeuMdu.hvu_rph ?? "-",
+        hvu_sts: savedFeuMdu.hvu_sts ?? "-",
+        pdu_rph: savedFeuMdu.pdu_rph ?? "-",
+        pdu_sts: savedFeuMdu.pdu_sts ?? "-",
+        feu_rph: savedFeuMdu.feu_rph ?? "-",
+        feu_lmo_sts: savedFeuMdu.feu_lmo_sts ?? "-",
+        feu_mmo_sts: savedFeuMdu.feu_mmo_sts ?? "-",
+        feu_dao_sts: savedFeuMdu.feu_dao_sts ?? "-",
+        mdu_rph: savedFeuMdu.mdu_rph ?? "-",
+        mdu_lmo_sts: savedFeuMdu.mdu_lmo_sts ?? "-",
+        mdu_mmo_sts: savedFeuMdu.mdu_mmo_sts ?? "-",
+        mdu_dao_sts: savedFeuMdu.mdu_dao_sts ?? "-",
+        // Design values
+        feu_lmo_design: savedFeuMdu.feu_lmo_design ?? 2180,
+        feu_mmo_design: savedFeuMdu.feu_mmo_design ?? 2270,
+        feu_dao_design: savedFeuMdu.feu_dao_design ?? 1786,
+        mdu_lmo_design: savedFeuMdu.mdu_lmo_design ?? 841,
+        mdu_mmo_design: savedFeuMdu.mdu_mmo_design ?? 777,
+        mdu_dao_design: savedFeuMdu.mdu_dao_design ?? 501,
+        // Target T/D overrides if any
+        hvu_target_rph: savedFeuMdu.hvu_target_rph ?? "-",
+        hvu_target_sts: savedFeuMdu.hvu_target_sts ?? "-",
+        pdu_target_rph: savedFeuMdu.pdu_target_rph ?? "-",
+        pdu_target_sts: savedFeuMdu.pdu_target_sts ?? "-",
+        feu_target_rph: savedFeuMdu.feu_target_rph ?? "-",
+        feu_target_sts: savedFeuMdu.feu_target_sts ?? "-",
+        mdu_target_rph: savedFeuMdu.mdu_target_rph ?? "-",
+        mdu_target_sts: savedFeuMdu.mdu_target_sts ?? "-",
+        // Notes
+        note: savedFeuMdu.note ?? "",
+        // Flow LOC 3
+        flow_hvi_95_loc3: savedFeuMdu.flow_hvi_95_loc3 ?? 0,
+        flow_hvi_160s_loc3: savedFeuMdu.flow_hvi_160s_loc3 ?? 0,
+        flow_hvi_650_loc3: savedFeuMdu.flow_hvi_650_loc3 ?? 0,
+        // Live state flags
         _pbFallbacks: {},
         _userOverrides: {},
         _isViewingSaved: false,
       };
       setFeuMduData(cleanServerFeuMdu);
 
-      // Revert/update issues from server - empty if not present or empty on server
-      const savedOperational =
-        source?.issue_operational !== undefined && source?.issue_operational !== null
-          ? source.issue_operational
-          : archivePayload?.issue_operational;
+      // Issues from PocketBase
+      const savedOperational = source?.issue_operational;
       if (
         savedOperational &&
         (Array.isArray(savedOperational)
@@ -705,10 +635,7 @@ export default function App() {
         setIssueOperational([]);
       }
 
-      const savedMaintenance =
-        source?.issue_maintenance !== undefined && source?.issue_maintenance !== null
-          ? source.issue_maintenance
-          : archivePayload?.issue_maintenance;
+      const savedMaintenance = source?.issue_maintenance;
       if (
         savedMaintenance &&
         (Array.isArray(savedMaintenance)
@@ -720,46 +647,35 @@ export default function App() {
         setIssueMaintenance([]);
       }
 
-      // Query PHD Tags based on resolved serverModes and serverTanks
-      const activeTags = getActivePhdTags(serverModes, serverTanks);
-      let apiPhd = {};
-      try {
-        apiPhd = await fetchPhdData(activeTags, currentRange.start, currentRange.end);
-      } catch (err) {
-        console.error("fetchPhdData error:", err);
-      }
-
-      const apiLims = limsApiRes.status === "fulfilled" ? limsApiRes.value : null;
-
-      // PHD tags: strictly prioritize fresh API from PHD. Do not overwrite fresh data with stale DB snapshot.
-      if (apiPhd && Object.keys(apiPhd).length > 0) {
-        setPhdData(apiPhd);
-      } else if (archivePayload?.phd_data_snapshot) {
-        setPhdData(archivePayload.phd_data_snapshot);
+      // 2. PHD Data: strictly from fresh PHD API (NEVER PocketBase!)
+      if (phdApiRes.status === "fulfilled" && phdApiRes.value && Object.keys(phdApiRes.value).length > 0) {
+        setPhdData(phdApiRes.value);
       } else {
-        setPhdData({});
+        // If query was made with initial modes and serverModes was different, re-fetch with serverModes
+        if (serverModes.unit023 !== unitModes.unit023 || serverModes.unit024 !== unitModes.unit024) {
+          const freshTags = getActivePhdTags(serverModes, serverTanks);
+          try {
+            const rePhd = await fetchPhdData(freshTags, currentRange.start, currentRange.end);
+            setPhdData(rePhd || {});
+          } catch {
+            setPhdData({});
+          }
+        } else {
+          setPhdData({});
+        }
       }
 
-      // LIMS samples: strictly prioritize fresh API from LIMS.
+      // 3. LIMS Data: strictly from fresh LIMS API (NEVER PocketBase!)
+      const apiLims = limsApiRes.status === "fulfilled" ? limsApiRes.value : null;
       if (apiLims?.samples && Object.keys(apiLims.samples).length > 0) {
         setLimsData(apiLims);
-      } else if (archivePayload?.lims_snapshot?.samples) {
-        setLimsData({
-          samples: archivePayload.lims_snapshot.samples,
-          shift: archivePayload.lims_snapshot.shift || "Malam",
-        });
       } else {
-        setLimsData({
-          samples: {},
-          shift: "Malam",
-        });
+        setLimsData({ samples: {}, shift: "Malam" });
       }
 
       setLastSavedTime(
         reportData?.updated ||
           reportData?.created ||
-          archiveData?.created ||
-          archivePayload?.saved_at ||
           new Date().toISOString()
       );
     } catch (err) {
@@ -770,6 +686,7 @@ export default function App() {
   }, [
     dateRange,
     phdPreset,
+    unitModes,
     tanks,
     normalizeOperationalIssues,
     normalizeMaintenanceIssues,
