@@ -53,15 +53,33 @@ export default function DailyReport({
       : null;
   };
 
+  // Helper to check if a PHD tag has a valid numeric reading
+  const hasPhdTag = (tagName) => {
+    const val = getPhdTag(tagName);
+    return val !== null && val !== undefined && !isNaN(val);
+  };
+
+  // Flag to check if we are viewing a saved historical report from PocketBase
+  const isViewingSaved = Boolean(feuMduData?._isViewingSaved);
+
   // Calculations for Kapasitas Feed
   // Unit 021 HVU II
   const hvuFlow = getPhdTag("021FI_004.pv");
   const hvuSg = getPhdTag("021FY_004X.C1");
+  const hasPhdHvu = hasPhdTag("021FI_004.pv");
   const calculatedHvuActual = calculateActualTD(hvuFlow, hvuSg) ?? 0;
-  const hvuActual =
-    feuMduData?.hvu_actual !== undefined
-      ? feuMduData.hvu_actual
-      : calculatedHvuActual;
+  const pbFallbackHvu = feuMduData?._pbFallbacks?.hvu_actual;
+  const isHvuOverridden = Boolean(
+    feuMduData?._userOverrides?.hvu_actual ||
+      (isViewingSaved && feuMduData?.hvu_actual !== undefined),
+  );
+  const hvuActual = isHvuOverridden
+    ? feuMduData.hvu_actual
+    : hasPhdHvu
+      ? calculatedHvuActual
+      : (feuMduData?.hvu_actual !== undefined
+          ? feuMduData.hvu_actual
+          : (pbFallbackHvu !== undefined ? pbFallbackHvu : calculatedHvuActual));
   const hvuDesign =
     feuMduData?.hvu_design !== undefined
       ? feuMduData.hvu_design
@@ -81,31 +99,43 @@ export default function DailyReport({
       : (calculatedHvuTargetSts ?? "-");
   const calculatedHvuPercentDesign =
     calculateAchievedPercent(hvuActual, hvuDesign) ?? "0";
-  const hvuPercentDesign =
-    feuMduData?.hvu_percent_design !== undefined
-      ? feuMduData.hvu_percent_design
-      : calculatedHvuPercentDesign;
+  const hvuPercentDesign = feuMduData?._userOverrides?.hvu_percent_design
+    ? feuMduData.hvu_percent_design
+    : (feuMduData?.hvu_percent_design !== undefined
+        ? feuMduData.hvu_percent_design
+        : calculatedHvuPercentDesign);
   const calculatedHvuPercentRph =
     calculateAchievedPercent(hvuActual, hvuTargetRph) ?? "-";
-  const hvuPercentRph =
-    feuMduData?.hvu_percent_rph !== undefined
-      ? feuMduData.hvu_percent_rph
-      : calculatedHvuPercentRph;
+  const hvuPercentRph = feuMduData?._userOverrides?.hvu_percent_rph
+    ? feuMduData.hvu_percent_rph
+    : (feuMduData?.hvu_percent_rph !== undefined
+        ? feuMduData.hvu_percent_rph
+        : calculatedHvuPercentRph);
   const calculatedHvuPercentSts =
     calculateAchievedPercent(hvuActual, hvuTargetSts) ?? "-";
-  const hvuPercentSts =
-    feuMduData?.hvu_percent_sts !== undefined
-      ? feuMduData.hvu_percent_sts
-      : calculatedHvuPercentSts;
+  const hvuPercentSts = feuMduData?._userOverrides?.hvu_percent_sts
+    ? feuMduData.hvu_percent_sts
+    : (feuMduData?.hvu_percent_sts !== undefined
+        ? feuMduData.hvu_percent_sts
+        : calculatedHvuPercentSts);
 
   // Unit 022 PDU II
   const pduFlow = getPhdTag("022FI_001.pv");
   const pduSg = getPhdTag("022FY_001X.C1");
+  const hasPhdPdu = hasPhdTag("022FI_001.pv");
   const calculatedPduActual = calculateActualTD(pduFlow, pduSg) ?? 0;
-  const pduActual =
-    feuMduData?.pdu_actual !== undefined
-      ? feuMduData.pdu_actual
-      : calculatedPduActual;
+  const pbFallbackPdu = feuMduData?._pbFallbacks?.pdu_actual;
+  const isPduOverridden = Boolean(
+    feuMduData?._userOverrides?.pdu_actual ||
+      (isViewingSaved && feuMduData?.pdu_actual !== undefined),
+  );
+  const pduActual = isPduOverridden
+    ? feuMduData.pdu_actual
+    : hasPhdPdu
+      ? calculatedPduActual
+      : (feuMduData?.pdu_actual !== undefined
+          ? feuMduData.pdu_actual
+          : (pbFallbackPdu !== undefined ? pbFallbackPdu : calculatedPduActual));
   const pduDesign =
     feuMduData?.pdu_design !== undefined
       ? feuMduData.pdu_design
@@ -125,22 +155,25 @@ export default function DailyReport({
       : (calculatedPduTargetSts ?? "-");
   const calculatedPduPercentDesign =
     calculateAchievedPercent(pduActual, pduDesign) ?? "0";
-  const pduPercentDesign =
-    feuMduData?.pdu_percent_design !== undefined
-      ? feuMduData.pdu_percent_design
-      : calculatedPduPercentDesign;
+  const pduPercentDesign = feuMduData?._userOverrides?.pdu_percent_design
+    ? feuMduData.pdu_percent_design
+    : (feuMduData?.pdu_percent_design !== undefined
+        ? feuMduData.pdu_percent_design
+        : calculatedPduPercentDesign);
   const calculatedPduPercentRph =
     calculateAchievedPercent(pduActual, pduTargetRph) ?? "-";
-  const pduPercentRph =
-    feuMduData?.pdu_percent_rph !== undefined
-      ? feuMduData.pdu_percent_rph
-      : calculatedPduPercentRph;
+  const pduPercentRph = feuMduData?._userOverrides?.pdu_percent_rph
+    ? feuMduData.pdu_percent_rph
+    : (feuMduData?.pdu_percent_rph !== undefined
+        ? feuMduData.pdu_percent_rph
+        : calculatedPduPercentRph);
   const calculatedPduPercentSts =
     calculateAchievedPercent(pduActual, pduTargetSts) ?? "-";
-  const pduPercentSts =
-    feuMduData?.pdu_percent_sts !== undefined
-      ? feuMduData.pdu_percent_sts
-      : calculatedPduPercentSts;
+  const pduPercentSts = feuMduData?._userOverrides?.pdu_percent_sts
+    ? feuMduData.pdu_percent_sts
+    : (feuMduData?.pdu_percent_sts !== undefined
+        ? feuMduData.pdu_percent_sts
+        : calculatedPduPercentSts);
 
   // Unit 023 FEU II (Active Mode: LMO / MMO / DAO)
   const feuMode = unitModes?.unit023 || "MMO";
@@ -175,29 +208,41 @@ export default function DailyReport({
   const feuTargetSts = calculatedFeuTargetSts ?? "-";
   const feuFlow = getPhdTag(feuTagFlow) ?? getPhdTag("023FI_004.pv");
   const feuSg = getPhdTag(feuTagSg);
+  const hasPhdFeu = hasPhdTag(feuTagFlow) || hasPhdTag("023FI_004.pv");
   const calculatedFeuActual = calculateActualTD(feuFlow, feuSg) ?? 0;
-  const feuActual =
-    feuMduData?.feu_actual !== undefined
-      ? feuMduData.feu_actual
-      : calculatedFeuActual;
+  const pbFallbackFeu = feuMduData?._pbFallbacks?.feu_actual;
+  const isFeuOverridden = Boolean(
+    feuMduData?._userOverrides?.feu_actual ||
+      (isViewingSaved && feuMduData?.feu_actual !== undefined),
+  );
+  const feuActual = isFeuOverridden
+    ? feuMduData.feu_actual
+    : hasPhdFeu
+      ? calculatedFeuActual
+      : (feuMduData?.feu_actual !== undefined
+          ? feuMduData.feu_actual
+          : (pbFallbackFeu !== undefined ? pbFallbackFeu : calculatedFeuActual));
   const calculatedFeuPercentDesign =
     calculateAchievedPercent(feuActual, feuDesign) ?? "0";
-  const feuPercentDesign =
-    feuMduData?.feu_percent_design !== undefined
-      ? feuMduData.feu_percent_design
-      : calculatedFeuPercentDesign;
+  const feuPercentDesign = feuMduData?._userOverrides?.feu_percent_design
+    ? feuMduData.feu_percent_design
+    : (feuMduData?.feu_percent_design !== undefined
+        ? feuMduData.feu_percent_design
+        : calculatedFeuPercentDesign);
   const calculatedFeuPercentRph =
     calculateAchievedPercent(feuActual, feuTargetRph) ?? "-";
-  const feuPercentRph =
-    feuMduData?.feu_percent_rph !== undefined
-      ? feuMduData.feu_percent_rph
-      : calculatedFeuPercentRph;
+  const feuPercentRph = feuMduData?._userOverrides?.feu_percent_rph
+    ? feuMduData.feu_percent_rph
+    : (feuMduData?.feu_percent_rph !== undefined
+        ? feuMduData.feu_percent_rph
+        : calculatedFeuPercentRph);
   const calculatedFeuPercentSts =
     calculateAchievedPercent(feuActual, feuTargetSts) ?? "-";
-  const feuPercentSts =
-    feuMduData?.feu_percent_sts !== undefined
-      ? feuMduData.feu_percent_sts
-      : calculatedFeuPercentSts;
+  const feuPercentSts = feuMduData?._userOverrides?.feu_percent_sts
+    ? feuMduData.feu_percent_sts
+    : (feuMduData?.feu_percent_sts !== undefined
+        ? feuMduData.feu_percent_sts
+        : calculatedFeuPercentSts);
 
   // Unit 024 MDU II (Active Mode: LMO / MMO / DAO)
   const mduMode = unitModes?.unit024 || "LMO";
@@ -231,31 +276,43 @@ export default function DailyReport({
   const mduTargetSts = calculatedMduTargetSts ?? "-";
   const mduFlow = getPhdTag("024FIC_001.pv") ?? getPhdTag("024FI_001.pv");
   const mduSg = getPhdTag(mduTagSg) ?? 0.85;
+  const hasPhdMdu = hasPhdTag("024FIC_001.pv") || hasPhdTag("024FI_001.pv");
   const calculatedMduActual =
     calculateActualTD(mduFlow, mduSg) ??
     (mduFlow ? Math.round(Number(mduFlow) * 0.85 * 24) : 0);
-  const mduActual =
-    feuMduData?.mdu_actual !== undefined
-      ? feuMduData.mdu_actual
-      : calculatedMduActual;
+  const pbFallbackMdu = feuMduData?._pbFallbacks?.mdu_actual;
+  const isMduOverridden = Boolean(
+    feuMduData?._userOverrides?.mdu_actual ||
+      (isViewingSaved && feuMduData?.mdu_actual !== undefined),
+  );
+  const mduActual = isMduOverridden
+    ? feuMduData.mdu_actual
+    : hasPhdMdu
+      ? calculatedMduActual
+      : (feuMduData?.mdu_actual !== undefined
+          ? feuMduData.mdu_actual
+          : (pbFallbackMdu !== undefined ? pbFallbackMdu : calculatedMduActual));
   const calculatedMduPercentDesign =
     calculateAchievedPercent(mduActual, mduDesign) ?? "0";
-  const mduPercentDesign =
-    feuMduData?.mdu_percent_design !== undefined
-      ? feuMduData.mdu_percent_design
-      : calculatedMduPercentDesign;
+  const mduPercentDesign = feuMduData?._userOverrides?.mdu_percent_design
+    ? feuMduData.mdu_percent_design
+    : (feuMduData?.mdu_percent_design !== undefined
+        ? feuMduData.mdu_percent_design
+        : calculatedMduPercentDesign);
   const calculatedMduPercentRph =
     calculateAchievedPercent(mduActual, mduTargetRph) ?? "-";
-  const mduPercentRph =
-    feuMduData?.mdu_percent_rph !== undefined
-      ? feuMduData.mdu_percent_rph
-      : calculatedMduPercentRph;
+  const mduPercentRph = feuMduData?._userOverrides?.mdu_percent_rph
+    ? feuMduData.mdu_percent_rph
+    : (feuMduData?.mdu_percent_rph !== undefined
+        ? feuMduData.mdu_percent_rph
+        : calculatedMduPercentRph);
   const calculatedMduPercentSts =
     calculateAchievedPercent(mduActual, mduTargetSts) ?? "-";
-  const mduPercentSts =
-    feuMduData?.mdu_percent_sts !== undefined
-      ? feuMduData.mdu_percent_sts
-      : calculatedMduPercentSts;
+  const mduPercentSts = feuMduData?._userOverrides?.mdu_percent_sts
+    ? feuMduData.mdu_percent_sts
+    : (feuMduData?.mdu_percent_sts !== undefined
+        ? feuMduData.mdu_percent_sts
+        : calculatedMduPercentSts);
 
   // Render % RPH and % STS cell with circle dot on left (green >= 100, red < 100) and editable input
   // Render % RPH and % STS cell with circle dot on left (green >= 100, yellow < 100) and editable input
@@ -310,34 +367,62 @@ export default function DailyReport({
 
   // Unit 025 HOS II & Levels
   const hosFlow = getPhdTag("025FIC_004.pv") ?? getPhdTag("025FI_004.pv");
-  const hosSg = getPhdTag("021FY_058X.C1");
+  const hosSg = getPhdTag("021FY_058X.C1") ?? getPhdTag("025FY_004X.PV") ?? 0.88;
+  const hasPhdHos = hasPhdTag("025FIC_004.pv") || hasPhdTag("025FI_004.pv");
   const calculatedHosActual = calculateActualTD(hosFlow, hosSg) ?? 0;
-  const hosActual =
-    feuMduData?.hos_actual !== undefined
-      ? feuMduData.hos_actual
-      : calculatedHosActual;
+  const pbFallbackHos = feuMduData?._pbFallbacks?.hos_actual;
+  const isHosOverridden = Boolean(
+    feuMduData?._userOverrides?.hos_actual ||
+      (isViewingSaved && feuMduData?.hos_actual !== undefined),
+  );
+  const hosActual = isHosOverridden
+    ? feuMduData.hos_actual
+    : hasPhdHos
+      ? calculatedHosActual
+      : (feuMduData?.hos_actual !== undefined
+          ? feuMduData.hos_actual
+          : (pbFallbackHos !== undefined ? pbFallbackHos : calculatedHosActual));
 
   const rawLevel023 = getPhdTag("023LI_005.PV");
+  const hasPhdLevel023 = hasPhdTag("023LI_005.PV");
   const calculatedLevel023C104 =
     rawLevel023 !== null ? rawLevel023.toFixed(1) : "0";
-  const level023C104 =
-    feuMduData?.level_023c104 !== undefined
-      ? feuMduData.level_023c104
-      : calculatedLevel023C104;
+  const pbFallbackLevel023 = feuMduData?._pbFallbacks?.level_023c104;
+  const isLevel023Overridden = Boolean(
+    feuMduData?._userOverrides?.level_023c104 ||
+      (isViewingSaved && feuMduData?.level_023c104 !== undefined),
+  );
+  const level023C104 = isLevel023Overridden
+    ? feuMduData.level_023c104
+    : hasPhdLevel023
+      ? calculatedLevel023C104
+      : (feuMduData?.level_023c104 !== undefined
+          ? feuMduData.level_023c104
+          : (pbFallbackLevel023 !== undefined ? pbFallbackLevel023 : calculatedLevel023C104));
 
   const rawLevelCpi = getPhdTag("002LI_051.PV");
+  const hasPhdLevelCpi = hasPhdTag("002LI_051.PV");
   const calculatedLevelCpi =
     rawLevelCpi !== null ? rawLevelCpi.toFixed(1) : "0";
-  const levelCpi =
-    feuMduData?.level_cpi !== undefined
-      ? feuMduData.level_cpi
-      : calculatedLevelCpi;
+  const pbFallbackLevelCpi = feuMduData?._pbFallbacks?.level_cpi;
+  const isLevelCpiOverridden = Boolean(
+    feuMduData?._userOverrides?.level_cpi ||
+      (isViewingSaved && feuMduData?.level_cpi !== undefined),
+  );
+  const levelCpi = isLevelCpiOverridden
+    ? feuMduData.level_cpi
+    : hasPhdLevelCpi
+      ? calculatedLevelCpi
+      : (feuMduData?.level_cpi !== undefined
+          ? feuMduData.level_cpi
+          : (pbFallbackLevelCpi !== undefined ? pbFallbackLevelCpi : calculatedLevelCpi));
 
   // Tank Farm Product Stocks (Tons calculated from tank dimensions and tag levels)
   const tanksHvi95 = ["41T-101", "41T-102", "41T-104"];
   const tanksHvi160S = ["41T-103", "41T-107", "41T-108"];
   const tanksHvi650 = ["41T-105", "41T-106", "41T-109", "41T-110"];
 
+  const hasPhdTankLevels = tanks.some((t) => hasPhdTag(t.tag_level));
   const defaultStockHvi95 =
     calculateProductGroupTons(tanksHvi95, tanks, phdData) || 0;
   const defaultStockHvi160S =
@@ -345,18 +430,33 @@ export default function DailyReport({
   const defaultStockHvi650 =
     calculateProductGroupTons(tanksHvi650, tanks, phdData) || 0;
 
-  const calculatedStockHvi95 =
-    feuMduData?.stock_hvi_95 !== undefined
-      ? feuMduData.stock_hvi_95
-      : defaultStockHvi95;
-  const calculatedStockHvi160S =
-    feuMduData?.stock_hvi_160s !== undefined
-      ? feuMduData.stock_hvi_160s
-      : defaultStockHvi160S;
-  const calculatedStockHvi650 =
-    feuMduData?.stock_hvi_650 !== undefined
-      ? feuMduData.stock_hvi_650
-      : defaultStockHvi650;
+  const pbFallbackStock95 = feuMduData?._pbFallbacks?.stock_hvi_95;
+  const pbFallbackStock160s = feuMduData?._pbFallbacks?.stock_hvi_160s;
+  const pbFallbackStock650 = feuMduData?._pbFallbacks?.stock_hvi_650;
+
+  const calculatedStockHvi95 = (feuMduData?._userOverrides?.stock_hvi_95 || (isViewingSaved && feuMduData?.stock_hvi_95 !== undefined))
+    ? feuMduData.stock_hvi_95
+    : hasPhdTankLevels
+      ? defaultStockHvi95
+      : (feuMduData?.stock_hvi_95 !== undefined
+          ? feuMduData.stock_hvi_95
+          : (pbFallbackStock95 !== undefined ? pbFallbackStock95 : defaultStockHvi95));
+
+  const calculatedStockHvi160S = (feuMduData?._userOverrides?.stock_hvi_160s || (isViewingSaved && feuMduData?.stock_hvi_160s !== undefined))
+    ? feuMduData.stock_hvi_160s
+    : hasPhdTankLevels
+      ? defaultStockHvi160S
+      : (feuMduData?.stock_hvi_160s !== undefined
+          ? feuMduData.stock_hvi_160s
+          : (pbFallbackStock160s !== undefined ? pbFallbackStock160s : defaultStockHvi160S));
+
+  const calculatedStockHvi650 = (feuMduData?._userOverrides?.stock_hvi_650 || (isViewingSaved && feuMduData?.stock_hvi_650 !== undefined))
+    ? feuMduData.stock_hvi_650
+    : hasPhdTankLevels
+      ? defaultStockHvi650
+      : (feuMduData?.stock_hvi_650 !== undefined
+          ? feuMduData.stock_hvi_650
+          : (pbFallbackStock650 !== undefined ? pbFallbackStock650 : defaultStockHvi650));
 
   // Unit 023 Produksi sample code based on active mode (LMO: 02302, MMO: 02302M, DAO: 02302D)
   let sampleCode023 = "02302";
@@ -382,53 +482,107 @@ export default function DailyReport({
   // Unit 021 HVU II
   const spoFlow = getPhdTag("021FIC_058.PV");
   const spoSg = getPhdTag("021FY_058X.C1");
+  const hasPhdSpo = hasPhdTag("021FIC_058.PV");
   const calculatedSpoActual = calculateActualTD(spoFlow, spoSg) ?? 0;
-  const spoActual =
-    feuMduData?.spo_actual !== undefined
-      ? feuMduData.spo_actual
-      : calculatedSpoActual;
+  const pbFallbackSpo = feuMduData?._pbFallbacks?.spo_actual;
+  const isSpoOverridden = Boolean(
+    feuMduData?._userOverrides?.spo_actual ||
+      (isViewingSaved && feuMduData?.spo_actual !== undefined),
+  );
+  const spoActual = isSpoOverridden
+    ? feuMduData.spo_actual
+    : hasPhdSpo
+      ? calculatedSpoActual
+      : (feuMduData?.spo_actual !== undefined
+          ? feuMduData.spo_actual
+          : (pbFallbackSpo !== undefined ? pbFallbackSpo : calculatedSpoActual));
 
   const lmoDistFlow = getPhdTag("021FIC_057.PV");
   const lmoDistSg = getPhdTag("021FY_057X.C1");
+  const hasPhdLmoDist = hasPhdTag("021FIC_057.PV");
   const calculatedLmoDistActual = calculateActualTD(lmoDistFlow, lmoDistSg) ?? 0;
-  const lmoDistActual =
-    feuMduData?.lmo_dist_actual !== undefined
-      ? feuMduData.lmo_dist_actual
-      : calculatedLmoDistActual;
+  const pbFallbackLmoDist = feuMduData?._pbFallbacks?.lmo_dist_actual;
+  const isLmoDistOverridden = Boolean(
+    feuMduData?._userOverrides?.lmo_dist_actual ||
+      (isViewingSaved && feuMduData?.lmo_dist_actual !== undefined),
+  );
+  const lmoDistActual = isLmoDistOverridden
+    ? feuMduData.lmo_dist_actual
+    : hasPhdLmoDist
+      ? calculatedLmoDistActual
+      : (feuMduData?.lmo_dist_actual !== undefined
+          ? feuMduData.lmo_dist_actual
+          : (pbFallbackLmoDist !== undefined ? pbFallbackLmoDist : calculatedLmoDistActual));
 
   const mmoDistFlow = getPhdTag("021FI_008.PV");
   const mmoDistSg = getPhdTag("021FY_008X.c1");
+  const hasPhdMmoDist = hasPhdTag("021FI_008.PV");
   const calculatedMmoDistActual = calculateActualTD(mmoDistFlow, mmoDistSg) ?? 0;
-  const mmoDistActual =
-    feuMduData?.mmo_dist_actual !== undefined
-      ? feuMduData.mmo_dist_actual
-      : calculatedMmoDistActual;
+  const pbFallbackMmoDist = feuMduData?._pbFallbacks?.mmo_dist_actual;
+  const isMmoDistOverridden = Boolean(
+    feuMduData?._userOverrides?.mmo_dist_actual ||
+      (isViewingSaved && feuMduData?.mmo_dist_actual !== undefined),
+  );
+  const mmoDistActual = isMmoDistOverridden
+    ? feuMduData.mmo_dist_actual
+    : hasPhdMmoDist
+      ? calculatedMmoDistActual
+      : (feuMduData?.mmo_dist_actual !== undefined
+          ? feuMduData.mmo_dist_actual
+          : (pbFallbackMmoDist !== undefined ? pbFallbackMmoDist : calculatedMmoDistActual));
 
   const shortResidueFlow = getPhdTag("021FI_002.PV");
   const shortResidueSg = getPhdTag("021FY_002X.C1");
+  const hasPhdShortResidue = hasPhdTag("021FI_002.PV");
   const calculatedShortResidueActual =
     calculateActualTD(shortResidueFlow, shortResidueSg) ?? 0;
-  const shortResidueActual =
-    feuMduData?.short_residue_actual !== undefined
-      ? feuMduData.short_residue_actual
-      : calculatedShortResidueActual;
+  const pbFallbackShortResidue = feuMduData?._pbFallbacks?.short_residue_actual;
+  const isShortResidueOverridden = Boolean(
+    feuMduData?._userOverrides?.short_residue_actual ||
+      (isViewingSaved && feuMduData?.short_residue_actual !== undefined),
+  );
+  const shortResidueActual = isShortResidueOverridden
+    ? feuMduData.short_residue_actual
+    : hasPhdShortResidue
+      ? calculatedShortResidueActual
+      : (feuMduData?.short_residue_actual !== undefined
+          ? feuMduData.short_residue_actual
+          : (pbFallbackShortResidue !== undefined ? pbFallbackShortResidue : calculatedShortResidueActual));
 
   // Unit 022 PDU II
   const daoFlow = getPhdTag("022FI_007.PV");
   const daoSg = getPhdTag("022FY_007X.C1");
+  const hasPhdDao = hasPhdTag("022FI_007.PV");
   const calculatedDaoActual = calculateActualTD(daoFlow, daoSg) ?? 0;
-  const daoActual =
-    feuMduData?.dao_actual !== undefined
-      ? feuMduData.dao_actual
-      : calculatedDaoActual;
+  const pbFallbackDao = feuMduData?._pbFallbacks?.dao_actual;
+  const isDaoOverridden = Boolean(
+    feuMduData?._userOverrides?.dao_actual ||
+      (isViewingSaved && feuMduData?.dao_actual !== undefined),
+  );
+  const daoActual = isDaoOverridden
+    ? feuMduData.dao_actual
+    : hasPhdDao
+      ? calculatedDaoActual
+      : (feuMduData?.dao_actual !== undefined
+          ? feuMduData.dao_actual
+          : (pbFallbackDao !== undefined ? pbFallbackDao : calculatedDaoActual));
 
   const asphaltFlow = getPhdTag("022FI_013.PV");
   const asphaltSg = getPhdTag("022FY_013X.C1");
+  const hasPhdAsphalt = hasPhdTag("022FI_013.PV");
   const calculatedAsphaltActual = calculateActualTD(asphaltFlow, asphaltSg) ?? 0;
-  const asphaltActual =
-    feuMduData?.asphalt_actual !== undefined
-      ? feuMduData.asphalt_actual
-      : calculatedAsphaltActual;
+  const pbFallbackAsphalt = feuMduData?._pbFallbacks?.asphalt_actual;
+  const isAsphaltOverridden = Boolean(
+    feuMduData?._userOverrides?.asphalt_actual ||
+      (isViewingSaved && feuMduData?.asphalt_actual !== undefined),
+  );
+  const asphaltActual = isAsphaltOverridden
+    ? feuMduData.asphalt_actual
+    : hasPhdAsphalt
+      ? calculatedAsphaltActual
+      : (feuMduData?.asphalt_actual !== undefined
+          ? feuMduData.asphalt_actual
+          : (pbFallbackAsphalt !== undefined ? pbFallbackAsphalt : calculatedAsphaltActual));
 
   // Unit 023 FEU II
   const raffFlow1 = getPhdTag("023FI_031.PV");
@@ -437,26 +591,44 @@ export default function DailyReport({
   if (feuMode === "LMO") raffSgTag = "023FY_031BX.C1";
   else if (feuMode === "DAO") raffSgTag = "023FY_031DX.C1";
   const raffSg = getPhdTag(raffSgTag);
+  const hasPhdRaff = hasPhdTag("023FI_031.PV") || hasPhdTag("023FI_703.PV");
   const totalRaffFlow =
     raffFlow1 !== null || raffFlow2 !== null
       ? Number(raffFlow1 || 0) + Number(raffFlow2 || 0)
       : null;
   const calculatedRaffActual = calculateActualTD(totalRaffFlow, raffSg) ?? 0;
-  const raffActual =
-    feuMduData?.raff_actual !== undefined
-      ? feuMduData.raff_actual
-      : calculatedRaffActual;
+  const pbFallbackRaff = feuMduData?._pbFallbacks?.raff_actual;
+  const isRaffOverridden = Boolean(
+    feuMduData?._userOverrides?.raff_actual ||
+      (isViewingSaved && feuMduData?.raff_actual !== undefined),
+  );
+  const raffActual = isRaffOverridden
+    ? feuMduData.raff_actual
+    : hasPhdRaff
+      ? calculatedRaffActual
+      : (feuMduData?.raff_actual !== undefined
+          ? feuMduData.raff_actual
+          : (pbFallbackRaff !== undefined ? pbFallbackRaff : calculatedRaffActual));
 
   const extractFlow = getPhdTag("023FI_028.pv") ?? getPhdTag("023FI_028.PV");
   let extractSgTag = "023FY_028CX.C1";
   if (feuMode === "LMO") extractSgTag = "023FY_028BX.C1";
   else if (feuMode === "DAO") extractSgTag = "023FY_028DX.C1";
   const extractSg = getPhdTag(extractSgTag);
+  const hasPhdExtract = hasPhdTag("023FI_028.pv") || hasPhdTag("023FI_028.PV");
   const calculatedExtractActual = calculateActualTD(extractFlow, extractSg) ?? 0;
-  const extractActual =
-    feuMduData?.extract_actual !== undefined
-      ? feuMduData.extract_actual
-      : calculatedExtractActual;
+  const pbFallbackExtract = feuMduData?._pbFallbacks?.extract_actual;
+  const isExtractOverridden = Boolean(
+    feuMduData?._userOverrides?.extract_actual ||
+      (isViewingSaved && feuMduData?.extract_actual !== undefined),
+  );
+  const extractActual = isExtractOverridden
+    ? feuMduData.extract_actual
+    : hasPhdExtract
+      ? calculatedExtractActual
+      : (feuMduData?.extract_actual !== undefined
+          ? feuMduData.extract_actual
+          : (pbFallbackExtract !== undefined ? pbFallbackExtract : calculatedExtractActual));
 
   // Unit 024 MDU II
   const dorFlow = getPhdTag("024FI_023.PV");
@@ -464,13 +636,22 @@ export default function DailyReport({
   if (mduMode === "MMO") dorSgTag = "024FY_023CX.C1";
   else if (mduMode === "DAO") dorSgTag = "024FY_023DX.C1";
   const dorSg = getPhdTag(dorSgTag) ?? 0.88;
+  const hasPhdDor = hasPhdTag("024FI_023.PV");
   const calculatedDorActual = calculateActualTD(dorFlow, dorSg) ?? 0;
-  const dorActual =
-    feuMduData?.dor_actual !== undefined &&
-    feuMduData?.dor_actual !== null &&
-    feuMduData?.dor_actual !== ""
-      ? feuMduData.dor_actual
-      : calculatedDorActual;
+  const pbFallbackDor = feuMduData?._pbFallbacks?.dor_actual;
+  const isDorOverridden = Boolean(
+    feuMduData?._userOverrides?.dor_actual ||
+      (isViewingSaved && feuMduData?.dor_actual !== undefined),
+  );
+  const dorActual = isDorOverridden
+    ? feuMduData.dor_actual
+    : hasPhdDor
+      ? calculatedDorActual
+      : (feuMduData?.dor_actual !== undefined &&
+         feuMduData?.dor_actual !== null &&
+         feuMduData?.dor_actual !== ""
+          ? feuMduData.dor_actual
+          : (pbFallbackDor !== undefined ? pbFallbackDor : calculatedDorActual));
 
   // Tank Farm LOC II Flow Product based on active Unit 024 MDU II Mode:
   // LMO -> HVI 95, MMO -> HVI 160S, DAO -> HVI 650. Non-active modes display 0.
@@ -478,26 +659,39 @@ export default function DailyReport({
   const defaultFlowHvi160sLoc2 = mduMode === "MMO" ? dorActual : 0;
   const defaultFlowHvi650Loc2 = mduMode === "DAO" ? dorActual : 0;
 
-  const flowHvi95Loc2 =
-    feuMduData?.flow_hvi_95_loc2 !== undefined &&
-    feuMduData?.flow_hvi_95_loc2 !== null &&
-    feuMduData?.flow_hvi_95_loc2 !== ""
-      ? feuMduData.flow_hvi_95_loc2
-      : defaultFlowHvi95Loc2;
+  const pbFallbackFlow95 = feuMduData?._pbFallbacks?.flow_hvi_95_loc2;
+  const pbFallbackFlow160s = feuMduData?._pbFallbacks?.flow_hvi_160s_loc2;
+  const pbFallbackFlow650 = feuMduData?._pbFallbacks?.flow_hvi_650_loc2;
 
-  const flowHvi160sLoc2 =
-    feuMduData?.flow_hvi_160s_loc2 !== undefined &&
-    feuMduData?.flow_hvi_160s_loc2 !== null &&
-    feuMduData?.flow_hvi_160s_loc2 !== ""
-      ? feuMduData.flow_hvi_160s_loc2
-      : defaultFlowHvi160sLoc2;
+  const flowHvi95Loc2 = (feuMduData?._userOverrides?.flow_hvi_95_loc2 || (isViewingSaved && feuMduData?.flow_hvi_95_loc2 !== undefined))
+    ? feuMduData.flow_hvi_95_loc2
+    : hasPhdDor
+      ? defaultFlowHvi95Loc2
+      : (feuMduData?.flow_hvi_95_loc2 !== undefined &&
+         feuMduData?.flow_hvi_95_loc2 !== null &&
+         feuMduData?.flow_hvi_95_loc2 !== ""
+          ? feuMduData.flow_hvi_95_loc2
+          : (pbFallbackFlow95 !== undefined ? pbFallbackFlow95 : defaultFlowHvi95Loc2));
 
-  const flowHvi650Loc2 =
-    feuMduData?.flow_hvi_650_loc2 !== undefined &&
-    feuMduData?.flow_hvi_650_loc2 !== null &&
-    feuMduData?.flow_hvi_650_loc2 !== ""
-      ? feuMduData.flow_hvi_650_loc2
-      : defaultFlowHvi650Loc2;
+  const flowHvi160sLoc2 = (feuMduData?._userOverrides?.flow_hvi_160s_loc2 || (isViewingSaved && feuMduData?.flow_hvi_160s_loc2 !== undefined))
+    ? feuMduData.flow_hvi_160s_loc2
+    : hasPhdDor
+      ? defaultFlowHvi160sLoc2
+      : (feuMduData?.flow_hvi_160s_loc2 !== undefined &&
+         feuMduData?.flow_hvi_160s_loc2 !== null &&
+         feuMduData?.flow_hvi_160s_loc2 !== ""
+          ? feuMduData.flow_hvi_160s_loc2
+          : (pbFallbackFlow160s !== undefined ? pbFallbackFlow160s : defaultFlowHvi160sLoc2));
+
+  const flowHvi650Loc2 = (feuMduData?._userOverrides?.flow_hvi_650_loc2 || (isViewingSaved && feuMduData?.flow_hvi_650_loc2 !== undefined))
+    ? feuMduData.flow_hvi_650_loc2
+    : hasPhdDor
+      ? defaultFlowHvi650Loc2
+      : (feuMduData?.flow_hvi_650_loc2 !== undefined &&
+         feuMduData?.flow_hvi_650_loc2 !== null &&
+         feuMduData?.flow_hvi_650_loc2 !== ""
+          ? feuMduData.flow_hvi_650_loc2
+          : (pbFallbackFlow650 !== undefined ? pbFallbackFlow650 : defaultFlowHvi650Loc2));
 
   // Tank Farm LOC III Flow Product (editable, defaults 0, 0, 256)
   const flowHvi95Loc3 =
@@ -520,10 +714,18 @@ export default function DailyReport({
     0,
     Math.round(((Number(mduActual) || 0) - (Number(dorActual) || 0)) * 10) / 10,
   );
-  const slackWaxActual =
-    feuMduData?.slack_wax_actual !== undefined
-      ? feuMduData.slack_wax_actual
-      : calculatedSlackWaxActual;
+  const pbFallbackSlackWax = feuMduData?._pbFallbacks?.slack_wax_actual;
+  const isSlackWaxOverridden = Boolean(
+    feuMduData?._userOverrides?.slack_wax_actual ||
+      (isViewingSaved && feuMduData?.slack_wax_actual !== undefined),
+  );
+  const slackWaxActual = isSlackWaxOverridden
+    ? feuMduData.slack_wax_actual
+    : (hasPhdMdu || hasPhdDor)
+      ? calculatedSlackWaxActual
+      : (feuMduData?.slack_wax_actual !== undefined
+          ? feuMduData.slack_wax_actual
+          : (pbFallbackSlackWax !== undefined ? pbFallbackSlackWax : calculatedSlackWaxActual));
 
   // Helper to render LIMS parameter cell with limit comparison & inline editability
   const renderLimsParam = (
@@ -775,6 +977,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             hvu_actual: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              hvu_actual: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
@@ -817,16 +1023,34 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             hvu_percent_design: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              hvu_percent_design: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(hvuPercentRph, 1, (val) =>
-                      onFeuMduChange({ ...feuMduData, hvu_percent_rph: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        hvu_percent_rph: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          hvu_percent_rph: true,
+                        },
+                      }),
                     )}
                     {renderPercentCell(hvuPercentSts, 1, (val) =>
-                      onFeuMduChange({ ...feuMduData, hvu_percent_sts: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        hvu_percent_sts: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          hvu_percent_sts: true,
+                        },
+                      }),
                     )}
                   </tr>
 
@@ -878,6 +1102,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             pdu_actual: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              pdu_actual: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
@@ -920,16 +1148,34 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             pdu_percent_design: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              pdu_percent_design: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(pduPercentRph, 1, (val) =>
-                      onFeuMduChange({ ...feuMduData, pdu_percent_rph: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        pdu_percent_rph: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          pdu_percent_rph: true,
+                        },
+                      }),
                     )}
                     {renderPercentCell(pduPercentSts, 1, (val) =>
-                      onFeuMduChange({ ...feuMduData, pdu_percent_sts: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        pdu_percent_sts: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          pdu_percent_sts: true,
+                        },
+                      }),
                     )}
                   </tr>
 
@@ -998,6 +1244,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             feu_actual: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              feu_actual: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
@@ -1072,16 +1322,34 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             feu_percent_design: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              feu_percent_design: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(feuPercentRph, 2, (val) =>
-                      onFeuMduChange({ ...feuMduData, feu_percent_rph: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        feu_percent_rph: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          feu_percent_rph: true,
+                        },
+                      }),
                     )}
                     {renderPercentCell(feuPercentSts, 2, (val) =>
-                      onFeuMduChange({ ...feuMduData, feu_percent_sts: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        feu_percent_sts: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          feu_percent_sts: true,
+                        },
+                      }),
                     )}
                   </tr>
                   <tr>
@@ -1173,6 +1441,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             mdu_actual: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              mdu_actual: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
@@ -1247,16 +1519,34 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             mdu_percent_design: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              mdu_percent_design: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
                     {renderPercentCell(mduPercentRph, 2, (val) =>
-                      onFeuMduChange({ ...feuMduData, mdu_percent_rph: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        mdu_percent_rph: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          mdu_percent_rph: true,
+                        },
+                      }),
                     )}
                     {renderPercentCell(mduPercentSts, 2, (val) =>
-                      onFeuMduChange({ ...feuMduData, mdu_percent_sts: val }),
+                      onFeuMduChange({
+                        ...feuMduData,
+                        mdu_percent_sts: val,
+                        _userOverrides: {
+                          ...(feuMduData?._userOverrides || {}),
+                          mdu_percent_sts: true,
+                        },
+                      }),
                     )}
                   </tr>
                   <tr>
@@ -1341,6 +1631,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             hos_actual: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              hos_actual: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
@@ -1371,6 +1665,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             level_023c104: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              level_023c104: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-semibold text-slate-900 p-0"
@@ -1402,6 +1700,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             flow_hvi_95_loc2: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              flow_hvi_95_loc2: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-semibold text-slate-900 p-0"
@@ -1417,6 +1719,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             flow_hvi_160s_loc2: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              flow_hvi_160s_loc2: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-semibold text-slate-900 p-0"
@@ -1432,6 +1738,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             flow_hvi_650_loc2: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              flow_hvi_650_loc2: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-semibold text-slate-900 p-0"
@@ -1447,6 +1757,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             level_cpi: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              level_cpi: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-semibold text-slate-900 p-0"
@@ -1547,6 +1861,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             stock_hvi_95: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              stock_hvi_95: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-900 p-0"
@@ -1561,6 +1879,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             stock_hvi_160s: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              stock_hvi_160s: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-900 p-0"
@@ -1575,6 +1897,10 @@ export default function DailyReport({
                           onFeuMduChange({
                             ...feuMduData,
                             stock_hvi_650: e.target.value,
+                            _userOverrides: {
+                              ...(feuMduData?._userOverrides || {}),
+                              stock_hvi_650: true,
+                            },
                           })
                         }
                         className="editable-input text-center font-bold text-slate-900 p-0"
@@ -1784,6 +2110,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               spo_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                spo_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -1832,6 +2162,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               lmo_dist_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                lmo_dist_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -1880,6 +2214,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               mmo_dist_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                mmo_dist_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -1928,6 +2266,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               short_residue_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                short_residue_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -1981,6 +2323,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               dao_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                dao_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -2035,6 +2381,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               asphalt_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                asphalt_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -2076,6 +2426,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               raff_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                raff_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -2130,6 +2484,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               extract_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                extract_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -2171,6 +2529,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               dor_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                dor_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"
@@ -2234,6 +2596,10 @@ export default function DailyReport({
                             onFeuMduChange({
                               ...feuMduData,
                               slack_wax_actual: e.target.value,
+                              _userOverrides: {
+                                ...(feuMduData?._userOverrides || {}),
+                                slack_wax_actual: true,
+                              },
                             })
                           }
                           className="editable-input text-center font-bold text-slate-800 p-0 flex-1 min-w-0"

@@ -182,6 +182,147 @@ export async function getDailyReport(dateStr) {
   return null
 }
 
+/**
+ * Detailed report lookup by date with fallbacks (daily_report -> report_daily_archive -> local cache)
+ */
+export async function getSavedReportByDate(dateStr) {
+  // 1. Check daily_report collection
+  try {
+    const existing = await findExistingRecords('daily_report', dateStr)
+    if (existing && existing.length > 0) {
+      const parsed = parsePbDailyReport(existing[0])
+      return {
+        success: true,
+        source: 'daily_report',
+        id: parsed.id,
+        date: dateStr,
+        created: parsed.created,
+        updated: parsed.updated,
+        record: parsed,
+      }
+    }
+  } catch (err) {
+    console.warn(`[PocketBase] getSavedReportByDate daily_report error:`, err.message)
+  }
+
+  // 2. Check report_daily_archive collection
+  try {
+    const archives = await findExistingRecords('report_daily_archive', dateStr)
+    if (archives && archives.length > 0) {
+      const rec = archives[0]
+      let payload = rec.payload_data
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload) } catch {}
+      }
+      return {
+        success: true,
+        source: 'report_daily_archive',
+        id: rec.id,
+        date: dateStr,
+        created: rec.created,
+        updated: rec.updated,
+        record: {
+          id: rec.id,
+          date: dateStr,
+          created: rec.created,
+          updated: rec.updated,
+          feu_mdu_data: payload?.feu_mdu_data || payload,
+          issue_operational: payload?.issue_operational || [],
+          issue_maintenance: payload?.issue_maintenance || [],
+          unit_modes: payload?.unit_modes || { unit023: 'MMO', unit024: 'LMO' },
+        },
+      }
+    }
+  } catch (err) {
+    console.warn(`[PocketBase] getSavedReportByDate archive error:`, err.message)
+  }
+
+  // 3. Check localStorage cache
+  try {
+    const localDaily = localStorage.getItem(`daily_report_${dateStr}`)
+    if (localDaily) {
+      const parsed = JSON.parse(localDaily)
+      return {
+        success: true,
+        source: 'local_cache',
+        id: 'local-' + dateStr,
+        date: dateStr,
+        created: parsed.updated_at || new Date().toISOString(),
+        updated: parsed.updated_at || new Date().toISOString(),
+        record: {
+          id: 'local-' + dateStr,
+          date: dateStr,
+          created: parsed.updated_at,
+          updated: parsed.updated_at,
+          feu_mdu_data: parsed.feu_mdu_data || {},
+          issue_operational: parsed.issue_operational || [],
+          issue_maintenance: parsed.issue_maintenance || [],
+          unit_modes: parsed.unit_modes || { unit023: 'MMO', unit024: 'LMO' },
+        },
+      }
+    }
+
+    const localArchive = localStorage.getItem(`daily_archive_${dateStr}`)
+    if (localArchive) {
+      const parsed = JSON.parse(localArchive)
+      const payload = parsed.payload_data || parsed
+      return {
+        success: true,
+        source: 'local_archive_cache',
+        id: 'local-arch-' + dateStr,
+        date: dateStr,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        record: {
+          id: 'local-arch-' + dateStr,
+          date: dateStr,
+          feu_mdu_data: payload?.feu_mdu_data || payload,
+          issue_operational: payload?.issue_operational || [],
+          issue_maintenance: payload?.issue_maintenance || [],
+          unit_modes: payload?.unit_modes || { unit023: 'MMO', unit024: 'LMO' },
+        },
+      }
+    }
+  } catch (err) {}
+
+  return {
+    success: false,
+    date: dateStr,
+    message: `Tidak ditemukan data laporan di PocketBase untuk tanggal ${dateStr}.`,
+  }
+}
+
+/**
+ * Get list of dates that have saved reports in PocketBase
+ */
+export async function getSavedReportDates() {
+  const datesSet = new Set()
+
+  try {
+    const res = await apiRequest('/api/collections/daily_report/records?perPage=50&sort=-created')
+    if (res.items && Array.isArray(res.items)) {
+      res.items.forEach((item) => {
+        const d = item.date || item.created?.slice(0, 10)
+        if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+          datesSet.add(d)
+        }
+      })
+    }
+  } catch (err) {}
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith('daily_report_')) {
+        const d = k.replace('daily_report_', '')
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) datesSet.add(d)
+      }
+    }
+  } catch {}
+
+  return Array.from(datesSet).sort().reverse()
+}
+
 export async function saveDailyReport(dateStr, data) {
   // Sanitize numeric nulls so 0 is never stored as null
   const sanitizedFeuMdu = sanitizeForSave(data.feu_mdu_data || {})

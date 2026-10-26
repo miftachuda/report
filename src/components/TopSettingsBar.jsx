@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import html2canvas from 'html2canvas-pro'
 import { calculateTargetTD } from '../utils/calculations.js'
+import { getSavedReportByDate } from '../services/pocketbase.js'
+import SavedPocketBaseModal from './SavedPocketBaseModal.jsx'
 import {
   Settings,
   ChevronUp,
@@ -12,6 +14,9 @@ import {
   Calendar,
   CheckCircle2,
   AlertCircle,
+  Eye,
+  Download,
+  RotateCcw,
 } from './Icons.jsx'
 
 export default function TopSettingsBar({
@@ -29,14 +34,78 @@ export default function TopSettingsBar({
   feuMduData = {},
   onFeuMduChange,
   unitModes = { unit023: 'MMO', unit024: 'LMO' },
+  activeReportDate,
+  onLoadSavedReport,
+  onResetToToday,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [toastMessage, setToastMessage] = useState(null)
 
+  const getTodayStr = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  const todayStr = getTodayStr()
+
+  const [pickedDate, setPickedDate] = useState(activeReportDate || todayStr)
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false)
+  const [savedModalData, setSavedModalData] = useState(null)
+  const [isSavedModalOpen, setIsSavedModalOpen] = useState(false)
+
   const showToast = (msg, type = 'info') => {
     setToastMessage({ text: msg, type })
     setTimeout(() => setToastMessage(null), 4000)
+  }
+
+  const handleOpenSavedModal = async () => {
+    if (!pickedDate) {
+      showToast('Pilih tanggal laporan terlebih dahulu', 'error')
+      return
+    }
+    setIsLoadingSaved(true)
+    setIsSavedModalOpen(true)
+    setSavedModalData({ date: pickedDate })
+    try {
+      const result = await getSavedReportByDate(pickedDate)
+      setSavedModalData(result)
+    } catch (err) {
+      setSavedModalData({
+        success: false,
+        date: pickedDate,
+        message: `Gagal mengakses PocketBase: ${err.message}`,
+      })
+    } finally {
+      setIsLoadingSaved(false)
+    }
+  }
+
+  const handleDirectLoadToDashboard = async () => {
+    if (!pickedDate) {
+      showToast('Pilih tanggal laporan terlebih dahulu', 'error')
+      return
+    }
+    setIsLoadingSaved(true)
+    try {
+      const result = await getSavedReportByDate(pickedDate)
+      if (result && result.success) {
+        onLoadSavedReport?.(result)
+        showToast(
+          `Laporan PocketBase tanggal ${pickedDate} berhasil dimuat ke dashboard!`,
+          'success',
+        )
+      } else {
+        showToast(
+          result?.message ||
+            `Tidak ditemukan rekaman laporan di PocketBase untuk tanggal ${pickedDate}`,
+          'error',
+        )
+      }
+    } catch (err) {
+      showToast(`Gagal memuat data: ${err.message}`, 'error')
+    } finally {
+      setIsLoadingSaved(false)
+    }
   }
 
   // Active operational modes
@@ -330,6 +399,26 @@ export default function TopSettingsBar({
             <Database className="w-3 h-3" />
             {pocketBaseConnected ? 'Database Connected' : 'Offline / Local'}
           </span>
+
+          {/* Historical Saved Report Indicator */}
+          {activeReportDate && activeReportDate !== todayStr && (
+            <div className="hidden lg:flex items-center gap-1.5 bg-amber-950/80 border border-amber-700/80 text-amber-300 px-2.5 py-0.5 rounded text-[11px]">
+              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                Arsip Tersimpan: <strong>{activeReportDate}</strong>
+              </span>
+              {onResetToToday && (
+                <button
+                  type="button"
+                  onClick={onResetToToday}
+                  className="ml-1 text-slate-200 hover:text-white underline cursor-pointer text-[10px]"
+                  title="Kembali ke tampilan live hari ini"
+                >
+                  Kembali ke Hari Ini
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Global Quick Action Buttons */}
@@ -494,6 +583,86 @@ export default function TopSettingsBar({
                   <span className="font-mono text-slate-200">
                     {lastSavedTime ? new Date(lastSavedTime).toLocaleTimeString('id-ID') : '-'}
                   </span>
+                </div>
+              </div>
+
+              {/* Saved PocketBase Data Viewer Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                    <Database className="w-3.5 h-3.5 text-cyan-400" />
+                    Saved PocketBase Report
+                  </span>
+                  {activeReportDate && activeReportDate !== todayStr ? (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-800 font-mono">
+                      Viewing: {activeReportDate}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">
+                      Today: {todayStr}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block mb-1">
+                      Pilih Tanggal:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="date"
+                        value={pickedDate}
+                        onChange={(e) => setPickedDate(e.target.value)}
+                        className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-100 text-xs focus:outline-hidden focus:border-cyan-400 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPickedDate(todayStr)}
+                        className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] border border-slate-700 transition cursor-pointer"
+                        title="Pilih hari ini"
+                      >
+                        Today
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleOpenSavedModal}
+                      disabled={isLoadingSaved}
+                      className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800/60 font-semibold text-xs transition cursor-pointer disabled:opacity-50"
+                      title="Lihat detail data yang tersimpan di PocketBase pada tanggal yang dipilih"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{isLoadingSaved ? 'Checking...' : 'View Saved'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDirectLoadToDashboard}
+                      disabled={isLoadingSaved}
+                      className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded bg-cyan-700 hover:bg-cyan-600 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 shadow-xs"
+                      title="Muat dan tampilkan laporan tanggal ini langsung ke dashboard"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Load to View</span>
+                    </button>
+                  </div>
+
+                  {/* Reset back to today if currently viewing historical */}
+                  {activeReportDate && activeReportDate !== todayStr && (
+                    <button
+                      type="button"
+                      onClick={onResetToToday}
+                      className="w-full flex items-center justify-center gap-1.5 mt-1 px-2 py-1 rounded bg-amber-950/50 hover:bg-amber-900/60 text-amber-300 border border-amber-800/70 text-[11px] font-medium transition cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Kembali ke Laporan Hari Ini (Live)</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -772,6 +941,21 @@ export default function TopSettingsBar({
           </div>
         </div>
       )}
+
+      {/* Modal to view saved PocketBase details */}
+      <SavedPocketBaseModal
+        isOpen={isSavedModalOpen}
+        onClose={() => setIsSavedModalOpen(false)}
+        dataResult={savedModalData}
+        isLoading={isLoadingSaved}
+        onLoadToDashboard={(res) => {
+          onLoadSavedReport?.(res)
+          showToast(
+            `Data laporan PocketBase ${res.date} berhasil dimuat ke dashboard!`,
+            'success',
+          )
+        }}
+      />
     </div>
   )
 }

@@ -25,45 +25,71 @@ function getActivePhdTags(currentModes, currentTanks = []) {
   const activeTags = [
     "021FI_004.pv",
     "021FY_004X.C1",
+    "021FY_004X.c1",
     "022FI_001.pv",
     "022FY_001X.C1",
+    "022FY_001X.c1",
     "023FIC_004.pv",
+    "023FI_004.pv",
     "024FIC_001.pv",
+    "024FI_001.pv",
     "025FIC_004.pv",
+    "025FI_004.pv",
     "025FY_004X.PV",
+    "025FY_004X.pv",
     "002LI_051.PV",
+    "002LI_051.pv",
     "023LI_005.PV",
+    "023LI_005.pv",
     // Produksi Unit 021 HVU II
     "021FIC_058.PV",
+    "021FIC_058.pv",
     "021FY_058X.C1",
+    "021FY_058X.c1",
     "021FIC_057.PV",
+    "021FIC_057.pv",
     "021FY_057X.C1",
+    "021FY_057X.c1",
     "021FI_008.PV",
+    "021FI_008.pv",
+    "021FY_008X.C1",
     "021FY_008X.c1",
     "021FI_002.PV",
+    "021FI_002.pv",
+    "021FY_002X.C1",
     "021FY_002X.c1",
     // Produksi Unit 022 PDU II
     "022FI_007.PV",
+    "022FI_007.pv",
     "022FY_007X.C1",
+    "022FY_007X.c1",
     "022FI_013.PV",
+    "022FI_013.pv",
+    "022FY_013X.C1",
     "022FY_013X.c1",
     // Produksi Unit 023 FEU II
     "023FI_031.PV",
+    "023FI_031.pv",
     "023FI_703.PV",
+    "023FI_703.pv",
     "023FY_031BX.C1",
     "023FY_031CX.C1",
     "023FY_031DX.C1",
     "023FI_028.pv",
+    "023FI_028.PV",
     "023FY_028BX.C1",
     "023FY_028CX.C1",
     "023FY_028DX.C1",
     // Produksi Unit 024 MDU II
     "024FI_023.PV",
+    "024FI_023.pv",
     "024FY_023BX.C1",
     "024FY_023CX.C1",
     "024FY_023DX.C1",
     "024FI_031.PV",
+    "024FI_031.pv",
     "024FY_031X.c1",
+    "024FY_031X.C1",
   ];
 
   if (mode023 === "LMO") activeTags.push("023FY_004BX.C1");
@@ -153,6 +179,9 @@ export default function App() {
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
+  // Active report date (defaults to today, can view historical reports from PocketBase)
+  const [activeReportDate, setActiveReportDate] = useState(getTodayDateStr);
 
   // PHD query preset ('now' | 'last_10m' | 'last_1h' | 'last_3h' | 'last_8h' | 'last_24h' | 'this_day' | 'custom')
   const [phdPreset, setPhdPreset] = useState("now");
@@ -299,6 +328,11 @@ export default function App() {
         const calculated = calculateDateRangeForPreset(newPreset);
         if (calculated) {
           setDateRange(calculated);
+          // Clear user overrides when changing preset so fresh PHD calculations are displayed
+          setFeuMduData((prev) => ({
+            ...prev,
+            _userOverrides: {},
+          }));
           loadPhdTags(calculated, unitModes, tanks);
         }
       }
@@ -310,6 +344,10 @@ export default function App() {
   const handleDateRangeChange = useCallback(
     (newRange) => {
       setDateRange(newRange);
+      setFeuMduData((prev) => ({
+        ...prev,
+        _userOverrides: {},
+      }));
       loadPhdTags(newRange, unitModes, tanks);
     },
     [unitModes, tanks, loadPhdTags],
@@ -330,10 +368,13 @@ export default function App() {
     const normalized = normalizeOperationalIssues(newData);
     setIssueOperational(normalized);
     const today = getTodayDateStr();
+    setActiveReportDate(today);
     try {
+      const { _userOverrides: _uo, _pbFallbacks: _pf, ...cleanFeuMduToSave } =
+        stateRef.current.feuMduData || {};
       await saveDailyReport(today, {
         feu_mdu_data: {
-          ...stateRef.current.feuMduData,
+          ...cleanFeuMduToSave,
           unit_statuses: stateRef.current.unitStatuses,
         },
         issue_operational: normalized,
@@ -355,10 +396,13 @@ export default function App() {
     const normalized = normalizeMaintenanceIssues(newData);
     setIssueMaintenance(normalized);
     const today = getTodayDateStr();
+    setActiveReportDate(today);
     try {
+      const { _userOverrides: _uo, _pbFallbacks: _pf, ...cleanFeuMduToSave } =
+        stateRef.current.feuMduData || {};
       await saveDailyReport(today, {
         feu_mdu_data: {
-          ...stateRef.current.feuMduData,
+          ...cleanFeuMduToSave,
           unit_statuses: stateRef.current.unitStatuses,
         },
         issue_operational: stateRef.current.issueOperational,
@@ -379,6 +423,10 @@ export default function App() {
   const handleUnitModeChange = (unitKey, newMode) => {
     const updated = { ...unitModes, [unitKey]: newMode };
     setUnitModes(updated);
+    setFeuMduData((prev) => ({
+      ...prev,
+      _userOverrides: {},
+    }));
     loadPhdTags(dateRange, updated, tanks);
   };
 
@@ -407,6 +455,7 @@ export default function App() {
     }
 
     const today = getTodayDateStr();
+    setActiveReportDate(today);
 
     try {
       // Fetch PB daily report, latest daily report, latest archive, tanks, limits, health and LIMS in parallel
@@ -547,30 +596,96 @@ export default function App() {
       // Requirements:
       // 1. Pompa Hos, burner FG/FO, status pompa CPI, visual perairan, produk dest, sts, rph
       //    update directly from last saved record in PocketBase.
-      // 2. Tank Farm product stocks must strictly calculate from PHD tags, and LOC II flows
-      //    from active Unit 024 feed mode on refresh. Strip out stock_hvi_* and flow_hvi_*_loc2
-      //    from saved record so they are not pinned to stale DB values.
-      // 3. No hardcoded operational fallbacks. Merged directly over defaultFeuMdu ("-").
+      // 2. Data T/D dan data lain yang bersumber dari PHD: ketika refresh data PRIORITAS diambil
+      //    dari PHD bukan dari PocketBase.
+      //    Semua field T/D actuals, levels, stocks, LOC II flows, dan achieved percentages
+      //    dilepaskan dari savedFeuMdu agar tidak menimpa perhitungan PHD segar.
+      //    Nilai dari database disimpan ke pbFallbacks HANYA sebagai cadangan jika tag PHD null/gagal.
       const {
+        // T/D Feed actuals & achieved percentages
+        hvu_actual,
+        pdu_actual,
+        feu_actual,
+        mdu_actual,
+        hos_actual,
+        hvu_percent_design,
+        hvu_percent_rph,
+        hvu_percent_sts,
+        pdu_percent_design,
+        pdu_percent_rph,
+        pdu_percent_sts,
+        feu_percent_design,
+        feu_percent_rph,
+        feu_percent_sts,
+        mdu_percent_design,
+        mdu_percent_rph,
+        mdu_percent_sts,
+        // Levels
+        level_023c104,
+        level_cpi,
+        // Produksi actuals (T/D)
+        spo_actual,
+        lmo_dist_actual,
+        mmo_dist_actual,
+        short_residue_actual,
+        dao_actual,
+        asphalt_actual,
+        raff_actual,
+        extract_actual,
+        dor_actual,
+        slack_wax_actual,
+        // Tank farm stocks & LOC II flows
         stock_hvi_95,
         stock_hvi_160s,
         stock_hvi_650,
         flow_hvi_95_loc2,
         flow_hvi_160s_loc2,
         flow_hvi_650_loc2,
+        // Design / Target overrides
         feu_design_override,
         mdu_design_override,
         feu_target_rph,
         feu_target_sts,
         mdu_target_rph,
         mdu_target_sts,
+        _userOverrides,
+        _pbFallbacks,
         ...restSavedFeuMdu
       } = savedFeuMdu;
+
+      const pbFallbacks = {
+        hvu_actual,
+        pdu_actual,
+        feu_actual,
+        mdu_actual,
+        hos_actual,
+        spo_actual,
+        lmo_dist_actual,
+        mmo_dist_actual,
+        short_residue_actual,
+        dao_actual,
+        asphalt_actual,
+        raff_actual,
+        extract_actual,
+        dor_actual,
+        slack_wax_actual,
+        level_023c104,
+        level_cpi,
+        stock_hvi_95,
+        stock_hvi_160s,
+        stock_hvi_650,
+        flow_hvi_95_loc2,
+        flow_hvi_160s_loc2,
+        flow_hvi_650_loc2,
+      };
 
       const cleanServerFeuMdu = {
         ...defaultFeuMdu,
         ...restSavedFeuMdu,
         ...topLevelOps,
+        _pbFallbacks: {},
+        _userOverrides: {},
+        _isViewingSaved: false,
       };
       setFeuMduData(cleanServerFeuMdu);
 
@@ -616,19 +731,29 @@ export default function App() {
 
       const apiLims = limsApiRes.status === "fulfilled" ? limsApiRes.value : null;
 
-      // Merge PHD tags - prefer fresh API, fallback to DB snapshot
-      const dbPhdSnapshot = archivePayload?.phd_data_snapshot || {};
-      const mergedPhd = { ...dbPhdSnapshot, ...(apiPhd || {}) };
-      setPhdData(mergedPhd);
+      // PHD tags: strictly prioritize fresh API from PHD. Do not overwrite fresh data with stale DB snapshot.
+      if (apiPhd && Object.keys(apiPhd).length > 0) {
+        setPhdData(apiPhd);
+      } else if (archivePayload?.phd_data_snapshot) {
+        setPhdData(archivePayload.phd_data_snapshot);
+      } else {
+        setPhdData({});
+      }
 
-      // Merge LIMS samples - prefer fresh API, fallback to DB snapshot
-      const dbLimsSnapshot = archivePayload?.lims_snapshot?.samples || {};
-      const apiLimsSamples = apiLims?.samples || {};
-      const mergedLimsSamples = { ...dbLimsSnapshot, ...apiLimsSamples };
-      setLimsData({
-        samples: mergedLimsSamples,
-        shift: apiLims?.shift || archivePayload?.lims_snapshot?.shift || "Malam",
-      });
+      // LIMS samples: strictly prioritize fresh API from LIMS.
+      if (apiLims?.samples && Object.keys(apiLims.samples).length > 0) {
+        setLimsData(apiLims);
+      } else if (archivePayload?.lims_snapshot?.samples) {
+        setLimsData({
+          samples: archivePayload.lims_snapshot.samples,
+          shift: archivePayload.lims_snapshot.shift || "Malam",
+        });
+      } else {
+        setLimsData({
+          samples: {},
+          shift: "Malam",
+        });
+      }
 
       setLastSavedTime(
         reportData?.updated ||
@@ -685,13 +810,15 @@ export default function App() {
   // 4. Manual Save to PocketBase daily_report
   const handleManualSave = async () => {
     setIsSaving(true);
-    const today = getTodayDateStr();
+    const saveDate = activeReportDate || getTodayDateStr();
 
     try {
+      const { _userOverrides: _uo, _pbFallbacks: _pf, _isViewingSaved: _ivs, ...cleanFeuMduToSave } =
+        stateRef.current.feuMduData || {};
       // Sync daily_report
       const currentReportState = {
         feu_mdu_data: {
-          ...stateRef.current.feuMduData,
+          ...cleanFeuMduToSave,
           unit_statuses: stateRef.current.unitStatuses,
         },
         issue_operational: stateRef.current.issueOperational,
@@ -701,7 +828,7 @@ export default function App() {
           statuses: stateRef.current.unitStatuses,
         },
       };
-      await saveDailyReport(today, currentReportState);
+      await saveDailyReport(saveDate, currentReportState);
       setLastSavedTime(new Date().toISOString());
       setPocketBaseConnected(true);
     } catch (err) {
@@ -712,9 +839,70 @@ export default function App() {
     }
   };
 
+  // Load a historical or specific date's saved report from PocketBase into the dashboard
+  const handleLoadSavedReport = useCallback(
+    (reportResult) => {
+      if (!reportResult || !reportResult.record) return;
+      const rec = reportResult.record;
+      const targetDate = reportResult.date || rec.date || getTodayDateStr();
+      setActiveReportDate(targetDate);
+
+      const rawFeu = rec.feu_mdu_data || {};
+      const parsedFeu =
+        typeof rawFeu === "string" ? JSON.parse(rawFeu) : rawFeu;
+
+      const modes = rec.unit_modes || { unit023: "MMO", unit024: "LMO" };
+      setUnitModes({
+        unit023: modes.unit023 || "MMO",
+        unit024: modes.unit024 || "LMO",
+      });
+
+      const statuses =
+        modes.statuses ||
+        rec.unit_statuses ||
+        parsedFeu.unit_statuses || {
+          unit021: "Normal Operasi",
+          unit022: "Normal Operasi",
+          unit023: "Normal Operasi",
+          unit024: "Normal Operasi",
+          hos: "Normal Operasi",
+        };
+      setUnitStatuses(statuses);
+
+      setIssueOperational(
+        normalizeOperationalIssues(rec.issue_operational || []),
+      );
+      setIssueMaintenance(
+        normalizeMaintenanceIssues(rec.issue_maintenance || []),
+      );
+
+      const isToday = targetDate === getTodayDateStr();
+      setFeuMduData({
+        ...defaultFeuMdu,
+        ...parsedFeu,
+        _isViewingSaved: !isToday,
+        _userOverrides: {},
+      });
+    },
+    [normalizeOperationalIssues, normalizeMaintenanceIssues],
+  );
+
+  // Reset back to today's date & live PHD priority
+  const handleResetToToday = useCallback(() => {
+    const today = getTodayDateStr();
+    setActiveReportDate(today);
+    handleRefresh();
+  }, [handleRefresh]);
+
   // Format date display for header
-  const formatDateDisplay = () => {
-    const now = new Date();
+  const formatDateDisplay = (dateStr) => {
+    let d = new Date();
+    if (dateStr) {
+      const parts = String(dateStr).slice(0, 10).split("-");
+      if (parts.length === 3) {
+        d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      }
+    }
     const days = [
       "Minggu",
       "Senin",
@@ -738,7 +926,7 @@ export default function App() {
       "November",
       "Desember",
     ];
-    return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
   };
 
   // Top bar visibility state (stored in localStorage for persistence)
@@ -774,6 +962,9 @@ export default function App() {
           feuMduData={feuMduData}
           onFeuMduChange={handleFeuMduChange}
           unitModes={unitModes}
+          activeReportDate={activeReportDate}
+          onLoadSavedReport={handleLoadSavedReport}
+          onResetToToday={handleResetToToday}
         />
       )}
 
@@ -792,7 +983,7 @@ export default function App() {
       {/* Main Operational Report Dashboard */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <DailyReport
-          dateDisplay={formatDateDisplay()}
+          dateDisplay={formatDateDisplay(activeReportDate)}
           feuMduData={feuMduData}
           onFeuMduChange={handleFeuMduChange}
           issueOperational={issueOperational}
