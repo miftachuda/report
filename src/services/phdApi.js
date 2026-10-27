@@ -47,17 +47,69 @@ let activeRequestPromise = null
 let activeAbortController = null
 
 /**
- * Internal worker to execute the network fetch for PHD data
+ * Worker to fetch a single batch of tags
  */
-async function executePhdFetch(tagNames, sTime, eTime, queryInterval, controller) {
+async function fetchTagChunk(chunk, sTime, eTime, queryInterval, controller) {
   const payload = [
     {
-      TagName: Array.from(new Set(tagNames)),
+      TagName: chunk,
       StartTime: sTime,
       EndTime: eTime,
       Interval: queryInterval,
     },
   ]
+
+  const response = await fetch(PHD_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  })
+
+  if (!response.ok) {
+    throw new Error(`PHD API error ${response.status}: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  if (!Array.isArray(data)) {
+    if (data && data.error) throw new Error(data.error)
+    return {}
+  }
+
+  const chunkValues = {}
+  data.forEach((item) => {
+    if (!item.TagName) return
+    let val = null
+
+    if (Array.isArray(item.Value) && item.Value.length > 0) {
+      let sum = 0
+      let count = 0
+      for (let i = 0; i < item.Value.length; i++) {
+        const v = item.Value[i]
+        if (v !== null && v !== undefined && !isNaN(Number(v))) {
+          sum += Number(v)
+          count++
+        }
+      }
+      val = count > 0 ? sum / count : null
+    } else if (item.Value !== null && item.Value !== undefined && !isNaN(Number(item.Value))) {
+      val = Number(item.Value)
+    }
+
+    chunkValues[item.TagName] = val
+  })
+
+  return chunkValues
+}
+
+/**
+ * Internal worker to execute the network fetch for PHD data
+ */
+async function executePhdFetch(tagNames, sTime, eTime, queryInterval, controller) {
+  const uniqueTags = Array.from(new Set(tagNames))
+  if (uniqueTags.length === 0) return {}
 
   // Increased timeout to 45s for large tag batches and server query queues
   const timeoutId = setTimeout(() => {
@@ -65,56 +117,44 @@ async function executePhdFetch(tagNames, sTime, eTime, queryInterval, controller
   }, 45000)
 
   try {
-    const response = await fetch(PHD_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    })
+    // Query in parallel batches of up to 15 tags to optimize throughput and DCS response time
+    const chunkSize = 15
+    const chunks = []
+    for (let i = 0; i < uniqueTags.length; i += chunkSize) {
+      chunks.push(uniqueTags.slice(i, i + chunkSize))
+    }
+
+    const chunkPromises = chunks.map((chunk) =>
+      fetchTagChunk(chunk, sTime, eTime, queryInterval, controller),
+    )
+
+    const settled = await Promise.allSettled(chunkPromises)
     clearTimeout(timeoutId)
 
-    if (!response.ok) {
-      throw new Error(`PHD API error ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    if (!Array.isArray(data)) {
-      if (data && data.error) throw new Error(data.error)
-      return {}
-    }
-
-    // Map each Tag to its average value across the queried time range
     const tagValues = {}
-    data.forEach((item) => {
-      if (!item.TagName) return
-      let val = null
+    let successCount = 0
 
-      if (Array.isArray(item.Value) && item.Value.length > 0) {
-        let sum = 0
-        let count = 0
-        for (let i = 0; i < item.Value.length; i++) {
-          const v = item.Value[i]
-          if (v !== null && v !== undefined && !isNaN(Number(v))) {
-            sum += Number(v)
-            count++
-          }
-        }
-        val = count > 0 ? sum / count : null
-      } else if (item.Value !== null && item.Value !== undefined && !isNaN(Number(item.Value))) {
-        val = Number(item.Value)
+    settled.forEach((res) => {
+      if (res.status === 'fulfilled' && res.value) {
+        Object.assign(tagValues, res.value)
+        successCount++
+      } else if (res.status === 'rejected') {
+        console.warn('[PHD API] Chunk error:', res.reason?.message || res.reason)
       }
-
-      tagValues[item.TagName] = val
     })
 
+    console.log(
+      `[PHD API] Successfully fetched ${Object.keys(tagValues).length} tags (${successCount}/${chunks.length} chunks)`,
+    )
+
     // Cache latest successful read to localStorage
-    try {
-      const existing = JSON.parse(localStorage.getItem('cached_phd_tags') || '{}')
-      localStorage.setItem('cached_phd_tags', JSON.stringify({ ...existing, ...tagValues }))
-    } catch {
-      // ignore
+    if (Object.keys(tagValues).length > 0) {
+      try {
+        const existing = JSON.parse(localStorage.getItem('cached_phd_tags') || '{}')
+        localStorage.setItem('cached_phd_tags', JSON.stringify({ ...existing, ...tagValues }))
+      } catch {
+        // ignore
+      }
     }
 
     return tagValues
@@ -132,12 +172,8 @@ async function executePhdFetch(tagNames, sTime, eTime, queryInterval, controller
       return {}
     }
 
-    console.warn('[PHD API] fetch failed, using cached tags:', err.message || err)
-    try {
-      return JSON.parse(localStorage.getItem('cached_phd_tags') || '{}')
-    } catch {
-      return {}
-    }
+    console.warn('[PHD API] fetch failed:', err.message || err)
+    return {}
   }
 }
 

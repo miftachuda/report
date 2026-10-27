@@ -327,9 +327,10 @@ export default function App() {
     [unitModes, tanks, loadPhdTags],
   );
 
-  // Initial mount: only check PocketBase health, do not query data until Refresh button is pressed
+  // Initial mount: automatically load fresh live data from PHD, LIMS, and configuration
   useEffect(() => {
-    checkPocketBaseHealth().then(setPocketBaseConnected);
+    handleRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Section A: FEU MDU change handler (local state update, persists on Manual Save)
@@ -600,15 +601,15 @@ export default function App() {
         mdu_lmo_design: savedFeuMdu.mdu_lmo_design ?? 841,
         mdu_mmo_design: savedFeuMdu.mdu_mmo_design ?? 777,
         mdu_dao_design: savedFeuMdu.mdu_dao_design ?? 501,
-        // Target T/D overrides if any
-        hvu_target_rph: savedFeuMdu.hvu_target_rph ?? "-",
-        hvu_target_sts: savedFeuMdu.hvu_target_sts ?? "-",
-        pdu_target_rph: savedFeuMdu.pdu_target_rph ?? "-",
-        pdu_target_sts: savedFeuMdu.pdu_target_sts ?? "-",
-        feu_target_rph: savedFeuMdu.feu_target_rph ?? "-",
-        feu_target_sts: savedFeuMdu.feu_target_sts ?? "-",
-        mdu_target_rph: savedFeuMdu.mdu_target_rph ?? "-",
-        mdu_target_sts: savedFeuMdu.mdu_target_sts ?? "-",
+        // Target T/D: strictly "-" in live refresh so they are dynamically computed
+        hvu_target_rph: "-",
+        hvu_target_sts: "-",
+        pdu_target_rph: "-",
+        pdu_target_sts: "-",
+        feu_target_rph: "-",
+        feu_target_sts: "-",
+        mdu_target_rph: "-",
+        mdu_target_sts: "-",
         // Notes
         note: savedFeuMdu.note ?? "",
         // Flow LOC 3
@@ -793,11 +794,10 @@ export default function App() {
         normalizeMaintenanceIssues(rec.issue_maintenance || []),
       );
 
-      const isToday = targetDate === getTodayDateStr();
       setFeuMduData({
         ...defaultFeuMdu,
         ...parsedFeu,
-        _isViewingSaved: !isToday,
+        _isViewingSaved: true,
         _userOverrides: {},
       });
     },

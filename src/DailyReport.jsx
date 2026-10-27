@@ -80,17 +80,15 @@ export default function DailyReport({
       : 3883;
   const hvuRphPercent = feuMduData?.hvu_rph ?? "-";
   const calculatedHvuTargetRph = calculateTargetTD(hvuRphPercent, Number(hvuDesign));
-  const hvuTargetRph =
-    feuMduData?.hvu_target_rph !== undefined && feuMduData?.hvu_target_rph !== "-"
-      ? feuMduData.hvu_target_rph
-      : (calculatedHvuTargetRph ?? "-");
+  const hvuTargetRph = isViewingSaved
+    ? (feuMduData?.hvu_target_rph ?? calculatedHvuTargetRph ?? "-")
+    : (calculatedHvuTargetRph ?? "-");
 
   const hvuStsPercent = feuMduData?.hvu_sts ?? "-";
   const calculatedHvuTargetSts = calculateTargetTD(hvuStsPercent, Number(hvuDesign));
-  const hvuTargetSts =
-    feuMduData?.hvu_target_sts !== undefined && feuMduData?.hvu_target_sts !== "-"
-      ? feuMduData.hvu_target_sts
-      : (calculatedHvuTargetSts ?? "-");
+  const hvuTargetSts = isViewingSaved
+    ? (feuMduData?.hvu_target_sts ?? calculatedHvuTargetSts ?? "-")
+    : (calculatedHvuTargetSts ?? "-");
   const calculatedHvuPercentDesign =
     calculateAchievedPercent(hvuActual, hvuDesign) ?? "0";
   const hvuPercentDesign = feuMduData?._userOverrides?.hvu_percent_design
@@ -130,17 +128,15 @@ export default function DailyReport({
       : 784;
   const pduRphPercent = feuMduData?.pdu_rph ?? "-";
   const calculatedPduTargetRph = calculateTargetTD(pduRphPercent, Number(pduDesign));
-  const pduTargetRph =
-    feuMduData?.pdu_target_rph !== undefined && feuMduData?.pdu_target_rph !== "-"
-      ? feuMduData.pdu_target_rph
-      : (calculatedPduTargetRph ?? "-");
+  const pduTargetRph = isViewingSaved
+    ? (feuMduData?.pdu_target_rph ?? calculatedPduTargetRph ?? "-")
+    : (calculatedPduTargetRph ?? "-");
 
   const pduStsPercent = feuMduData?.pdu_sts ?? "-";
   const calculatedPduTargetSts = calculateTargetTD(pduStsPercent, Number(pduDesign));
-  const pduTargetSts =
-    feuMduData?.pdu_target_sts !== undefined && feuMduData?.pdu_target_sts !== "-"
-      ? feuMduData.pdu_target_sts
-      : (calculatedPduTargetSts ?? "-");
+  const pduTargetSts = isViewingSaved
+    ? (feuMduData?.pdu_target_sts ?? calculatedPduTargetSts ?? "-")
+    : (calculatedPduTargetSts ?? "-");
   const calculatedPduPercentDesign =
     calculateAchievedPercent(pduActual, pduDesign) ?? "0";
   const pduPercentDesign = feuMduData?._userOverrides?.pdu_percent_design
@@ -190,10 +186,14 @@ export default function DailyReport({
   // Target RPH & STS strictly dynamically adjust according to active feed mode
   const calculatedFeuTargetRph =
     calculateTargetTD(feuRphPercent, Number(feuDesign));
-  const feuTargetRph = calculatedFeuTargetRph ?? "-";
+  const feuTargetRph = isViewingSaved
+    ? (feuMduData?.feu_target_rph ?? calculatedFeuTargetRph ?? "-")
+    : (calculatedFeuTargetRph ?? "-");
   const calculatedFeuTargetSts =
     calculateTargetTD(feuStsPercent, Number(feuDesign));
-  const feuTargetSts = calculatedFeuTargetSts ?? "-";
+  const feuTargetSts = isViewingSaved
+    ? (feuMduData?.feu_target_sts ?? calculatedFeuTargetSts ?? "-")
+    : (calculatedFeuTargetSts ?? "-");
   const feuFlow = getPhdTag(feuTagFlow) ?? getPhdTag("023FI_004.pv");
   const feuSg = getPhdTag(feuTagSg);
   const hasPhdFeu = hasPhdTag(feuTagFlow) || hasPhdTag("023FI_004.pv");
@@ -252,10 +252,14 @@ export default function DailyReport({
   // Target RPH & STS strictly dynamically adjust according to active feed mode
   const calculatedMduTargetRph =
     calculateTargetTD(mduRphPercent, Number(mduDesign));
-  const mduTargetRph = calculatedMduTargetRph ?? "-";
+  const mduTargetRph = isViewingSaved
+    ? (feuMduData?.mdu_target_rph ?? calculatedMduTargetRph ?? "-")
+    : (calculatedMduTargetRph ?? "-");
   const calculatedMduTargetSts =
     calculateTargetTD(mduStsPercent, Number(mduDesign));
-  const mduTargetSts = calculatedMduTargetSts ?? "-";
+  const mduTargetSts = isViewingSaved
+    ? (feuMduData?.mdu_target_sts ?? calculatedMduTargetSts ?? "-")
+    : (calculatedMduTargetSts ?? "-");
   const mduFlow = getPhdTag("024FIC_001.pv") ?? getPhdTag("024FI_001.pv");
   const mduSg = getPhdTag(mduTagSg) ?? 0.85;
   const hasPhdMdu = hasPhdTag("024FIC_001.pv") || hasPhdTag("024FI_001.pv");
@@ -346,7 +350,6 @@ export default function DailyReport({
   const hosSg = getPhdTag("021FY_058X.C1") ?? getPhdTag("025FY_004X.PV") ?? 0.88;
   const hasPhdHos = hasPhdTag("025FIC_004.pv") || hasPhdTag("025FI_004.pv");
   const calculatedHosActual = calculateActualTD(hosFlow, hosSg) ?? 0;
-  const pbFallbackHos = feuMduData?._pbFallbacks?.hos_actual;
   const isHosOverridden = Boolean(feuMduData?._userOverrides?.hos_actual);
   const hosActual = isHosOverridden
     ? feuMduData.hos_actual
