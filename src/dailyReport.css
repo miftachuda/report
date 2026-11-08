@@ -218,8 +218,7 @@ html, body {
   border-bottom-left-radius: 14px;
 }
 
-.card-summary tbody tr:first-child td:last-child,
-.card-summary tbody tr:first-child td:last-child textarea {
+.card-summary tbody tr:first-child td:last-child {
   border-bottom-right-radius: 14px;
 }
 
@@ -254,9 +253,13 @@ html, body {
   padding: 0 !important;
 }
 
-.card-summary tr th:last-child,
-.card-summary tr td:last-child {
+.card-summary thead tr th:last-child,
+.card-summary tbody tr:first-child td:last-child {
   border-right: none !important;
+}
+
+.card-summary tbody tr:not(:first-child) td:last-child {
+  border-right: 1px solid var(--table-border) !important;
 }
 
 .card-summary tbody tr:last-child td,

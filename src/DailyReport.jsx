@@ -2485,28 +2485,56 @@ export default function DailyReport({
               </table>
             </div>
 
-            {/* SECTION A: FEU / MDU / NOTE SUMMARY TABLE (Directly Editable with Auto-Save) */}
+            {/* SECTION A: HVU / PDU / FEU / MDU SUMMARY TABLE (Directly Editable with Auto-Save) */}
             <div className="card card-summary">
               <table>
                 <colgroup>
-                  <col style={{ width: "9%" }} />
-                  <col style={{ width: "13.5%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "13.5%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "24%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "8%" }} />
                 </colgroup>
                 <thead>
                   <tr>
                     <th
+                      rowSpan={2}
                       style={{
                         background:
                           "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
                         color: "#fff",
                       }}
-                    ></th>
+                    >
+                      Grade
+                    </th>
+                    <th
+                      colSpan={3}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
+                      HVU
+                    </th>
+                    <th
+                      colSpan={3}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
+                      PDU
+                    </th>
                     <th
                       colSpan={3}
                       style={{
@@ -2527,30 +2555,112 @@ export default function DailyReport({
                     >
                       MDU
                     </th>
-                    <th
-                      style={{
-                        background:
-                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
-                        color: "#fff",
-                      }}
-                    >
-                      NOTE
-                    </th>
                   </tr>
                   <tr>
-                    <th>Grade</th>
                     <th>Design (T/D)</th>
                     <th>STS (%)</th>
                     <th>RPH (%)</th>
                     <th>Design (T/D)</th>
                     <th>STS (%)</th>
                     <th>RPH (%)</th>
-                    <th></th>
+                    <th>Design (T/D)</th>
+                    <th>STS (%)</th>
+                    <th>RPH (%)</th>
+                    <th>Design (T/D)</th>
+                    <th>STS (%)</th>
+                    <th>RPH (%)</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td className="text-center font-bold">LMO</td>
+                    {/* HVU */}
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={hvuDesign}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            hvu_design: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={feuMduData?.hvu_sts ?? "-"}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            hvu_sts: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={feuMduData?.hvu_rph ?? "-"}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            hvu_rph: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    {/* PDU */}
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={pduDesign}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            pdu_design: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={feuMduData?.pdu_sts ?? "-"}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            pdu_sts: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    <td rowSpan={3} className="text-center font-bold p-0">
+                      <input
+                        type="text"
+                        value={feuMduData?.pdu_rph ?? "-"}
+                        onDoubleClick={(e) => e.target.select()}
+                        onChange={(e) =>
+                          onFeuMduChange({
+                            ...feuMduData,
+                            pdu_rph: e.target.value,
+                          })
+                        }
+                        className="editable-input text-center font-bold text-slate-800 p-0"
+                      />
+                    </td>
+                    {/* FEU LMO */}
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
@@ -2593,6 +2703,7 @@ export default function DailyReport({
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
+                    {/* MDU LMO */}
                     <td className="text-center font-bold p-0">
                       <input
                         type="text"
@@ -2633,19 +2744,6 @@ export default function DailyReport({
                           })
                         }
                         className="editable-input text-center font-bold text-slate-800 p-0"
-                      />
-                    </td>
-                    <td rowSpan={3} className="p-1">
-                      <textarea
-                        value={feuMduData?.note ?? ""}
-                        onDoubleClick={(e) => e.target.select()}
-                        onChange={(e) =>
-                          onFeuMduChange({
-                            ...feuMduData,
-                            note: e.target.value,
-                          })
-                        }
-                        className="editable-input w-full h-full min-h-0 resize-none text-[10.5px] font-medium leading-normal p-1 overflow-y-auto block"
                       />
                     </td>
                   </tr>
