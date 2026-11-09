@@ -214,8 +214,12 @@ html, body {
   border-top-right-radius: 14px;
 }
 
-.card-summary tbody tr:last-child td:first-child {
+.card-summary tbody tr:first-child td:first-child[rowspan="3"] {
   border-bottom-left-radius: 14px;
+}
+
+.card-summary tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0;
 }
 
 .card-summary tbody tr:first-child td:last-child {

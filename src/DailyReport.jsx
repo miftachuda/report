@@ -2489,13 +2489,13 @@ export default function DailyReport({
             <div className="card card-summary">
               <table>
                 <colgroup>
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "7.5%" }} />
                   <col style={{ width: "6%" }} />
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "7.5%" }} />
                   <col style={{ width: "8%" }} />
                   <col style={{ width: "8%" }} />
                   <col style={{ width: "8%" }} />
@@ -2505,16 +2505,6 @@ export default function DailyReport({
                 </colgroup>
                 <thead>
                   <tr>
-                    <th
-                      rowSpan={2}
-                      style={{
-                        background:
-                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
-                        color: "#fff",
-                      }}
-                    >
-                      Grade
-                    </th>
                     <th
                       colSpan={3}
                       style={{
@@ -2534,6 +2524,16 @@ export default function DailyReport({
                       }}
                     >
                       PDU
+                    </th>
+                    <th
+                      rowSpan={2}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0093e0 0%, #0076be 100%)",
+                        color: "#fff",
+                      }}
+                    >
+                      Grade
                     </th>
                     <th
                       colSpan={3}
@@ -2573,7 +2573,6 @@ export default function DailyReport({
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="text-center font-bold">LMO</td>
                     {/* HVU */}
                     <td rowSpan={3} className="text-center font-bold p-0">
                       <input
@@ -2660,6 +2659,8 @@ export default function DailyReport({
                         className="editable-input text-center font-bold text-slate-800 p-0"
                       />
                     </td>
+                    {/* Grade LMO */}
+                    <td className="text-center font-bold">LMO</td>
                     {/* FEU LMO */}
                     <td className="text-center font-bold p-0">
                       <input
@@ -2748,6 +2749,7 @@ export default function DailyReport({
                     </td>
                   </tr>
                   <tr>
+                    {/* Grade MMO */}
                     <td className="text-center font-bold">MMO</td>
                     <td className="text-center font-bold p-0">
                       <input
@@ -2807,6 +2809,7 @@ export default function DailyReport({
                     </td>
                   </tr>
                   <tr>
+                    {/* Grade DAO */}
                     <td className="text-center font-bold">DAO</td>
                     <td className="text-center font-bold p-0">
                       <input
